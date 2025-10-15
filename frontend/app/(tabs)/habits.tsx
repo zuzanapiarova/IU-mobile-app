@@ -20,9 +20,16 @@ export default function HabitsScreen()
   const [updatedHabitName, setUpdatedHabitName] = useState('');
 
   // get habits from database
+  // useEffect(() => {
+  //   async function load() {
+  //     const data = await getAllHabits();
+  //     setHabits(data);
+  //   }
+  //   load();
+  // }, []);
+
   useEffect(() => {
     async function load() {
-      await initializeDatabase();
       const data = await getAllHabits();
       setHabits(data);
     }
@@ -62,7 +69,7 @@ export default function HabitsScreen()
   const renderHabit = ({ item }: { item: Habit }) => (
     <Card style={[globalStyles.listItem, {backgroundColor: theme.colors.background }]} mode="elevated">
       <Card.Content style={ globalStyles.inRow }>
-        <Text variant="titleMedium" style={{ color: theme.colors.primary }}>
+        <Text variant="titleMedium" style={{ color: theme.colors.primary, flexWrap: 'wrap', flex: 1 }}>
           {item.name}
         </Text>
         <Surface elevation={0} style={ globalStyles.inRow }>

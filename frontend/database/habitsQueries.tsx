@@ -65,23 +65,7 @@ export async function uncompleteHabit(habitId: number, date?: string): Promise<v
     );
 }
 
-// gets percentage of habit completions for the entire day that is input, if no input, take today
-// used for the colored dot for each day
-export async function getHabitsStatusForDay(date?: string) {
-    await initializeDatabase();
-    const day = date || new Date().toISOString().split('T')[0];
-    const results = await db.getAllAsync(`
-        SELECT h.id, h.name, COALESCE(c.status, 0) as status
-        FROM habits h
-        LEFT JOIN habit_completions c
-        ON h.id = c.habit_id AND c.date = ?
-        WHERE c.status = 1
-    `, [day]);
-
-    return results;
-}
-
-// finds if the habit(mandatory) was completed on specified day, if day not provided, takes today
+// retrieves array of habid_ids that were completed on specific day
 export async function getCompletedHabitsForDay(date?: string) {
     await initializeDatabase();
     const day = date || new Date().toISOString().split('T')[0];

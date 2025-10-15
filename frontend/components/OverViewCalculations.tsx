@@ -2,12 +2,8 @@ import { CompletionQueryOptions,  } from '../constants/interfaces'
 import { db } from '../database/db'
 import { CountRow } from '../constants/interfaces'
 
-export async function getCompletionPercentage({
-  startDate,
-  endDate,
-  habitIds,
-}: CompletionQueryOptions): Promise<{ date: string; percentage: number }[]> {
-  
+export async function getCompletionPercentage({ startDate, endDate, habitIds }: CompletionQueryOptions): Promise<{ date: string; percentage: number }[]>
+{  
   const finalEndDate = endDate || startDate;
 
   // create date list between start and end

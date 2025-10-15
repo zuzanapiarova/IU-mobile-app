@@ -1,79 +1,153 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, FlatList } from 'react-native';
-import { Text, Card, TextInput, Button, List, useTheme, Surface } from 'react-native-paper';
+import { View, StyleSheet, FlatList, TouchableOpacity  } from 'react-native';
+import { Text, Card, useTheme, Button, Portal, Surface, List } from 'react-native-paper';
+import { DatePickerModal } from 'react-native-paper-dates';
 import { initializeDatabase } from '../../database/db';
-import { addHabit, getAllHabits } from '../../database/habitsQueries';
-
-import { Habit } from '../../constants/interfaces'
+import { getAllHabits, getCompletedHabitsForDay } from '../../database/habitsQueries';
+import { Habit } from '../../constants/interfaces';
 import { globalStyles } from '../../constants/globalStyles';
+import { PieChart } from 'react-native-chart-kit'; // Install this library
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 
-export default function HabitsScreen()
+export default function OverviewScreen()
 {
   const theme = useTheme();
   const [habits, setHabits] = useState<Habit[]>([]);
-  const [newHabit, setNewHabit] = useState('');
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
-  useEffect(() => {
-    async function load() {
-      await initializeDatabase();
-      const data = await getAllHabits();
-      setHabits(data);
-    }
-    load();
-  }, []);
+  // useFocusEffect(
+  //   React.useCallback(() => {
+  //     const fetchData = async () => {
+  //       await initializeDatabase();
+  //       const habitsForDay = await getCompletedHabitsForDay(selectedDate.toISOString().split('T')[0]);
+  //       setHabits(habitsForDay);
+  //     };
 
-  async function handleAddHabit() {
-    if (!newHabit.trim()) return;
-    await addHabit(newHabit);
-    setNewHabit('');
-    const updated = await getAllHabits();
-    setHabits(updated);
-  }
+  //     fetchData();
+  //   }, [selectedDate])
+  // );
 
-  const renderHabit = ({ item }: { item: Habit }) => (
-    <Card style={globalStyles.container} mode="elevated">
-      <Card.Content>
-        <Text variant="titleMedium" style={{ color: theme.colors.primary }}>
-          {item.name}
-        </Text>
-      </Card.Content>
-    </Card>
-  );
+  const renderHabit = ({ item }: { item: Habit & { isCompleted: boolean } }) => {
+    return (
+      <List.Item
+        title={() => (
+          <Text style={[globalStyles.habitText]}>
+            {item.name}
+          </Text>
+        )}
+        left={() => (
+          <TouchableOpacity>
+            <MaterialCommunityIcons
+              name={item.isCompleted ? 'check-circle-outline' : 'circle-outline'}
+              size={24}
+              color={item.isCompleted ? 'green' : 'red'}
+            />
+          </TouchableOpacity>
+        )}
+      />
+    );
+  };
+
+  const unfulfilledHabits = habits.filter((habit) => !habit.status);
+  const fulfilledHabits = habits.filter((habit) => habit.status);
+
+  const pieData = [
+    {
+      key: 1,
+      value: fulfilledHabits.length,
+      svg: { fill: theme.colors.primary },
+      arc: { outerRadius: '100%', cornerRadius: 10 },
+    },
+    {
+      key: 2,
+      value: unfulfilledHabits.length,
+      svg: { fill: theme.colors.error },
+      arc: { outerRadius: '100%', cornerRadius: 10 },
+    },
+  ];
 
   return (
-    <Surface 
-            style={ globalStyles.display }
-            elevation={0}
-    >
-      <Card style={globalStyles.card} mode="outlined">
-        <Card.Content>
-          <TextInput
-            label="New Habit"
-            value={newHabit}
-            mode="outlined"
-            onChangeText={setNewHabit}
-            style={globalStyles.input}
-          />
-          <Button 
-            mode="contained-tonal" 
-            onPress={handleAddHabit}
-            disabled={!newHabit.trim()}
-            style={globalStyles.button}
-          >
-            Add Habit
-          </Button>
-        </Card.Content>
-      </Card>
-
-      <List.Section>
-        <List.Subheader>My Habits</List.Subheader>
-        <FlatList
-          data={habits}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={renderHabit}
-          ListEmptyComponent={<Text style={globalStyles.empty}>No habits yet</Text>}
+    <Surface style={ [globalStyles.display, { flex: 1}] } elevation={0}>
+      <Text variant='displaySmall' style={{ textAlign: 'center'}}>Overview</Text>
+      {/* Date Picker */}
+      {/* <Button
+        mode="outlined"
+        onPress={() => setDatePickerVisible(true)}
+        style={styles.datePickerButton}
+      >
+        {selectedDate.toDateString()}
+      </Button>
+      <Portal>
+        <DatePickerModal
+          mode="single"
+          visible={isDatePickerVisible}
+          onDismiss={() => setDatePickerVisible(false)}
+          date={selectedDate}
+          locale="en"
+          onConfirm={(params) => {
+            if (params.date) {
+              setSelectedDate(params.date); // Only set the date if it's defined
+            }
+            setDatePickerVisible(false);
+          }}
         />
-      </List.Section>
+      </Portal> */}
+
+      
+      {/* Pie Chart */}
+      {/* <PieChart
+        data={pieData}
+        width={300}
+        height={220}
+        chartConfig={{
+          backgroundColor: theme.colors.background,
+          backgroundGradientFrom: theme.colors.background,
+          backgroundGradientTo: theme.colors.background,
+          color: (opacity = 1) => theme.colors.primary,
+        }}
+        accessor="count"
+        backgroundColor="transparent"
+        paddingLeft="15"
+        absolute
+      /> */}
+
+      {/* Habit List */}
+      {/* <FlatList
+        data={[...unfulfilledHabits, ...fulfilledHabits]}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={renderHabit}
+        contentContainerStyle={styles.list}
+      /> */}
     </Surface>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: '#fff',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  datePickerButton: {
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  chartContainer: {
+    marginVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 8,
+    elevation: 2,
+  },
+  list: {
+    marginTop: 16,
+  },
+});

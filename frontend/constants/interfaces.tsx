@@ -5,6 +5,7 @@ export interface Habit
     id: number;
     name: string;
     frequency: string;
+    status: boolean;
 }
 
 export interface HabitCompletion
