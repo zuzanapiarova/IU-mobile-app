@@ -109,6 +109,30 @@ export const globalStyles = StyleSheet.create(
 
     yellow: {
       color: '#e6bb02'
+    }, 
+
+    modalContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    
+    modalContent: {
+      width: '90%',
+      padding: 20,
+      borderRadius: 10,
+      backgroundColor: 'white',
+    },
+
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginBottom: 10,
+    },
+
+    closeButton: {
+      marginTop: 20,
     }
 
 });

@@ -3,12 +3,12 @@ import { StyleSheet, FlatList, Keyboard, KeyboardAvoidingView, Platform, Touchab
 import { Text, Card, TextInput, Button, List, useTheme, Surface, Modal, Portal } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-import { initializeDatabase } from '../../database/db';
-import { addHabit, getAllHabits, updateHabit, deleteHabit } from '../../database/habitsQueries';
+import { addHabit, getCurrentHabitList, updateHabitName, updateHabitFrequency, deleteHabit } from '../../database/habitsQueries';
 
 import { Habit } from '../../constants/interfaces'
 import { globalStyles } from '../../constants/globalStyles';
 
+// gets data from the habits table
 export default function HabitsScreen()
 {
   const theme = useTheme();
@@ -18,19 +18,12 @@ export default function HabitsScreen()
   const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
   const [isEditModalVisible, setEditModalVisible] = useState(false);
   const [updatedHabitName, setUpdatedHabitName] = useState('');
-
-  // get habits from database
-  // useEffect(() => {
-  //   async function load() {
-  //     const data = await getAllHabits();
-  //     setHabits(data);
-  //   }
-  //   load();
-  // }, []);
+  const [updatedHabitFrequency, setUpdatedHabitFrequency] = useState('');
 
   useEffect(() => {
     async function load() {
-      const data = await getAllHabits();
+      const data = await getCurrentHabitList();
+      console.log('Loaded habits:', data);
       setHabits(data);
     }
     load();
@@ -41,24 +34,29 @@ export default function HabitsScreen()
     if (!newHabit.trim()) return;
     await addHabit(newHabit);
     setNewHabit('');
-    const updated = await getAllHabits();
+    const updated = await getCurrentHabitList();
     setHabits(updated);
   }
 
+  // delete habit from db 
   async function handleDeleteHabit() {
     if (selectedHabit) {
-      await deleteHabit(selectedHabit.id);
-      const updated = await getAllHabits();
+      await deleteHabit(selectedHabit.habit_id);
+      const updated = await getCurrentHabitList();
       setHabits(updated);
       setDeleteModalVisible(false);
       setSelectedHabit(null);
     }
   }
 
+  // todo: change frequency if it was changed, if not, keep selectedHabit.frequency
   async function handleUpdateHabit() {
-    if (selectedHabit && updatedHabitName.trim()) {
-      await updateHabit(selectedHabit.id, updatedHabitName, selectedHabit.frequency);
-      const updated = await getAllHabits();
+    if (selectedHabit) {
+      if (updatedHabitName.trim())
+        await updateHabitName(selectedHabit.habit_id, updatedHabitName);
+      if (updatedHabitFrequency)
+        await updateHabitFrequency(selectedHabit.habit_id, updatedHabitName);
+      const updated = await getCurrentHabitList();
       setHabits(updated);
       setEditModalVisible(false);
       setSelectedHabit(null);
@@ -81,6 +79,7 @@ export default function HabitsScreen()
             onPress={() => {
               setSelectedHabit(item);
               setUpdatedHabitName(item.name);
+              setUpdatedHabitFrequency(item.frequency);
               setEditModalVisible(true);
             }}
           />
@@ -131,7 +130,7 @@ export default function HabitsScreen()
           <List.Section style={{ flex: 1 }}>
             <FlatList
               data={habits}
-              keyExtractor={(item) => item.id.toString()}
+              keyExtractor={(item) => item.habit_id.toString()}
               renderItem={renderHabit}
               ListEmptyComponent={<Text style={globalStyles.empty}>No habits yet</Text>}
               contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}

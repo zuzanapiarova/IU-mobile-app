@@ -1,11 +1,12 @@
-import React from "react";
-
 export interface Habit
 {
-    id: number;
+    habit_id: number;
+    date: string;
+    status: number;
+    timestamp: string;
     name: string;
     frequency: string;
-    status: boolean;
+    current: number;
 }
 
 export interface HabitCompletion

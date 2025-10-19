@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Text, Card, Surface, useTheme } from 'react-native-paper';
 
-import { getAllHabits } from '../../database/habitsQueries';
+import { getCurrentHabitList, getHabitsForDay } from '../../database/habitsQueries'; // todo: change to getHabitsForDay
 import { getUser } from '../../database/userQueries';
 
 import HabitsList from '@/components/HabitsCheckList'
@@ -13,31 +13,29 @@ import { globalStyles } from '../../constants/globalStyles';
 
 export default function HomeScreen()
 {
-  const [habits, setHabits] = useState<Habit[]>([]);
   const [userName, setUserName] = useState<User | null>(null);
-
+  const today = new Date().toISOString().split('T')[0];
   const theme = useTheme();
 
   useEffect(() => {
     getUser().then(setUserName).catch(console.error);
   }, []);
 
-  useEffect(() => {
-    getAllHabits().then(setHabits).catch(console.error);
-  }, []);
-
   return (
-    <Surface 
-        style={ [globalStyles.display, { backgroundColor: theme.colors.surface, flex: 1 }] }
-        elevation={0}
+    <Surface
+      style={[globalStyles.display, { backgroundColor: theme.colors.surface, flex: 1 }]}
+      elevation={0}
     >
       <Text variant="displaySmall">
         Welcome back, {userName?.name ?? 'Guest'}!
       </Text>
-      <Surface style={[globalStyles.container, { height: 300 }, { backgroundColor: theme.colors.background }]}>
-        <HabitsList />
+      <Surface
+        style={[globalStyles.container, { height: 300 }, { backgroundColor: theme.colors.background }]}
+      >
+        {/* Pass habits as props to HabitsList */}
+        <HabitsList date={today}/>
       </Surface>
-      <Card style={ [globalStyles.container, {backgroundColor: theme.colors.background }]}>
+      <Card style={[globalStyles.container, { backgroundColor: theme.colors.background }]}>
         <StatusCalendar />
       </Card>
     </Surface>

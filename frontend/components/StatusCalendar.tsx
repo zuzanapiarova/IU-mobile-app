@@ -1,13 +1,21 @@
 import React, { useEffect, useState } from 'react';
+import { Modal, View, FlatList, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Calendar } from 'react-native-calendars';
-import { useTheme } from 'react-native-paper';
+import { useTheme, Surface, Button } from 'react-native-paper';
+
 import { getCompletionPercentage } from './OverViewCalculations';
 import { globalStyles } from '../constants/globalStyles'
+import { Habit } from '@/constants/interfaces';
+import { getHabitsForDay } from '@/database/habitsQueries';
+import HabitList from "./HabitsCheckList";
 
-export default function StatusCalendar() {
+export default function StatusCalendar()
+{
   const theme = useTheme();
   const today = new Date().toISOString().split('T')[0];
   const [markedDates, setMarkedDates] = useState<{ [key: string]: any }>({});
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [isModalVisible, setModalVisible] = useState(false);
 
   // Function to generate marked dates for the given month and year
   const generateMarkedDates = async (year: number, month: number) => {
@@ -30,6 +38,12 @@ export default function StatusCalendar() {
     setMarkedDates(newMarkedDates);
   };
 
+  // Handle date selection
+  const handleDateSelect = async (date: string) => {
+    setSelectedDate(date);
+    setModalVisible(true); // Open the modal
+  };
+
   // Load the current month's marked dates on mount
   useEffect(() => {
     const currentDate = new Date();
@@ -37,11 +51,13 @@ export default function StatusCalendar() {
   }, []);
 
   return (
+    <>
     <Calendar
       markedDates={{
         ...markedDates,
         [today]: { selected: true }, // Highlight today
       }}
+      onDayPress={(day) => handleDateSelect(day.dateString)} // Handle date selection
       onMonthChange={(month) => {
         generateMarkedDates(month.year, month.month); // Update marked dates when the month changes
       }}
@@ -55,5 +71,23 @@ export default function StatusCalendar() {
         arrowColor: theme.colors.secondary,
       }}
     />
+    {/* Modal to display habits for the selected date */}
+    <Modal
+        visible={isModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <Surface style={globalStyles.modalContent}>
+          <Text>Habits on {selectedDate}</Text>
+            {/* {renderHabitsListForDay()} */}
+            { !selectedDate ? 
+                <Text>No habits for this day. </Text> : <HabitList date={selectedDate} />}
+          <Button mode="contained" onPress={() => setModalVisible(false)} style={globalStyles.closeButton}>
+            Close
+          </Button>
+        </Surface>
+      </Modal>
+    </>
   );
 }

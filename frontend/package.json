@@ -47,6 +47,7 @@
     "eslint-config-expo": "~10.0.0",
     "expo": "^54.0.13",
     "expo-module-scripts": "^5.0.7",
+    "react-native-background-fetch": "^4.2.8",
     "react-native-calendars": "^1.1313.0",
     "react-native-chart-kit": "^6.12.0",
     "react-native-paper-dates": "^0.22.50",

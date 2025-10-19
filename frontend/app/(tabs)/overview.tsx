@@ -3,7 +3,7 @@ import { View, StyleSheet, FlatList, TouchableOpacity  } from 'react-native';
 import { Text, Card, useTheme, Button, Portal, Surface, List } from 'react-native-paper';
 import { DatePickerModal } from 'react-native-paper-dates';
 import { initializeDatabase } from '../../database/db';
-import { getAllHabits, getCompletedHabitsForDay } from '../../database/habitsQueries';
+import { getCompletedHabitsForDay } from '../../database/habitsQueries';
 import { Habit } from '../../constants/interfaces';
 import { globalStyles } from '../../constants/globalStyles';
 import { PieChart } from 'react-native-chart-kit'; // Install this library
@@ -15,18 +15,6 @@ export default function OverviewScreen()
   const theme = useTheme();
   const [habits, setHabits] = useState<Habit[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
-
-  // useFocusEffect(
-  //   React.useCallback(() => {
-  //     const fetchData = async () => {
-  //       await initializeDatabase();
-  //       const habitsForDay = await getCompletedHabitsForDay(selectedDate.toISOString().split('T')[0]);
-  //       setHabits(habitsForDay);
-  //     };
-
-  //     fetchData();
-  //   }, [selectedDate])
-  // );
 
   const renderHabit = ({ item }: { item: Habit & { isCompleted: boolean } }) => {
     return (

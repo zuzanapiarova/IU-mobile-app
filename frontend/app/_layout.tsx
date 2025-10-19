@@ -4,7 +4,8 @@ import { Stack } from 'expo-router';
 import { useColorScheme } from 'react-native';
 import { PaperProvider, MD3LightTheme, MD3DarkTheme } from 'react-native-paper';
 import { Colors } from '@/constants/theme';
-import { initializeDatabase, logDatabaseContents } from '../database/db'
+import { initializeDatabase } from '../database/db'
+import { initializeHabitCompletions } from '../database/init';
 
 export default function RootLayout()
 {
@@ -16,14 +17,13 @@ export default function RootLayout()
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        console.log('Initializing database...');
         await initializeDatabase(); // Ensure tables are created
         console.log('✅ Database initialized');
+        await initializeHabitCompletions(); // Initialize missing habit completions
       } catch (err) {
-        console.error('❌ Database init error:', err);
+        console.error('❌ Error during app initialization:', err);
       }
     };
-  
     initializeApp(); // Call the async function
   }, []);
 

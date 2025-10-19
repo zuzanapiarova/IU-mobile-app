@@ -1,80 +1,18 @@
-// import * as SQLite from 'expo-sqlite';
-
-// export const db = SQLite.openDatabaseSync('test10.db');
-
-// export async function initializeDatabase()
-// {
-
-//   // habits list
-//   await db.execAsync(`
-//     CREATE TABLE IF NOT EXISTS habits (
-//       id INTEGER PRIMARY KEY AUTOINCREMENT,
-//       name TEXT NOT NULL,
-//       frequency TEXT DEFAULT 'daily',
-//       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-//     );
-//   `);
-
-//   // habit completions and overview
-//   //   add    date TEXT NOT NULL CHECK(date GLOB ____-__-__),
-//   await db.execAsync(`
-//     CREATE TABLE IF NOT EXISTS habit_completions (
-//       id INTEGER PRIMARY KEY AUTOINCREMENT,
-//       habit_id INTEGER NOT NULL,
-//       date TEXT NOT NULL CHECK(date GLOB '____-__-__'),
-//       status INTEGER NOT NULL CHECK(status IN (0, 1)),
-//       timestamp TEXT DEFAULT (datetime('now')),
-//       FOREIGN KEY (habit_id) REFERENCES habits(id),
-//       UNIQUE(habit_id, date)
-//     );
-//   `);
-//   const result2 = await db.getAllAsync(`PRAGMA table_info(habit_completions);`);
-//   console.log(result2);
-
-//   // users
-//   await db.execAsync(`
-//     CREATE TABLE IF NOT EXISTS users (
-//       id INTEGER PRIMARY KEY AUTOINCREMENT,
-//       name TEXT NOT NULL,
-//       email TEXT,
-//       theme_preference TEXT DEFAULT 'system',
-//       created_at TEXT DEFAULT CURRENT_TIMESTAMP
-//     );
-//   `);
-// }
-
 import * as SQLite from 'expo-sqlite';
 
-export const db = SQLite.openDatabaseSync('habits3.db');
+export const  db = SQLite.openDatabaseSync('habits3.db');
+let           initialized = false;
 
-let initialized = false;
+export async function initializeDatabase() {
+  if (initialized) return;
 
-/**
- * Initialize the database (run once)
- * @param force - optional, drop & recreate tables for dev
- */
-export async function initializeDatabase({ force = false } = {}) {
-  if (initialized && !force) return;
-
-  console.log(force ? '⚠️ Re-initializing DB (force)' : 'Initializing DB...');
-
-  if (force) {
-    try {
-      await db.execAsync(`DROP TABLE IF EXISTS habit_completions;`);
-      await db.execAsync(`DROP TABLE IF EXISTS habits;`);
-      await db.execAsync(`DROP TABLE IF EXISTS users;`);
-      console.log('Dropped old tables');
-    } catch (err) {
-      console.error('Error dropping tables:', err);
-    }
-  }
-
-  // Create tables
+  // list of all habits, current and past, for populating habit completions and retrospecive view  
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS habits (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       frequency TEXT DEFAULT 'daily',
+      current INTEGER CHECK(current IN (0, 1)) DEFAULT 1,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
   `);
@@ -85,15 +23,15 @@ export async function initializeDatabase({ force = false } = {}) {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       habit_id INTEGER NOT NULL,
       date TEXT NOT NULL,
-      status INTEGER NOT NULL CHECK(status IN (0, 1)),
+      status INTEGER CHECK(status IN (0, 1)) DEFAULT 0,
       timestamp TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (habit_id) REFERENCES habits(id),
       UNIQUE(habit_id, date)
     );
   `);
 
-  const result = await db.getAllAsync(`SELECT sql FROM sqlite_master WHERE name='habit_completions';`);
-  console.log(result);
+  const result = await db.getAllAsync(`SELECT sql FROM sqlite_master WHERE name = 'habit_completions';`);
+  console.log("habit completions table: \n" + result);
 
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS users (
@@ -109,7 +47,14 @@ export async function initializeDatabase({ force = false } = {}) {
   console.log('✅ Database initialized');
 }
 
-export async function logDatabaseContents() {
+// ! debug 
+// export async function clearToday()
+// {
+//   await db.runAsync(`DELETE FROM habits WHERE current = 0`);
+// }
+
+export async function logDatabaseContents()
+{
   try {
     console.log('Logging database contents...');
 
