@@ -103,7 +103,7 @@ export async function completeHabit(habitId: number, date?: string): Promise<voi
         timestamp = datetime('now');`,
         [habitId, day, day]
     );
-    logDatabaseContents();
+    // logDatabaseContents();
 }
 
 // set status of a habit in habit_completions to 0(uncomplete), for specified day or else today if date not specified
@@ -116,7 +116,7 @@ export async function uncompleteHabit(habitId: number, date?: string): Promise<v
         WHERE habit_id = ? AND date = ?`,
         [habitId, day]
     );
-    logDatabaseContents();
+    // logDatabaseContents();
 }
 
 // retrieves array of habid_ids that were completed on specific day

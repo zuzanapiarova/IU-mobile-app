@@ -1,247 +1,220 @@
+{
+    "date": "2025-10-18",
+    "habit_id": 7,
+    "id": 54,
+    "status": 0,
+    "timestamp": "2025-10-19 12:01:43"
+},
+{
+    "date": "2025-10-18",
+    "habit_id": 8,
+    "id": 55,
+    "status": 0,
+    "timestamp": "2025-10-19 12:01:43"
+},
+{
+    "date": "2025-10-18",
+    "habit_id": 9,
+    "id": 56,
+    "status": 1,
+    "timestamp": "2025-10-20 14:02:47"
+},
+{
+    "date": "2025-10-18",
+    "habit_id": 10,
+    "id": 57,
+    "status": 1,
+    "timestamp": "2025-10-20 14:02:46"
+},
+{
+    "date": "2025-10-18",
+    "habit_id": 12,
+    "id": 58,
+    "status": 0,
+    "timestamp": "2025-10-19 12:01:43"
+},
+// habits
 [
     {
-        "date": "2025-10-14",
-        "habit_id": 7,
+        "created_at": "2025-10-19 12:57:28",
+        "current": 0,
+        "frequency": "daily",
+        "id": 9,
+        "name": "Abc "
+    },
+    {
+        "created_at": "2025-10-19 12:58:11",
+        "current": 0,
+        "frequency": "daily",
         "id": 10,
-        "status": 1,
-        "timestamp": "2025-10-14 21:50:08"
+        "name": "Abcd"
     },
     {
-        "date": "2025-10-14",
-        "habit_id": 8,
-        "id": 11,
-        "status": 0,
-        "timestamp": "2025-10-14 21:50:54"
+        "created_at": "2025-10-19 15:50:44",
+        "current": 0,
+        "frequency": "daily",
+        "id": 15,
+        "name": "Vccccc"
     },
     {
-        "date": "2025-10-14",
-        "habit_id": 9,
-        "id": 12,
-        "status": 1,
-        "timestamp": "2025-10-19 21:56:18"
-    },
-    {
-        "date": "2025-10-14",
-        "habit_id": 10,
-        "id": 13,
-        "status": 1,
-        "timestamp": "2025-10-19 21:56:15"
-    },
-    {
-        "date": "2025-10-15",
-        "habit_id": 8,
-        "id": 14,
-        "status": 1,
-        "timestamp": "2025-10-15 19:51:21"
-    },
-    {
-        "date": "2025-10-15",
-        "habit_id": 7,
-        "id": 16,
-        "status": 1,
-        "timestamp": "2025-10-15 19:28:17"
-    },
-    {
-        "date": "2025-10-15",
-        "habit_id": 9,
+        "created_at": "2025-10-19 16:54:09",
+        "current": 0,
+        "frequency": "Ancdeew",
         "id": 17,
-        "status": 0,
-        "timestamp": "2025-10-19 21:50:23"
+        "name": "Ancdeew"
     },
     {
-        "date": "2025-10-15",
-        "habit_id": 10,
+        "created_at": "2025-10-19 20:33:17",
+        "current": 0,
+        "frequency": "daily",
+        "id": 18,
+        "name": "New one "
+    },
+    {
+        "created_at": "2025-10-19 20:41:30",
+        "current": 0,
+        "frequency": "daily",
         "id": 19,
-        "status": 0,
-        "timestamp": "2025-10-19 21:50:23"
+        "name": "New"
     },
     {
-        "date": "2025-10-15",
-        "habit_id": 12,
-        "id": 43,
-        "status": 0,
-        "timestamp": "2025-10-19 12:01:43"
+        "created_at": "2025-10-19 21:58:49",
+        "current": 0,
+        "frequency": "daily",
+        "id": 20,
+        "name": "New new"
     },
     {
-        "date": "2025-10-16",
-        "habit_id": 7,
-        "id": 44,
-        "status": 0,
-        "timestamp": "2025-10-19 12:01:43"
+        "created_at": "2025-10-20 10:06:10",
+        "current": 0,
+        "frequency": "daily",
+        "id": 21,
+        "name": "A"
     },
     {
-        "date": "2025-10-16",
-        "habit_id": 8,
-        "id": 45,
-        "status": 0,
-        "timestamp": "2025-10-19 12:01:43"
+        "created_at": "2025-10-20 10:06:11",
+        "current": 0,
+        "frequency": "daily",
+        "id": 22,
+        "name": "B"
     },
     {
-        "date": "2025-10-16",
-        "habit_id": 9,
-        "id": 46,
-        "status": 0,
-        "timestamp": "2025-10-19 12:01:43"
+        "created_at": "2025-10-20 10:06:12",
+        "current": 0,
+        "frequency": "daily",
+        "id": 23,
+        "name": "C"
     },
     {
-        "date": "2025-10-16",
-        "habit_id": 10,
-        "id": 47,
-        "status": 0,
-        "timestamp": "2025-10-19 12:01:43"
+        "created_at": "2025-10-20 10:06:14",
+        "current": 0,
+        "frequency": "daily",
+        "id": 24,
+        "name": "D"
     },
     {
-        "date": "2025-10-16",
-        "habit_id": 12,
-        "id": 48,
-        "status": 0,
-        "timestamp": "2025-10-19 12:01:43"
+        "created_at": "2025-10-20 10:06:15",
+        "current": 0,
+        "frequency": "daily",
+        "id": 25,
+        "name": "E"
     },
     {
-        "date": "2025-10-17",
-        "habit_id": 7,
-        "id": 49,
-        "status": 0,
-        "timestamp": "2025-10-19 12:01:43"
+        "created_at": "2025-10-20 10:06:17",
+        "current": 0,
+        "frequency": "daily",
+        "id": 26,
+        "name": "F"
     },
     {
-        "date": "2025-10-17",
-        "habit_id": 8,
-        "id": 50,
-        "status": 0,
-        "timestamp": "2025-10-19 12:01:43"
+        "created_at": "2025-10-20 10:06:18",
+        "current": 0,
+        "frequency": "daily",
+        "id": 27,
+        "name": "G"
     },
     {
-        "date": "2025-10-17",
-        "habit_id": 9,
-        "id": 51,
-        "status": 0,
-        "timestamp": "2025-10-19 12:01:43"
+        "created_at": "2025-10-20 10:06:19",
+        "current": 0,
+        "frequency": "daily",
+        "id": 28,
+        "name": "H"
     },
     {
-        "date": "2025-10-17",
-        "habit_id": 10,
-        "id": 52,
-        "status": 0,
-        "timestamp": "2025-10-19 12:01:43"
+        "created_at": "2025-10-20 10:06:21",
+        "current": 0,
+        "frequency": "daily",
+        "id": 29,
+        "name": "Ij"
     },
     {
-        "date": "2025-10-17",
-        "habit_id": 12,
-        "id": 53,
-        "status": 0,
-        "timestamp": "2025-10-19 12:01:43"
+        "created_at": "2025-10-20 10:06:21",
+        "current": 0,
+        "frequency": "daily",
+        "id": 30,
+        "name": "K"
     },
     {
-        "date": "2025-10-18",
-        "habit_id": 7,
-        "id": 54,
-        "status": 0,
-        "timestamp": "2025-10-19 12:01:43"
+        "created_at": "2025-10-20 10:06:22",
+        "current": 0,
+        "frequency": "daily",
+        "id": 31,
+        "name": "L"
     },
     {
-        "date": "2025-10-18",
-        "habit_id": 8,
-        "id": 55,
-        "status": 0,
-        "timestamp": "2025-10-19 12:01:43"
+        "created_at": "2025-10-20 10:06:23",
+        "current": 0,
+        "frequency": "daily",
+        "id": 32,
+        "name": "M"
     },
     {
-        "date": "2025-10-18",
-        "habit_id": 9,
-        "id": 56,
-        "status": 0,
-        "timestamp": "2025-10-19 12:01:43"
+        "created_at": "2025-10-20 10:06:23",
+        "current": 0,
+        "frequency": "daily",
+        "id": 33,
+        "name": "N"
     },
     {
-        "date": "2025-10-18",
-        "habit_id": 10,
-        "id": 57,
-        "status": 0,
-        "timestamp": "2025-10-19 12:01:43"
+        "created_at": "2025-10-20 10:06:24",
+        "current": 0,
+        "frequency": "daily",
+        "id": 34,
+        "name": "O"
     },
     {
-        "date": "2025-10-18",
-        "habit_id": 12,
-        "id": 58,
-        "status": 0,
-        "timestamp": "2025-10-19 12:01:43"
+        "created_at": "2025-10-20 10:06:26",
+        "current": 0,
+        "frequency": "daily",
+        "id": 35,
+        "name": "P"
     },
     {
-        "date": "2025-10-19",
-        "habit_id": 1,
-        "id": 81,
-        "status": 0,
-        "timestamp": "2025-10-19 12:57:19"
+        "created_at": "2025-10-20 10:54:06",
+        "current": 1,
+        "frequency": "Def",
+        "id": 36,
+        "name": "Def"
     },
     {
-        "date": "2025-10-19",
-        "habit_id": 2,
-        "id": 82,
-        "status": 0,
-        "timestamp": "2025-10-19 12:57:19"
+        "created_at": "2025-10-20 11:45:14",
+        "current": 1,
+        "frequency": "daily",
+        "id": 37,
+        "name": "Joo"
     },
     {
-        "date": "2025-10-19",
-        "habit_id": 3,
-        "id": 83,
-        "status": 0,
-        "timestamp": "2025-10-19 15:48:32"
+        "created_at": "2025-10-20 13:33:14",
+        "current": 1,
+        "frequency": "daily",
+        "id": 38,
+        "name": "Aaana djskwkyjxbxbxjckclfmf dbabahsbdbfbf dnnsnskskdjdnbfjfjejfbdjwk"
     },
     {
-        "date": "2025-10-19",
-        "habit_id": 4,
-        "id": 84,
-        "status": 0,
-        "timestamp": "2025-10-19 12:57:19"
-    },
-    {
-        "date": "2025-10-19",
-        "habit_id": 5,
-        "id": 85,
-        "status": 0,
-        "timestamp": "2025-10-19 15:48:32"
-    },
-    {
-        "date": "2025-10-19",
-        "habit_id": 6,
-        "id": 86,
-        "status": 0,
-        "timestamp": "2025-10-19 16:11:12"
-    },
-    {
-        "date": "2025-10-19",
-        "habit_id": 7,
-        "id": 87,
-        "status": 0,
-        "timestamp": "2025-10-19 16:11:11"
-    },
-    {
-        "date": "2025-10-19",
-        "habit_id": 8,
-        "id": 88,
-        "status": 1,
-        "timestamp": "2025-10-19 15:49:25"
-    },
-    {
-        "date": "2025-10-19",
-        "habit_id": 13,
-        "id": 92,
-        "status": 1,
-        "timestamp": "2025-10-19 15:49:25"
-    },
-    {
-        "date": "2025-10-19",
-        "habit_id": 17,
-        "id": 122,
-        "status": 1,
-        "timestamp": "2025-10-19 21:48:09"
-    },
-    {
-        "date": "2025-10-19",
-        "habit_id": 19,
-        "id": 132,
-        "status": 1,
-        "timestamp": "2025-10-19 21:48:10"
+        "created_at": "2025-10-20 13:52:58",
+        "current": 1,
+        "frequency": "daily",
+        "id": 39,
+        "name": "Hi"
     }
 ]

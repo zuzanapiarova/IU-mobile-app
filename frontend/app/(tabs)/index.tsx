@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Text, Card, Surface, useTheme } from 'react-native-paper';
 
-import { getCurrentHabitList, getHabitsForDay } from '../../database/habitsQueries'; // todo: change to getHabitsForDay
 import { getUser } from '../../database/userQueries';
-
 import HabitsList from '@/components/HabitsCheckList'
 import StatusCalendar from '@/components/StatusCalendar';
 import { Habit } from '../../constants/interfaces'
@@ -32,7 +30,6 @@ export default function HomeScreen()
       <Surface
         style={[globalStyles.container, { height: 300 }, { backgroundColor: theme.colors.background }]}
       >
-        {/* Pass habits as props to HabitsList */}
         <HabitsList date={today}/>
       </Surface>
       <Card style={[globalStyles.container, { backgroundColor: theme.colors.background }]}>
