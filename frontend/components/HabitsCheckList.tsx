@@ -44,22 +44,30 @@ export default function HabitsList({ date, onHabitsUpdated }: { date: string; on
     }, [])
   );
 
-  // Toggle habit completion
   const toggleCheck = async (id: number) => {
     try {
+      // Optimistically update the local state
       const updatedHabits = habits.map((habit) => {
         if (habit.habit_id === id) {
           const newStatus = habit.status === 1 ? 0 : 1; // Toggle status
-          if (newStatus === 1) {
-            completeHabit(id, date); // Mark as completed in the database
-          } else {
-            uncompleteHabit(id, date); // Mark as uncompleted in the database
-          }
           return { ...habit, status: newStatus }; // Update the habit's status
         }
         return habit;
       });
-      setHabits(updatedHabits); // Update the habits state
+      setHabits(updatedHabits); // Update the habits state immediately
+  
+      // Update the database
+      const habitToUpdate = habits.find((habit) => habit.habit_id === id);
+      if (habitToUpdate) {
+        const newStatus = habitToUpdate.status === 1 ? 0 : 1;
+        if (newStatus === 1) {
+          await completeHabit(id, date); // Wait for the database update to complete
+        } else {
+          await uncompleteHabit(id, date); // Wait for the database update to complete
+        }
+      }
+  
+      // Trigger the callback after the database update is complete
       if (onHabitsUpdated) {
         onHabitsUpdated();
       }
@@ -67,7 +75,7 @@ export default function HabitsList({ date, onHabitsUpdated }: { date: string; on
       console.error('Error toggling habit:', error);
     }
   };
-
+  
   const completedPercentage =
     habits.length > 0
       ? Math.round((habits.filter((habit) => habit.status === 1).length / habits.length) * 100)
@@ -115,7 +123,7 @@ export default function HabitsList({ date, onHabitsUpdated }: { date: string; on
             {habits.length > 0 && (
               <Text
                 variant="titleLarge"
-                style={{ color: completedPercentage === 100 ? 'green' : completedPercentage > 0 ? globalStyles.yellow.color : 'red'}}
+                style={{ color: completedPercentage > 80 ? 'green' : completedPercentage < 20 ? 'red' : globalStyles.yellow.color }}
               >
                 {completedPercentage}%
               </Text>
@@ -146,7 +154,7 @@ export default function HabitsList({ date, onHabitsUpdated }: { date: string; on
           <>
           <Text
             variant="titleLarge"
-            style={{ color: completedPercentage === 100 ? 'green' : completedPercentage > 0 ? globalStyles.yellow.color : 'red'}}
+            style={{ color: completedPercentage > 80 ? 'green' : completedPercentage < 20 ? 'red' : globalStyles.yellow.color }}
           >
             {completedPercentage}%
           </Text>

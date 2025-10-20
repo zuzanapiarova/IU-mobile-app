@@ -6,18 +6,15 @@ export async function getCompletionPercentageForDay(date: string): Promise<numbe
   try {
     // Fetch all habits for the given day
     const habits: Habit[] = await getHabitsForDay(date);
+    console.log("habits for day: \n", JSON.stringify(habits, null, 2));
 
-    // If there are no habits, return 0% completion
-    if (habits.length === 0) {
+    // if there are no habits, 0% completion (avoid zero division)
+    if (habits.length === 0)
       return 0;
-    }
 
-    // Count the number of completed habits (status = 1)
+    // percentage = number of completed habits (status = 1) / number of allhabits for that day
     const completedCount = habits.filter((habit) => habit.status === 1).length;
-
-    // Calculate the completion percentage
     const percentage = (completedCount / habits.length) * 100;
-
     return percentage;
 
   } catch (error) {

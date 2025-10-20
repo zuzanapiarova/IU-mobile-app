@@ -6,7 +6,6 @@ import { useTheme, Surface, Button, Card, Modal, Portal } from 'react-native-pap
 import { getCompletionPercentageForDay } from './OverViewCalculations';
 import { globalStyles } from '../constants/globalStyles'
 import HabitsList from './HabitsCheckList';
-import { setEnabled } from 'react-native/Libraries/Performance/Systrace';
 
 export default function StatusCalendar()
 {
@@ -34,18 +33,23 @@ export default function StatusCalendar()
     setMarkedDates(newMarkedDates);
   };
 
+  // Load the current month's marked dates on mount
+  useEffect(() => {
+    const currentDate = new Date();
+    generateMarkedDates(currentDate.getFullYear(), currentDate.getMonth() + 1);
+  }, []);
+
   // Handle date selection
   const handleDateSelect = async (date: string) => {
     if (date === today) return;
     setSelectedDate(date);
     setModalVisible(true);
-    console.log("Selected date is: " + date);
   };
 
   // Update the dot color for the selected date
   const updateSelectedDateDotColor = async (date: string) => {
     const percentage = await getCompletionPercentageForDay( date );
-
+    console.log("updatingelected dot color: new percentage " + percentage + " - " + date)
     // Determine the new dot color based on the percentage
     let dotColor = globalStyles.yellow.color;
     if (percentage > 80) dotColor = 'green';
@@ -61,15 +65,10 @@ export default function StatusCalendar()
     });
   };
 
-  // Load the current month's marked dates on mount
-  useEffect(() => {
-    const currentDate = new Date();
-    generateMarkedDates(currentDate.getFullYear(), currentDate.getMonth() + 1);
-  }, []);
-
   return (
     <>
       <Calendar
+        key={JSON.stringify(markedDates)}
         markedDates={{
           ...markedDates,
           [today]: { selected: true }, // Highlight today
@@ -104,10 +103,7 @@ export default function StatusCalendar()
           }}>
               <HabitsList date={selectedDate!} 
                 onHabitsUpdated={() => {
-                  if (selectedDate) {
-                    console.log(`Updating dot color for ${selectedDate}`); // Debugging log
-                    updateSelectedDateDotColor(selectedDate); // Update dot color after habits are updated
-                  }
+                  if (selectedDate) updateSelectedDateDotColor(selectedDate); // Update dot color after habits are updated
                 }}
               />
             <Button
