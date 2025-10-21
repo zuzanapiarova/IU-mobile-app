@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, FlatList, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, ScrollView, FlatList, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { useTheme, Surface, Button, Card, Modal, Portal } from 'react-native-paper';
 
@@ -49,7 +49,7 @@ export default function StatusCalendar()
   // Update the dot color for the selected date
   const updateSelectedDateDotColor = async (date: string) => {
     const percentage = await getCompletionPercentageForDay( date );
-    console.log("updatingelected dot color: new percentage " + percentage + " - " + date)
+    
     // Determine the new dot color based on the percentage
     let dotColor = globalStyles.yellow.color;
     if (percentage > 80) dotColor = 'green';
@@ -92,24 +92,17 @@ export default function StatusCalendar()
         <Modal
           visible={isModalVisible}
           onDismiss={() => setModalVisible(false)}
-          style={{
-            margin: 0, // Ensure no extra margin is added
-          }}
-          contentContainerStyle={{
-            justifyContent: 'center',
-            alignItems: 'center',
-            flex: 1,
-            padding: 20
-          }}>
-              <HabitsList date={selectedDate!} 
-                onHabitsUpdated={() => {
-                  if (selectedDate) updateSelectedDateDotColor(selectedDate); // Update dot color after habits are updated
-                }}
-              />
+          style={{ maxHeight: '80%',  paddingTop: 30, paddingBottom: 30 }}
+          contentContainerStyle={[globalStyles.modal, { paddingTop: 30, paddingBottom: 30 , display: 'flex', flexDirection:'column'}]}>
+            <HabitsList date={selectedDate!} 
+              onHabitsUpdated={() => {
+                if (selectedDate) updateSelectedDateDotColor(selectedDate); // Update dot color after habits are updated
+              }}
+            />
             <Button
                 mode="contained"
                 onPress={() => setModalVisible(false)}
-                style={globalStyles.closeButton}
+                style={[globalStyles.closeButton,]}
               >
                 Close
               </Button>

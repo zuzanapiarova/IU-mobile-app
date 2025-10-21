@@ -32,7 +32,7 @@ export default function HabitsScreen()
   // add new habit to database
   async function handleAddHabit() {
     if (!newHabit.trim()) return;
-    await addHabit(newHabit);
+    await addHabit(newHabit.trim());
     setNewHabit('');
     const updated = await getCurrentHabitList();
     setHabits(updated);

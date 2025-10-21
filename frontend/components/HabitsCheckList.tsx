@@ -36,7 +36,6 @@ export default function HabitsList({ date, onHabitsUpdated }: { date: string; on
     loadHabits();
   }, []);
 
-  // todo: do this only when date is today
   // Reload data whenever the screen is focused
   useFocusEffect(
     React.useCallback(() => {
@@ -75,7 +74,7 @@ export default function HabitsList({ date, onHabitsUpdated }: { date: string; on
       console.error('Error toggling habit:', error);
     }
   };
-  
+
   const completedPercentage =
     habits.length > 0
       ? Math.round((habits.filter((habit) => habit.status === 1).length / habits.length) * 100)
@@ -148,13 +147,13 @@ export default function HabitsList({ date, onHabitsUpdated }: { date: string; on
   );
 } else {
   return (
-    <Surface style={[globalStyles.container, { height: 250 }, { backgroundColor: theme.colors.background }]} elevation={0}>
-        <Text variant="titleMedium">Tasks for {date}</Text>
+    <Surface style={[globalStyles.card, { marginTop: 50, backgroundColor: theme.colors.background }]} elevation={0}>
+        <Text variant="titleMedium" style={{padding: 10}}>Tasks for {date}</Text>
         {habits.length > 0 ? (
           <>
           <Text
             variant="titleLarge"
-            style={{ color: completedPercentage > 80 ? 'green' : completedPercentage < 20 ? 'red' : globalStyles.yellow.color }}
+            style={{ paddingLeft: 10, color: completedPercentage > 80 ? 'green' : completedPercentage < 20 ? 'red' : globalStyles.yellow.color }}
           >
             {completedPercentage}%
           </Text>
@@ -166,7 +165,7 @@ export default function HabitsList({ date, onHabitsUpdated }: { date: string; on
           />
           </>
         ) : (
-          <Text>No records for this day.</Text>
+          <Text style={{padding: 10}}>No records for this day.</Text>
         )}
     </Surface>
   )};

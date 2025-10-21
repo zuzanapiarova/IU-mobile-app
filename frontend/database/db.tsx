@@ -43,6 +43,17 @@ export async function initializeDatabase() {
     );
   `);
 
+  await db.execAsync(`
+  CREATE TABLE IF NOT EXISTS user_profile (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    email TEXT,
+    consent_data_processing INTEGER,   -- 1 = yes, 0 = no
+    consent_marketing INTEGER,         -- 1 = yes, 0 = no
+    biometric_enabled INTEGER          -- 1 = yes, 0 = no
+  );
+  `);
+  
   initialized = true;
   console.log('✅ Database initialized');
 }

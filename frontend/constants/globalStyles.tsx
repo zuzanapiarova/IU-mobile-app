@@ -132,7 +132,7 @@ export const globalStyles = StyleSheet.create(
     },
 
     closeButton: {
-      marginTop: 20,
+      marginTop: 50,
     }
 
 });
