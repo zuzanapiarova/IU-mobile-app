@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Text, Card, Surface, useTheme } from 'react-native-paper';
 
-import { getUser } from '../../database/userQueries';
+import { getUserByUsername } from '../../database/userQueries';
 import HabitsList from '@/components/HabitsCheckList'
 import StatusCalendar from '@/components/StatusCalendar';
 import { Habit } from '../../constants/interfaces'
@@ -16,7 +16,7 @@ export default function HomeScreen()
   const theme = useTheme();
 
   useEffect(() => {
-    getUser().then(setUserName).catch(console.error);
+    // todo: use setUsername to use data from react context
   }, []);
 
   return (

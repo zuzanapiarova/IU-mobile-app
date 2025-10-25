@@ -19,7 +19,12 @@ export interface HabitCompletion
 
 export interface User
 {
-    name: string;
+    id: number;
+    username: string;
+    name: string; // Change `username` to `name` if needed
+    theme: string;
+    email?: string; // Add optional fields if necessary
+    createdAt?: string; // Add other fields if they exist in the database
 }
 
 export interface CompletionQueryOptions

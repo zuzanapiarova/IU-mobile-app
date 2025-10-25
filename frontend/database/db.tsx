@@ -30,30 +30,32 @@ export async function initializeDatabase() {
     );
   `);
 
-  const result = await db.getAllAsync(`SELECT sql FROM sqlite_master WHERE name = 'habit_completions';`);
-  console.log("habit completions table: \n" + result);
+  // const result = await db.getAllAsync(`SELECT sql FROM sqlite_master WHERE name = 'habit_completions';`);
+  // console.log("habit completions table: \n" + result);
 
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       email TEXT,
-      theme_preference TEXT DEFAULT 'system',
-      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+
     );
   `);
 
   await db.execAsync(`
-  CREATE TABLE IF NOT EXISTS user_profile (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT,
-    email TEXT,
-    consent_data_processing INTEGER,   -- 1 = yes, 0 = no
-    consent_marketing INTEGER,         -- 1 = yes, 0 = no
-    biometric_enabled INTEGER          -- 1 = yes, 0 = no
-  );
+    CREATE TABLE IF NOT EXISTS user_profile (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT UNIQUE,
+      name TEXT,
+      email TEXT,
+      theme_preference TEXT DEFAULT 'system',
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      consent_data_processing INTEGER,   -- 1 = yes, 0 = no
+      consent_marketing INTEGER,         -- 1 = yes, 0 = no
+      biometric_enabled INTEGER          -- 1 = yes, 0 = no
+    );
   `);
-  
+
   initialized = true;
   console.log('✅ Database initialized');
 }
