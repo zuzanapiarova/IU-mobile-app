@@ -46,7 +46,7 @@ export default function HabitsList()
       await completeHabit(id); // Call the function to mark the habit as complete in the database
       setCheckedHabits((prev) => [...prev, id]);
     }
-    await logDatabaseContents();
+    // await logDatabaseContents();
   }
 
   const completedPercentage = habits.length > 0 
