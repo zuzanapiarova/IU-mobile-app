@@ -3,8 +3,8 @@ import { StyleSheet, FlatList, Keyboard, KeyboardAvoidingView, Platform, Touchab
 import { Text, Card, TextInput, Button, List, useTheme, Surface, Modal, Portal } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-import { addHabit, getCurrentHabitList, updateHabitName, updateHabitFrequency, deleteHabit } from '../../database/habitsQueries';
-
+// import { addHabit, getAllHabits, updateHabit, deleteHabit } from '../../database/habitsQueries';
+import { getAllHabits, addHabit, updateHabit, deleteHabit } from '@/api/habitsApi';
 import { Habit } from '../../constants/interfaces'
 import { globalStyles } from '../../constants/globalStyles';
 

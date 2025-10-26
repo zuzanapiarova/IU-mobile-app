@@ -7,6 +7,8 @@ import { initializeDatabase } from '../database/db';
 import { initializeHabitCompletions } from '../database/init';
 import { globalStyles } from '@/constants/globalStyles';
 import { UserProvider } from '../constants/UserContext';
+import { initializeDatabase, logDatabaseContents } from '../database/db'
+import { getAllHabits } from '../api/habitsApi'
 
 export default function RootLayout()
 {
@@ -27,6 +29,13 @@ export default function RootLayout()
         console.error('❌ Error during app initialization:', err);
       } finally {
         setIsLoading(false); // Set loading to false after initialization
+      }
+
+      try {
+        const habits = await getAllHabits();
+        console.log('New Habits:', habits);
+      } catch (error) {
+        console.error('Error fetching habits:', error);
       }
     };
     initializeApp(); // Call the async function
