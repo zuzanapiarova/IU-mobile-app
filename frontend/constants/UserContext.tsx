@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { getUserByUsername, createUser } from '../database/userQueries';
+import { getUserByUsername, addUser } from '../api/userApi';
 import { User } from '../constants/interfaces';
 
 interface UserContextType {
@@ -23,7 +23,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
           alert('Invalid credentials. Please try again.');
         }
       } else if (authMode === 'signup') {
-        const newUser = await createUser(username, password); // Create a new user
+        const newUser = await addUser(username, password); // Create a new user
         setUser(newUser); // Log the new user in
       }
     } catch (error) {

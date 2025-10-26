@@ -1,4 +1,4 @@
-import { getHabitsForDay } from "@/database/habitsQueries";
+import { getHabitsForDay } from "@/api/habitsApi";
 import { Habit } from "@/constants/interfaces";
 
 // Function to fetch habits for a specific day and calculate the completion percentage

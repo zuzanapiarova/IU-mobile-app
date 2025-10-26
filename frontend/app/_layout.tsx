@@ -3,7 +3,6 @@ import { Stack } from 'expo-router';
 import { useColorScheme, View, StyleSheet } from 'react-native';
 import { PaperProvider, MD3LightTheme, MD3DarkTheme, ActivityIndicator } from 'react-native-paper';
 import { Colors } from '@/constants/theme';
-import { initializeDatabase } from '../database/db';
 import { initializeHabitCompletions } from '../database/init';
 import { globalStyles } from '@/constants/globalStyles';
 import { UserProvider } from '../constants/UserContext';

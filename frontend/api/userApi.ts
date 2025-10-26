@@ -19,3 +19,9 @@ export async function addUser(name: string, email: string) {
   const { data } = await api.post('/users', { name, email });
   return data;
 }
+
+// Get user by username
+export async function getUserByUsername(username: string) {
+  const { data } = await api.get(`/users/${username}`);
+  return data;
+}
