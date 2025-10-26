@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
-import { List, Checkbox, Text, useTheme, Surface, Button } from 'react-native-paper';
+import { List, Checkbox, Text, useTheme, Surface, Button, Portal, Modal, Card } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { useFocusEffect } from '@react-navigation/native';
@@ -10,24 +10,31 @@ import { RootTabParamList } from '../constants/navigation'; // navigate to habit
 
 import { Habit } from '../constants/interfaces'
 import { globalStyles } from '../constants/globalStyles';
+import { completeHabit, uncompleteHabit, getHabitsForDay } from '../database/habitsQueries';
 
-import { logDatabaseContents } from '../database/db'
-import { getAllHabits, getCompletedHabitsForDay, completeHabit, uncompleteHabit } from '../database/habitsQueries';
-
-export default function HabitsList()
+// gets data from the habit_completions table
+export default function HabitsList({ date, onHabitsUpdated }: { date: string; onHabitsUpdated?: () => void })
 {
-  const [habits, setHabits] = useState<Habit[]>([]);
-  const [checkedHabits, setCheckedHabits] = useState<number[]>([]);
-
+  const today = new Date().toISOString().split('T')[0];
   const theme = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<RootTabParamList>>();
-  
+
+  const [habits, setHabits] = useState<Habit[]>([]);
+
+  // fetch habits for the day
   const loadHabits = async () => {
-    const data = await getAllHabits(); // Fetch all habits
-    const completedHabitIds = await getCompletedHabitsForDay(); // Fetch completed habits for today
-    setHabits(data);
-    setCheckedHabits(completedHabitIds); // Update the checked habits
+    try {
+      const data = await getHabitsForDay(date);
+      setHabits(data);
+    } catch (error) {
+      console.error('Error loading habits:', error);
+    }
   };
+
+  // Load habits on component mount
+  useEffect(() => {
+    loadHabits();
+  }, []);
 
   // Reload data whenever the screen is focused
   useFocusEffect(
@@ -36,30 +43,51 @@ export default function HabitsList()
     }, [])
   );
 
-  async function toggleCheck(id: number) {
-    if (checkedHabits.includes(id)) {
-      // Uncheck the habit
-      await uncompleteHabit(id); // Call the function to mark the habit as incomplete in the database
-      setCheckedHabits((prev) => prev.filter((habitId) => habitId !== id));
-    } else {
-      // Check the habit
-      await completeHabit(id); // Call the function to mark the habit as complete in the database
-      setCheckedHabits((prev) => [...prev, id]);
+  const toggleCheck = async (id: number) => {
+    try {
+      // Optimistically update the local state
+      const updatedHabits = habits.map((habit) => {
+        if (habit.habit_id === id) {
+          const newStatus = habit.status === 1 ? 0 : 1; // Toggle status
+          return { ...habit, status: newStatus }; // Update the habit's status
+        }
+        return habit;
+      });
+      setHabits(updatedHabits); // Update the habits state immediately
+  
+      // Update the database
+      const habitToUpdate = habits.find((habit) => habit.habit_id === id);
+      if (habitToUpdate) {
+        const newStatus = habitToUpdate.status === 1 ? 0 : 1;
+        if (newStatus === 1) {
+          await completeHabit(id, date); // Wait for the database update to complete
+        } else {
+          await uncompleteHabit(id, date); // Wait for the database update to complete
+        }
+      }
+  
+      // Trigger the callback after the database update is complete
+      if (onHabitsUpdated) {
+        onHabitsUpdated();
+      }
+    } catch (error) {
+      console.error('Error toggling habit:', error);
     }
-    // await logDatabaseContents();
-  }
+  };
 
-  const completedPercentage = habits.length > 0 
-  ? Math.round((checkedHabits.length / habits.length) * 100) 
-  : 0;
+  const completedPercentage =
+    habits.length > 0
+      ? Math.round((habits.filter((habit) => habit.status === 1).length / habits.length) * 100)
+      : 0;
 
+  // sort habits so unfinished ar ealways on top 
   const sortedHabits = [
-    ...habits.filter(h => !checkedHabits.includes(h.id)),
-    ...habits.filter(h => checkedHabits.includes(h.id)),
+    ...habits.filter((h) => h.status === 0),
+    ...habits.filter((h) => h.status === 1),
   ];
 
   const renderItem = ({ item }: { item: Habit }) => {
-    const isChecked = checkedHabits.includes(item.id);
+    const isChecked = item.status === 1;
     return (
       <List.Item
         title={() => (
@@ -74,7 +102,7 @@ export default function HabitsList()
           </Text>
         )}
         left={() => (
-          <TouchableOpacity onPress={() => toggleCheck(item.id)}>
+          <TouchableOpacity onPress={() => toggleCheck(item.habit_id)}>
             <MaterialCommunityIcons
               name={isChecked ? 'check-circle-outline' : 'circle-outline'}
               size={24}
@@ -86,35 +114,59 @@ export default function HabitsList()
     );
   };
 
-  return (
-    <Surface style={[globalStyles.container, { height: 250 }, { backgroundColor: theme.colors.background }]} elevation={0}>
-      <Surface elevation={0} style={globalStyles.inRow}>
-        <Text variant="titleMedium">
-          Today's Tasks
-        </Text>
-          {habits.length > 0 && (
-            <Text variant='titleLarge' style={{ color: completedPercentage === 100 ? 'green' : completedPercentage > 0 ? globalStyles.yellow.color : 'red',
-            }}>
-              {completedPercentage}%
-            </Text> )}
-      </Surface>
+  if (date === today) {
+    return (
+      <Surface style={[globalStyles.container, { height: 250 }, { backgroundColor: theme.colors.background }]} elevation={0}>
+        <Surface elevation={0} style={globalStyles.inRow}>
+            <Text variant="titleMedium">Today's Tasks</Text>
+            {habits.length > 0 && (
+              <Text
+                variant="titleLarge"
+                style={{ color: completedPercentage > 80 ? 'green' : completedPercentage < 20 ? 'red' : globalStyles.yellow.color }}
+              >
+                {completedPercentage}%
+              </Text>
+            )}
+          </Surface>
       
-      {habits.length === 0 ? (
-        <Surface style={globalStyles.center} elevation={0}>
-          <Button mode="contained" onPress={() => navigation.navigate('habits')}>
-            Add Habit
-          </Button>
-        </Surface>
-      ) : (
-        <FlatList
-          data={sortedHabits}
-          keyExtractor={item => item.id.toString()}
-          renderItem={renderItem}
-          ItemSeparatorComponent={() => 
-            <View style={globalStyles.separator} 
-          />}
-        />
-      )}
+          {habits.length === 0 ? (
+          <Surface style={globalStyles.center} elevation={0}>
+            <Button mode="contained" onPress={() => navigation.navigate('habits')}>
+              Add Habit
+            </Button>
+          </Surface>
+        ) : (
+          <FlatList
+            data={sortedHabits}
+            keyExtractor={(item) => item.habit_id.toString()}
+            renderItem={renderItem}
+            ItemSeparatorComponent={() => <View style={globalStyles.separator} />}
+          />
+        )}
     </Surface>
   );
-}
+} else {
+  return (
+    <Surface style={[globalStyles.card, { marginTop: 50, backgroundColor: theme.colors.background }]} elevation={0}>
+        <Text variant="titleMedium" style={{padding: 10}}>Tasks for {date}</Text>
+        {habits.length > 0 ? (
+          <>
+          <Text
+            variant="titleLarge"
+            style={{ paddingLeft: 10, color: completedPercentage > 80 ? 'green' : completedPercentage < 20 ? 'red' : globalStyles.yellow.color }}
+          >
+            {completedPercentage}%
+          </Text>
+          <FlatList
+            data={sortedHabits}
+            keyExtractor={(item) => item.habit_id.toString()}
+            renderItem={renderItem}
+            ItemSeparatorComponent={() => <View style={globalStyles.separator} />}
+          />
+          </>
+        ) : (
+          <Text style={{padding: 10}}>No records for this day.</Text>
+        )}
+    </Surface>
+  )};
+};
