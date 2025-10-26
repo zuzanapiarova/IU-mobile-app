@@ -5,6 +5,7 @@ import { useColorScheme } from 'react-native';
 import { PaperProvider, MD3LightTheme, MD3DarkTheme } from 'react-native-paper';
 import { Colors } from '@/constants/theme';
 import { initializeDatabase, logDatabaseContents } from '../database/db'
+import { getAllHabits } from '../api/habitsApi'
 
 export default function RootLayout()
 {
@@ -21,6 +22,13 @@ export default function RootLayout()
         console.log('✅ Database initialized');
       } catch (err) {
         console.error('❌ Database init error:', err);
+      }
+
+      try {
+        const habits = await getAllHabits();
+        console.log('New Habits:', habits);
+      } catch (error) {
+        console.error('Error fetching habits:', error);
       }
     };
   

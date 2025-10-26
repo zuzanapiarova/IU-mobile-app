@@ -4,8 +4,8 @@ import { Text, Card, TextInput, Button, List, useTheme, Surface, Modal, Portal }
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { initializeDatabase } from '../../database/db';
-import { addHabit, getAllHabits, updateHabit, deleteHabit } from '../../database/habitsQueries';
-
+// import { addHabit, /*getAllHabits,*/ updateHabit, deleteHabit } from '../../database/habitsQueries';
+import { getAllHabits, addHabit, updateHabit, deleteHabit } from '@/api/habitsApi';
 import { Habit } from '../../constants/interfaces'
 import { globalStyles } from '../../constants/globalStyles';
 
@@ -18,15 +18,6 @@ export default function HabitsScreen()
   const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
   const [isEditModalVisible, setEditModalVisible] = useState(false);
   const [updatedHabitName, setUpdatedHabitName] = useState('');
-
-  // get habits from database
-  // useEffect(() => {
-  //   async function load() {
-  //     const data = await getAllHabits();
-  //     setHabits(data);
-  //   }
-  //   load();
-  // }, []);
 
   useEffect(() => {
     async function load() {
