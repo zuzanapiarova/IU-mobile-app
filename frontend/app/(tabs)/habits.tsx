@@ -4,7 +4,7 @@ import { Text, Card, TextInput, Button, List, useTheme, Surface, Modal, Portal }
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 // import { addHabit, getAllHabits, updateHabit, deleteHabit } from '../../database/habitsQueries';
-import { getAllHabits, addHabit, updateHabit, deleteHabit } from '@/api/habitsApi';
+import { getAllHabits, addHabit, updateHabit, deleteHabit /*, updateHabitName, updateHabitFrequency*/ } from '@/api/habitsApi';
 import { Habit } from '../../constants/interfaces'
 import { globalStyles } from '../../constants/globalStyles';
 
@@ -22,7 +22,7 @@ export default function HabitsScreen()
 
   useEffect(() => {
     async function load() {
-      const data = await getCurrentHabitList();
+      const data = await getAllHabits();
       console.log('Loaded habits:', data);
       setHabits(data);
     }
@@ -34,7 +34,7 @@ export default function HabitsScreen()
     if (!newHabit.trim()) return;
     await addHabit(newHabit.trim());
     setNewHabit('');
-    const updated = await getCurrentHabitList();
+    const updated = await getAllHabits();
     setHabits(updated);
   }
 
@@ -42,7 +42,7 @@ export default function HabitsScreen()
   async function handleDeleteHabit() {
     if (selectedHabit) {
       await deleteHabit(selectedHabit.habit_id);
-      const updated = await getCurrentHabitList();
+      const updated = await getAllHabits();
       setHabits(updated);
       setDeleteModalVisible(false);
       setSelectedHabit(null);
@@ -52,14 +52,13 @@ export default function HabitsScreen()
   // todo: change frequency if it was changed, if not, keep selectedHabit.frequency
   async function handleUpdateHabit() {
     if (selectedHabit) {
-      if (updatedHabitName.trim())
-        await updateHabitName(selectedHabit.habit_id, updatedHabitName);
-      if (updatedHabitFrequency)
-        await updateHabitFrequency(selectedHabit.habit_id, updatedHabitName);
-      const updated = await getCurrentHabitList();
-      setHabits(updated);
-      setEditModalVisible(false);
-      setSelectedHabit(null);
+      if (updatedHabitName.trim() || updatedHabitFrequency) {
+        await updateHabit(selectedHabit.habit_id, updatedHabitName.trim(), updatedHabitFrequency);
+        const updated = await getAllHabits();
+        setHabits(updated);
+        setEditModalVisible(false);
+        setSelectedHabit(null);
+      }
     }
   }
 

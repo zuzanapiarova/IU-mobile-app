@@ -3,14 +3,13 @@ import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { List, Checkbox, Text, useTheme, Surface, Button, Portal, Modal, Card } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useNavigation } from '@react-navigation/native';
 import { RootTabParamList } from '../constants/navigation'; // navigate to habits page
 
 import { Habit } from '../constants/interfaces'
 import { globalStyles } from '../constants/globalStyles';
-import { completeHabit, uncompleteHabit, getHabitsForDay } from '../database/habitsQueries';
+import { completeHabit, uncompleteHabit, getHabitsForDay } from '../api/habitsApi';
 
 // gets data from the habit_completions table
 export default function HabitsList({ date, onHabitsUpdated }: { date: string; onHabitsUpdated?: () => void })

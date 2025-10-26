@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Text, Card, Surface, useTheme } from 'react-native-paper';
 
-import { getUserByUsername } from '../../database/userQueries';
+import { getUserByUsername } from '../../api/userApi';
 import HabitsList from '@/components/HabitsCheckList'
 import StatusCalendar from '@/components/StatusCalendar';
 import { Habit } from '../../constants/interfaces'
@@ -15,9 +15,9 @@ export default function HomeScreen()
   const today = new Date().toISOString().split('T')[0];
   const theme = useTheme();
 
-  useEffect(() => {
-    // todo: use setUsername to use data from react context
-  }, []);
+  // useEffect(() => {
+  //      todo: use setUsername to use data from react context
+  // }, []);
 
   return (
     <Surface

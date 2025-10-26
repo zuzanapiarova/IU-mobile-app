@@ -1,4 +1,4 @@
-import { initializeHabitCompletionsForDay, getMostRecentDate, deleteHabitsforToday } from '../database/habitsQueries';
+import { initializeHabitCompletionsForDay, getMostRecentDate } from '../api/habitsApi';
 import { initializeDatabase } from './db';
 
 const today = new Date().toISOString().split('T')[0];

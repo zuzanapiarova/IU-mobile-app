@@ -46,6 +46,18 @@ export async function updateHabit(id: number, name: string, frequency: string) {
   return data;
 }
 
+// todo: renaming habit will rename ts past occurences and completions too, change later to adding new one 
+// Update a habit's name
+// export async function updateHabitName(id: number, name: string): Promise<void> {
+//   const { data } = await api.put(`/habits/${id}/name`, { name });
+//   return data;
+// }
+// // Update a habit's frequency
+// export async function updateHabitFrequency(id: number, frequency: string): Promise<void> {
+//   const { data } = await api.put(`/habits/${id}/frequency`, { frequency });
+//   return data;
+// }
+
 // Complete a habit
 export async function completeHabit(habitId: number, date?: string) {
   const { data } = await api.post(`/habits/${habitId}/complete`, { date });
@@ -64,4 +76,32 @@ export async function getCompletedHabitsForDay(date?: string) {
     params: { date: date || new Date().toISOString().split('T')[0] },
   });
   return data;
+}
+
+// Get completion percentage for a specific day
+export async function getCompletionPercentageForDay(date: string): Promise<{ date: string; percentage: number }> {
+  const { data } = await api.get('/completion-percentage', {
+    params: { date },
+  });
+  return data;
+}
+
+// Get habits for a specific day
+export async function getHabitsForDay(date?: string) {
+  const { data } = await api.get('/habits-for-day', {
+    params: { date },
+  });
+  return data;
+}
+
+// Initialize habit completions for a specific day
+export async function initializeHabitCompletionsForDay(date?: string) {
+  const { data } = await api.post('/initialize-habit-completions', { date });
+  return data;
+}
+
+// Get the most recent date from habit completions
+export async function getMostRecentDate(): Promise<string | null> {
+  const { data } = await api.get('/habits-completions/most-recent-date');
+  return data.maxDate;
 }

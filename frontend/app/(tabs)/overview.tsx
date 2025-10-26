@@ -2,8 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, FlatList, TouchableOpacity  } from 'react-native';
 import { Text, Card, useTheme, Button, Portal, Surface, List } from 'react-native-paper';
 import { DatePickerModal } from 'react-native-paper-dates';
-import { initializeDatabase } from '../../database/db';
-import { getCompletedHabitsForDay } from '../../database/habitsQueries';
 import { Habit } from '../../constants/interfaces';
 import { globalStyles } from '../../constants/globalStyles';
 import { PieChart } from 'react-native-chart-kit'; // Install this library
