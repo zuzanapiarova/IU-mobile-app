@@ -5,7 +5,7 @@ import { globalStyles } from '@/constants/globalStyles';
 import { CountRow } from '../constants/interfaces'
 import { List, Checkbox, Text, useTheme, Surface, Button, Portal, Modal, Card } from 'react-native-paper';
 
-async function getCompletionPercentageForDay({
+async function abc({
     date,
     habitIds,
   }: {
@@ -57,7 +57,7 @@ export default function CompletionPercentage({ date }: { date: string }) {
   
     useEffect(() => {
       // Fetch the completion percentage for the given date
-      getCompletionPercentageForDay({ date })
+      abc({ date })
         .then((result) => {
           setPercentage(result.percentage);
         })

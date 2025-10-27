@@ -1,6 +1,6 @@
 export interface Habit
 {
-    habit_id: number;
+    id: number;
     date: string;
     status: number;
     timestamp: string;
@@ -17,14 +17,27 @@ export interface HabitCompletion
     status: 0 | 1;  // 0 = not completed, 1 = completed
 }
 
+export interface HabitWithCompletion {
+    id: number; // ID of the habit completion
+    habit_id: number; // ID of the associated habit
+    name: string; // Name of the habit
+    frequency: string; // Frequency of the habit (e.g., daily, weekly)
+    date: string; // Date of the habit completion (YYYY-MM-DD)
+    status: number; // Status of the habit (0 = incomplete, 1 = complete)
+    timestamp: string; // Timestamp of the last update
+    current: boolean; // Whether the habit is active
+}
+
 export interface User
 {
     id: number;
-    username: string;
-    name: string; // Change `username` to `name` if needed
-    theme: string;
-    email?: string; // Add optional fields if necessary
-    createdAt?: string; // Add other fields if they exist in the database
+    name: string;
+    email: string; // Add optional fields if necessary
+    createdAt: string;
+    themePreference?: 'light' | 'dark' | 'system';
+    hasAcceptedTerms?: boolean;
+    dataProcessingAgreed?: boolean;
+    notificationsEnabled?: boolean;
 }
 
 export interface CompletionQueryOptions

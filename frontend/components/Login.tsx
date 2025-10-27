@@ -9,15 +9,20 @@ interface LoginProps {
 const Login: React.FC<LoginProps> = ({ onClose }) => {
   const { login } = useUser(); // Access the login function from context
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
-  const [username, setUsername] = useState('');
+  const [name, setName] = useState(''); // Only used for signup
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = async () => {
-    await login(username, password, authMode); // Call the login function
+  const handleAuth = async () => {
+    await login(email, password, authMode, name); // Pass the name parameter
     onClose(); // Close the modal after login/signup
-    setUsername('');
+    setName('');
+    setEmail('');
     setPassword('');
   };
+
+  const isSignupDisabled = authMode === 'signup' && (!name.trim() || !email.trim() || !password.trim());
+  const isLoginDisabled = authMode === 'login' && (!email.trim() || !password.trim());
 
   return (
     <Portal>
@@ -34,10 +39,18 @@ const Login: React.FC<LoginProps> = ({ onClose }) => {
           ]}
           style={{ marginBottom: 16 }}
         />
+        {authMode === 'signup' && (
+          <TextInput
+            label="Name"
+            value={name}
+            onChangeText={setName}
+            style={{ marginBottom: 12 }}
+          />
+        )}
         <TextInput
-          label="Username"
-          value={username}
-          onChangeText={setUsername}
+          label="Email"
+          value={email}
+          onChangeText={setEmail}
           style={{ marginBottom: 12 }}
         />
         <TextInput
@@ -47,7 +60,11 @@ const Login: React.FC<LoginProps> = ({ onClose }) => {
           onChangeText={setPassword}
           style={{ marginBottom: 12 }}
         />
-        <Button mode="contained" onPress={handleLogin}>
+        <Button
+          mode="contained"
+          onPress={handleAuth}
+          disabled={authMode === 'signup' ? isSignupDisabled : isLoginDisabled}
+        >
           {authMode === 'login' ? 'Login' : 'Sign Up'}
         </Button>
       </Modal>

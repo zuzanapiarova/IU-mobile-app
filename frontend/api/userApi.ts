@@ -14,14 +14,21 @@ api.interceptors.request.use(async (config) => {
   return config;
 });
 
-// Add a new user
-export async function addUser(name: string, email: string) {
-  const { data } = await api.post('/users', { name, email });
+// Add a new user 
+export async function addUser(name: string, email: string, password: string): Promise<User> {
+  console.log('📤 Sending signup request', { email, password, name });
+  const { data } = await api.post('/users', { name, email, password });
   return data;
 }
 
-// Get user by username
-export async function getUserByUsername(username: string) {
-  const { data } = await api.get(`/users/${username}`);
+// login user - get user by email
+export async function loginUser(email: string, password: string): Promise<User> {
+  console.log('📤 Sending login request', { email, password });
+  const res = await api.post(`/login`, { email, password });
+  return res.data;
+}
+
+export async function updateUserBackend(userId: number, updates: Partial<User>): Promise<User> {
+  const { data } = await api.put(`/users/${userId}`, updates);
   return data;
 }

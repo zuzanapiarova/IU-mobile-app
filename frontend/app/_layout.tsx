@@ -1,57 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { useColorScheme, View, StyleSheet } from 'react-native';
-import { PaperProvider, MD3LightTheme, MD3DarkTheme, ActivityIndicator } from 'react-native-paper';
+import { PaperProvider, MD3LightTheme, MD3DarkTheme, ActivityIndicator, Text } from 'react-native-paper';
 import { Colors } from '@/constants/theme';
-import { initializeHabitCompletions } from '../database/init';
+import { initializeHabitCompletions } from '../components/init';
 import { globalStyles } from '@/constants/globalStyles';
-import { UserProvider } from '../constants/UserContext';
-import { initializeDatabase, logDatabaseContents } from '../database/db'
-import { getAllHabits } from '../api/habitsApi'
+import { UserProvider, useUser } from '../constants/UserContext';
+import Login from '../components/Login';
 
-export default function RootLayout()
-{
-
+function AppContent() {
+  const { user } = useUser();
   const colorScheme = useColorScheme();
   const scheme = colorScheme ?? 'light';
   const baseTheme = scheme === 'dark' ? MD3DarkTheme : MD3LightTheme;
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [isLoading, setIsLoading] = useState(true); // Track loading state
-  
-  useEffect(() => {
-    const initializeApp = async () => {
-      try {
-        await initializeDatabase(); // Ensure tables are created
-        console.log('✅ Database initialized');
-        await initializeHabitCompletions(); // Initialize missing habit completions
-      } catch (err) {
-        console.error('❌ Error during app initialization:', err);
-      } finally {
-        setIsLoading(false); // Set loading to false after initialization
-      }
-
-      try {
-        const habits = await getAllHabits();
-        console.log('New Habits:', habits);
-      } catch (error) {
-        console.error('Error fetching habits:', error);
-      }
-    };
-    initializeApp(); // Call the async function
-  }, []);
-
-  // Merge your custom palette with Paper’s expected tokens
   const customTheme = {
     ...baseTheme,
     colors: {
       ...baseTheme.colors,
-      primary: Colors[scheme].tint,              // used for buttons, switches, etc.
-      secondary: Colors[scheme].accent,          // used for highlights
-      background: Colors[scheme].background,     // used for full-page bg
-      surface: Colors[scheme].surface,           // used for cards/surfaces
-      onSurface: Colors[scheme].text,            // text color on surfaces
+      primary: Colors[scheme].tint,
+      secondary: Colors[scheme].accent,
+      background: Colors[scheme].background,
+      surface: Colors[scheme].surface,
+      onSurface: Colors[scheme].text,
       onBackground: Colors[scheme].text,
-      outline: Colors[scheme].border,            // borders & dividers
+      outline: Colors[scheme].border,
       shadow: Colors[scheme].shadow,
       icon: Colors[scheme].icon,
       tabIconDefault: Colors[scheme].tabIconDefault,
@@ -59,24 +33,74 @@ export default function RootLayout()
     },
   };
 
-  if (isLoading) {
-    // Render the loading screen while the app is initializing
+  useEffect(() => {
+    const initializeApp = async () => {
+      if (!user) return; // Wait until user is set
+
+      try {
+        await initializeHabitCompletions();
+        console.log("✅Initialized habit completions.");
+      } catch (err) {
+        console.error('❌ Error during app initialization:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    initializeApp();
+  }, [user]);
+
+  // Render login if user is not logged in
+  if (!user) {
     return (
-      <UserProvider>
-        <PaperProvider theme={customTheme}>
-          <View style={globalStyles.loadingContainer}>
-            <ActivityIndicator animating={true} size="large" color={customTheme.colors.primary} />
-          </View>
-        </PaperProvider>
-      </UserProvider>
+      <View style={globalStyles.container}>
+        <Text variant="headlineMedium" style={{ marginBottom: 16 }}>
+          Login or Sign Up
+        </Text>
+        <Login onClose={() => {}} />
+      </View>
     );
   }
 
-  // Render the main app layout after initialization
+  // Render loading state while initializing
+  if (isLoading) {
+    return (
+      <View style={globalStyles.loadingContainer}>
+        <ActivityIndicator animating size="large" color={customTheme.colors.primary} />
+      </View>
+    );
+  }
+
+  // Render main app stack
+  return <Stack screenOptions={{ headerShown: false }} />;
+}
+
+export default function RootLayout() {
+  const colorScheme = useColorScheme();
+  const scheme = colorScheme ?? 'light';
+  const baseTheme = scheme === 'dark' ? MD3DarkTheme : MD3LightTheme;
+
+  const customTheme = {
+    ...baseTheme,
+    colors: {
+      ...baseTheme.colors,
+      primary: Colors[scheme].tint,
+      secondary: Colors[scheme].accent,
+      background: Colors[scheme].background,
+      surface: Colors[scheme].surface,
+      onSurface: Colors[scheme].text,
+      onBackground: Colors[scheme].text,
+      outline: Colors[scheme].border,
+      shadow: Colors[scheme].shadow,
+      icon: Colors[scheme].icon,
+      tabIconDefault: Colors[scheme].tabIconDefault,
+      tabIconSelected: Colors[scheme].tabIconSelected
+    },
+  };
+
   return (
     <UserProvider>
       <PaperProvider theme={customTheme}>
-        <Stack screenOptions={{ headerShown: false }} />
+        <AppContent />
       </PaperProvider>
     </UserProvider>
   );

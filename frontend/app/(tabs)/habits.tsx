@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, FlatList, Keyboard, KeyboardAvoidingView, Platform, TouchableWithoutFeedback } from 'react-native';
 import { Text, Card, TextInput, Button, List, useTheme, Surface, Modal, Portal } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useUser } from '@/constants/UserContext';
 
-// import { addHabit, getAllHabits, updateHabit, deleteHabit } from '../../database/habitsQueries';
-import { getAllHabits, addHabit, updateHabit, deleteHabit /*, updateHabitName, updateHabitFrequency*/ } from '@/api/habitsApi';
+import { getAllHabits, addHabit, updateHabit, deleteHabit } from '../../api/habitsApi';  /*, updateHabitName, updateHabitFrequency*/
 import { Habit } from '../../constants/interfaces'
 import { globalStyles } from '../../constants/globalStyles';
 
@@ -20,32 +20,45 @@ export default function HabitsScreen()
   const [updatedHabitName, setUpdatedHabitName] = useState('');
   const [updatedHabitFrequency, setUpdatedHabitFrequency] = useState('');
 
+  const { user } = useUser();
+
   useEffect(() => {
     async function load() {
       const data = await getAllHabits();
-      console.log('Loaded habits:', data);
       setHabits(data);
     }
     load();
   }, []);
 
   // add new habit to database
-  async function handleAddHabit() {
+  const handleAddHabit = async () => {
     if (!newHabit.trim()) return;
-    await addHabit(newHabit.trim());
-    setNewHabit('');
-    const updated = await getAllHabits();
-    setHabits(updated);
-  }
+    if (!user) return alert('You must be logged in!');
+  
+    try {
+      console.log("New habit: " + newHabit.trim());
+      await addHabit(newHabit.trim(), 'daily', user.id);
+      setNewHabit('');
+      const updated = await getAllHabits();
+      setHabits(updated);
+    } catch (error) {
+      console.error('Error adding habit:', error);
+    }
+  };
 
   // delete habit from db 
   async function handleDeleteHabit() {
     if (selectedHabit) {
-      await deleteHabit(selectedHabit.habit_id);
-      const updated = await getAllHabits();
-      setHabits(updated);
-      setDeleteModalVisible(false);
-      setSelectedHabit(null);
+      try {
+        await deleteHabit(selectedHabit.id);
+        const updated = await getAllHabits();
+        setHabits(updated);
+        setDeleteModalVisible(false);
+        setSelectedHabit(null);
+      } catch (error) {
+        console.error('Error deleting habit:', error);
+        alert('Failed to delete the habit. Please try again.');
+      }
     }
   }
 
@@ -53,7 +66,7 @@ export default function HabitsScreen()
   async function handleUpdateHabit() {
     if (selectedHabit) {
       if (updatedHabitName.trim() || updatedHabitFrequency) {
-        await updateHabit(selectedHabit.habit_id, updatedHabitName.trim(), updatedHabitFrequency);
+        await updateHabit(selectedHabit.id, updatedHabitName.trim(), updatedHabitFrequency);
         const updated = await getAllHabits();
         setHabits(updated);
         setEditModalVisible(false);
@@ -129,7 +142,7 @@ export default function HabitsScreen()
           <List.Section style={{ flex: 1 }}>
             <FlatList
               data={habits}
-              keyExtractor={(item) => item.habit_id.toString()}
+              keyExtractor={(item) => item.id.toString()}
               renderItem={renderHabit}
               ListEmptyComponent={<Text style={globalStyles.empty}>No habits yet</Text>}
               contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}

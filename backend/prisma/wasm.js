@@ -93,8 +93,13 @@ exports.Prisma.UserScalarFieldEnum = {
   id: 'id',
   name: 'name',
   email: 'email',
+  password: 'password',
   themePreference: 'themePreference',
-  createdAt: 'createdAt'
+  language: 'language',
+  dataProcessingAgreed: 'dataProcessingAgreed',
+  notificationsEnabled: 'notificationsEnabled',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.HabitScalarFieldEnum = {
@@ -102,7 +107,8 @@ exports.Prisma.HabitScalarFieldEnum = {
   name: 'name',
   frequency: 'frequency',
   createdAt: 'createdAt',
-  userId: 'userId'
+  userId: 'userId',
+  current: 'current'
 };
 
 exports.Prisma.HabitCompletionScalarFieldEnum = {
@@ -116,11 +122,6 @@ exports.Prisma.HabitCompletionScalarFieldEnum = {
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
-};
-
-exports.Prisma.NullsOrder = {
-  first: 'first',
-  last: 'last'
 };
 
 
@@ -177,13 +178,13 @@ const config = {
       }
     }
   },
-  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ndatasource db {\n  provider = \"sqlite\"\n  url      = env(\"DATABASE_URL\")\n}\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \".\"\n}\n\nmodel User {\n  id              Int      @id @default(autoincrement())\n  name            String\n  email           String?\n  themePreference String   @default(\"system\")\n  createdAt       DateTime @default(now())\n  habits          Habit[] // reference for habits that belongs to this user\n}\n\nmodel Habit {\n  id          Int               @id @default(autoincrement())\n  name        String\n  frequency   String            @default(\"daily\")\n  createdAt   DateTime          @default(now())\n  user        User              @relation(fields: [userId], references: [id])\n  userId      Int\n  completions HabitCompletion[] // reference for completions that belong to this habit \n}\n\nmodel HabitCompletion {\n  id        Int      @id @default(autoincrement())\n  habit     Habit    @relation(fields: [habitId], references: [id])\n  habitId   Int\n  date      String\n  status    Boolean\n  timestamp DateTime @default(now())\n\n  @@unique([habitId, date]) // matches the UNIQUE(habit_id, date)\n}\n",
-  "inlineSchemaHash": "b7adf26057b5d0e01f0dc8031e20710025798a9c77d5409fec6231d5a03b249c",
+  "inlineSchema": "generator client {\n  provider = \"prisma-client-js\"\n  output   = \".\"\n}\n\ndatasource db {\n  provider = \"sqlite\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel User {\n  id                   Int      @id @default(autoincrement())\n  name                 String\n  email                String   @unique\n  password             String\n  themePreference      String   @default(\"system\")\n  language             String   @default(\"en\")\n  dataProcessingAgreed Boolean  @default(false)\n  notificationsEnabled Boolean  @default(true)\n  createdAt            DateTime @default(now())\n  updatedAt            DateTime @updatedAt\n  habits               Habit[]\n}\n\nmodel Habit {\n  id          Int               @id @default(autoincrement())\n  name        String\n  frequency   String            @default(\"daily\")\n  createdAt   DateTime          @default(now())\n  userId      Int\n  current     Boolean           @default(true)\n  user        User              @relation(fields: [userId], references: [id])\n  completions HabitCompletion[]\n}\n\nmodel HabitCompletion {\n  id        Int      @id @default(autoincrement())\n  habitId   Int\n  date      String\n  status    Boolean\n  timestamp DateTime @default(now())\n  habit     Habit    @relation(fields: [habitId], references: [id])\n\n  @@unique([habitId, date])\n}\n",
+  "inlineSchemaHash": "d016d7f5e924acd5bb4200b3a99f5cc3e71c2ebc69ff0fbd6250cbaf37e60ea3",
   "copyEngine": true
 }
 config.dirname = '/'
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"User\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"themePreference\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"habits\",\"kind\":\"object\",\"type\":\"Habit\",\"relationName\":\"HabitToUser\"}],\"dbName\":null},\"Habit\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"frequency\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"HabitToUser\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"completions\",\"kind\":\"object\",\"type\":\"HabitCompletion\",\"relationName\":\"HabitToHabitCompletion\"}],\"dbName\":null},\"HabitCompletion\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"habit\",\"kind\":\"object\",\"type\":\"Habit\",\"relationName\":\"HabitToHabitCompletion\"},{\"name\":\"habitId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"date\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"timestamp\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"User\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"password\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"themePreference\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"language\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"dataProcessingAgreed\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"notificationsEnabled\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"habits\",\"kind\":\"object\",\"type\":\"Habit\",\"relationName\":\"HabitToUser\"}],\"dbName\":null},\"Habit\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"frequency\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"current\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"HabitToUser\"},{\"name\":\"completions\",\"kind\":\"object\",\"type\":\"HabitCompletion\",\"relationName\":\"HabitToHabitCompletion\"}],\"dbName\":null},\"HabitCompletion\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"habitId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"date\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"timestamp\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"habit\",\"kind\":\"object\",\"type\":\"Habit\",\"relationName\":\"HabitToHabitCompletion\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
 defineDmmfProperty(exports.Prisma, config.runtimeDataModel)
 config.engineWasm = {
   getRuntime: async () => require('./query_engine_bg.js'),
