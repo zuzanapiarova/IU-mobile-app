@@ -68,6 +68,7 @@ app.post('/login', async (req, res) => {
 });
 
 // SAFE UPDATE USER
+// SAFE UPDATE USER
 app.put('/users/:id', async (req, res) => {
   const userId = Number(req.params.id);
   const updates = req.body;
@@ -81,6 +82,8 @@ app.put('/users/:id', async (req, res) => {
       'language',
       'dataProcessingAgreed',
       'notificationsEnabled',
+      'successLimit', // Add successLimit
+      'failureLimit', // Add failureLimit
     ];
 
     const safeUpdates = {};
@@ -89,6 +92,13 @@ app.put('/users/:id', async (req, res) => {
       if (updates[key] !== undefined) {
         if (key === 'password') {
           safeUpdates.password = await bcrypt.hash(updates.password, 10);
+        } else if (key === 'successLimit' || key === 'failureLimit') {
+          // Validate successLimit and failureLimit
+          const value = Number(updates[key]);
+          if (isNaN(value) || value < 0 || value > 100) {
+            return res.status(400).json({ error: `${key} must be a number between 0 and 100` });
+          }
+          safeUpdates[key] = value;
         } else {
           safeUpdates[key] = updates[key];
         }
@@ -107,6 +117,7 @@ app.put('/users/:id', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 
 // HABITS endpoints -------------------------------------------------------------------
 
@@ -258,12 +269,28 @@ app.delete('/habits/:id', async (req, res) => {
       },
     });
     // "Delete" the habit - set it as not current, since its id was used and is referenced in past habit completions 
-    const updatedHabit = await prisma.habit.update({
-      where: { id: habitId },
-      data: { current: false },
+    // but if no record in habitCompletions references this habit, delete it completely - we will not need it 
+    const habitCompletionsCount = await prisma.habitCompletion.count({
+      where: { habitId: habitId },
     });
 
-    res.json(updatedHabit); // retunr updated habit 
+    if (habitCompletionsCount > 0) {
+      // If there are habit completions, update the habit to set `current` to false
+      const updatedHabit = await prisma.habit.update({
+        where: { id: habitId },
+        data: { current: false },
+      });
+      res.json(updatedHabit); // return updated habit 
+    }
+    else
+    {
+      await prisma.habit.delete({
+        where: {
+          id: habitId
+        },
+      });
+      res.status(200).json({ message: `Deleted habit from habits as it was not used by any habitCompletion.` });
+    }
   } catch (error) {
     console.error(`Error deleting habit with ID ${id}:`, error);
     res.status(500).json({ error: 'Internal Server Error' });

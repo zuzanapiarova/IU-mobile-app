@@ -24,7 +24,15 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     (async () => {
       try {
         const storedUser = await SecureStore.getItemAsync('user');
-        if (storedUser) setUser(JSON.parse(storedUser));
+        if (storedUser) {
+          const parsedUser: User = JSON.parse(storedUser);
+          // Ensure successLimit and failureLimit have default values if missing
+          setUser({
+            ...parsedUser,
+            successLimit: parsedUser.successLimit ?? 80,
+            failureLimit: parsedUser.failureLimit ?? 20,
+          });
+        }
       } catch (err) {
         console.error('Error loading stored user:', err);
       }

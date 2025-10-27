@@ -12,6 +12,9 @@ import { useUser } from "@/constants/UserContext"; // Import the UserContext
 export default function StatusCalendar() {
   const theme = useTheme();
   const today = new Date().toISOString().split('T')[0];
+  const currentMonth = new Date().getMonth() + 1; // Current month (1-based)
+  const currentYear = new Date().getFullYear(); // Current year
+
   const [markedDates, setMarkedDates] = useState<{ [key: string]: any }>({});
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1); // Current month (1-based)
@@ -32,23 +35,31 @@ export default function StatusCalendar() {
         const date = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const percentage = await getCompletionPercentageForDay(user.id, date);
         let dotColor = globalStyles.yellow.color;
-        if (percentage > 80) dotColor = 'green';
-        else if (percentage < 20) dotColor = 'red';
+        if (percentage >= user.successLimit) dotColor = 'green';
+        else if (percentage <= user.failureLimit) dotColor = 'red';
         newMarkedDates[date] = { marked: true, dotColor };
       }
-      setMarkedDates(newMarkedDates);
+      // Only update state if the data has changed
+      setMarkedDates((prevMarkedDates) => {
+        if (JSON.stringify(prevMarkedDates) === JSON.stringify(newMarkedDates))
+          return prevMarkedDates;
+        return newMarkedDates;
+      });
     };
   
     // Reset to the current month and year when the screen is focused
     useFocusEffect(
       React.useCallback(() => {
-        const currentMonth = new Date().getMonth() + 1; // Current month (1-based)
-        const currentYear = new Date().getFullYear(); // Current year
         setSelectedMonth(currentMonth); // Update selectedMonth to the current month
         setSelectedYear(currentYear); // Update selectedYear to the current year
-        //generateMarkedDates(currentYear, currentMonth); // Generate marked dates for the current month
+        generateMarkedDates(currentYear, currentMonth); // Generate marked dates for the current month
       }, [])
     );
+
+    // Generate marked dates on the initial render
+    useEffect(() => {
+      generateMarkedDates(currentYear, currentMonth); // Generate marked dates for the current month
+    }, []);
   
     // Handle date selection
     const handleDateSelect = async (date: string) => {
@@ -63,8 +74,8 @@ export default function StatusCalendar() {
   
       // Determine the new dot color based on the percentage
       let dotColor = globalStyles.yellow.color;
-      if (percentage > 80) dotColor = 'green';
-      else if (percentage < 20) dotColor = 'red';
+      if (percentage >= user.successLimit) dotColor = 'green';
+      else if (percentage <= user.failureLimit) dotColor = 'red';
   
       // Update the markedDates state for the selected date
       setMarkedDates((prevMarkedDates) => {
@@ -79,17 +90,17 @@ export default function StatusCalendar() {
     return (
       <>
         <Calendar
-          // current={`${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01`} // Dynamically set the displayed month and year
-          // markedDates={{
-          //   ...markedDates,
-          //   [today]: { selected: true }, // Highlight today
-          // }}
+          key={`${selectedYear}-${selectedMonth}`} // Force re-render when month or year changes
+          current={`${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01`} // Dynamically set the displayed month and year
+           markedDates={{
+            ...markedDates,
+            [today]: { selected: true }, // Highlight today
+          }}
           onDayPress={(day) => handleDateSelect(day.dateString)} // Handle date selection
           onMonthChange={(month) => {
-            console.log(`Month changed to year: ${month.year}, month: ${month.month}`);
             setSelectedMonth(month.month); // Update the selected month
             setSelectedYear(month.year); // Update the selected year
-            // generateMarkedDates(month.year, month.month); // Generate marked dates for the new month
+            generateMarkedDates(month.year, month.month); // Generate marked dates for the new month
           }}
           style={{ borderRadius: 8 }}
           theme={{

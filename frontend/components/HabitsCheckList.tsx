@@ -18,6 +18,7 @@ export default function HabitsList({ date, onHabitsUpdated }: { date: string; on
 {
   const [habits, setHabits] = useState<HabitWithCompletion[]>([]);
   const { user } = useUser(); // Get the logged-in user
+  if (!user) return; // Ensure the user is logged in
 
   const today = new Date().toISOString().split('T')[0];
   const theme = useTheme();
@@ -25,7 +26,6 @@ export default function HabitsList({ date, onHabitsUpdated }: { date: string; on
 
   // fetch habits for the day
   const loadHabits = async () => {
-    if (!user) return; // Ensure the user is logged in
     try {
       const data = await getHabitsForDay(user.id, date);
       const transformedData = data.map((habit: HabitWithCompletion) => ({
@@ -118,7 +118,7 @@ export default function HabitsList({ date, onHabitsUpdated }: { date: string; on
             {habits.length > 0 && (
               <Text
                 variant="titleLarge"
-                style={{ color: completedPercentage > 80 ? 'green' : completedPercentage < 20 ? 'red' : globalStyles.yellow.color }}
+                style={{ color: completedPercentage >= user?.successLimit ? 'green' : completedPercentage <= user.failureLimit ? 'red' : globalStyles.yellow.color }}
               >
                 {completedPercentage}%
               </Text>
@@ -149,7 +149,7 @@ export default function HabitsList({ date, onHabitsUpdated }: { date: string; on
           <>
           <Text
             variant="titleLarge"
-            style={{ paddingLeft: 10, color: completedPercentage > 80 ? 'green' : completedPercentage < 20 ? 'red' : globalStyles.yellow.color }}
+            style={{ paddingLeft: 10, color: completedPercentage >= user.successLimit ? 'green' : completedPercentage <= user.failureLimit ? 'red' : globalStyles.yellow.color }}
           >
             {completedPercentage}%
           </Text>
