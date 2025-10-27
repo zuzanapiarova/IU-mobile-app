@@ -1,15 +1,34 @@
 import React, { useState } from 'react';
-import { Text, Button, Card, Switch, Surface } from 'react-native-paper';
+import { Text, TextInput, Button, Card, Switch, Surface } from 'react-native-paper';
 import { globalStyles } from '../../constants/globalStyles';
 import { useUser } from '../../constants/UserContext';
 import Login from '../../components/Login';
 
 export default function ProfileScreen() {
   const { user, updateUser, logout } = useUser(); // Access user data and actions from context
+  if (!user) return;
+
   const [darkMode, setDarkMode] = useState(false);
-  const [dataPolicyAccepted, setDataPolicyAccepted] = useState(user?.dataProcessingAgreed || false);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(user?.notificationsEnabled || false);
+  const [dataPolicyAccepted, setDataPolicyAccepted] = useState(user.dataProcessingAgreed || false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(user.notificationsEnabled || false);
   const [loginVisible, setLoginVisible] = useState(false);
+  const [successLimit, setSuccessLimit] = useState(user.successLimit);
+  const [failureLimit, setFailureLimit] = useState(user.failureLimit);
+
+  const saveLimits = async () => {
+    if (!user) return; // Ensure the user is logged in
+    try {
+      // Call updateUser to update the limits
+      await updateUser({
+        successLimit,
+        failureLimit,
+      });
+      alert('Limits updated successfully!');
+    } catch (error) {
+      console.error('Error updating limits:', error);
+      alert('Failed to update limits. Please try again.');
+    }
+  };
 
   const handleToggleTheme = async () => {
     const newTheme = user?.themePreference === 'dark' ? 'light' : 'dark';
@@ -71,6 +90,28 @@ export default function ProfileScreen() {
               >
                 {notificationsEnabled ? 'Notifications Enabled' : 'Enable Notifications'}
               </Button>
+            </Surface>
+          </Card>
+
+          <Card style={{ marginBottom: 16, padding: 16 }}>
+            <Surface>
+              <Text>Success Limit:</Text>
+              <Text variant="titleSmall">Percentage of completed habits at which the day is considered successful</Text>
+              <TextInput
+                keyboardType="numeric"
+                value={successLimit.toString()}
+                onChangeText={(text) => setSuccessLimit(parseInt(text) || 0)}
+              />
+
+              <Text>Failure Limit:</Text>
+              <Text variant="titleSmall">Percentage of completed habits at which the day is considered unsuccessful</Text>
+              <TextInput
+                keyboardType="numeric"
+                value={failureLimit.toString()}
+                onChangeText={(text) => setFailureLimit(parseInt(text) || 0)}
+              />
+
+              <Button onPress={saveLimits}>Save Limits</Button>
             </Surface>
           </Card>
 

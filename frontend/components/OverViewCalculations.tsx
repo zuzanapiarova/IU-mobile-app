@@ -11,11 +11,16 @@ export async function getCompletionPercentageForDay(userId: number, date: string
 
     // if there are no habits, 0% completion (avoid zero division)
     if (habits.length === 0) return 0;
-
-    // percentage = number of completed habits (status = 1) / number of allhabits for that day
-    const completedCount = habits.filter((habit) => habit.status === 1).length;
-    const percentage = (completedCount / habits.length) * 100;
-    return percentage;
+    // Map the habits to ensure status is an integer (0 or 1)
+    const transformedHabits = habits.map((habit) => ({
+      ...habit,
+      status: habit.status ? 1 : 0, // Convert boolean to integer
+    }));
+    const completedPercentage =
+      habits.length > 0
+        ? Math.round((transformedHabits.filter((habit) => habit.status === 1).length / habits.length) * 100)
+        : 0;
+    return completedPercentage;
 
   } catch (error) {
     console.error(`Error calculating completion percentage for ${date}:`, error);
