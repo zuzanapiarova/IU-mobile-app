@@ -1,10 +1,9 @@
-require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const bcrypt = require('bcrypt');
+const { PrismaClient } = require('@prisma/client');
 
 const PORT = process.env.PORT || 3000;
-const express = require('express');
-const { PrismaClient } = require('@prisma/client');
-const cors = require('cors');
-
 const app = express();
 const prisma = new PrismaClient();
 
@@ -13,7 +12,7 @@ app.use(express.json());
 
 // USERS endpoints -------------------------------------------------------------------
 
-// GET /habits - Fetch all users
+// Fetch all users
 app.get('/users', async (req, res) => {
   try {
     const users = await prisma.user.findMany({
@@ -26,55 +25,96 @@ app.get('/users', async (req, res) => {
   }
 });
 
-// Get user by username
-app.get('/users/:username', async (req, res) => {
-  const { username } = req.params;
+// SIGNUP
+app.post('/users', async (req, res) => {
+  const { name, email, password } = req.body;
+  console.log('📥 Received signup body:', req.body);
+
   try {
-    const user = await prisma.user.findUnique({
-      where: { name: username },
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) return res.status(400).json({ error: 'Email already exists' });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await prisma.user.create({
+      data: { name, email, password: hashedPassword },
     });
 
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    res.json(user);
+    const { password: _, ...safeUser } = newUser;
+    res.status(201).json(safeUser);
   } catch (error) {
-    console.error('Error fetching user:', error);
+    console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
-// POST /habits - Add a new habit
-app.post('/users', async (req, res) => {
-  const { name, email } = req.body; // Include userId in the request body
+// LOGIN
+app.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+  console.log('📥 Received login body:', req.body);
+
   try {
-    const existingUser = await prisma.user.findUnique({
-      where: { name: username },
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) return res.status(400).json({ error: 'Invalid credentials' });
+
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) return res.status(400).json({ error: 'Invalid credentials' });
+
+    const { password: _, ...safeUser } = user;
+    res.json(safeUser);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// SAFE UPDATE USER
+app.put('/users/:id', async (req, res) => {
+  const userId = Number(req.params.id);
+  const updates = req.body;
+
+  try {
+    const allowedFields = [
+      'name',
+      'email',
+      'password',
+      'themePreference',
+      'language',
+      'dataProcessingAgreed',
+      'notificationsEnabled',
+    ];
+
+    const safeUpdates = {};
+
+    for (const key of allowedFields) {
+      if (updates[key] !== undefined) {
+        if (key === 'password') {
+          safeUpdates.password = await bcrypt.hash(updates.password, 10);
+        } else {
+          safeUpdates[key] = updates[key];
+        }
+      }
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: safeUpdates,
     });
 
-    if (existingUser)
-      return res.status(400).json({ error: 'Username already exists' });
-    
-    const newUser = await prisma.user.create({
-      data: {
-        name,
-        email,
-      },
-    });
-    res.status(201).json(newUser);
-  } catch (error) {
-    console.error('Error creating habit:', error);
+    const { password: _, ...safeUser } = updatedUser;
+    res.json(safeUser);
+  } catch (err) {
+    console.error(`Error updating user with ID ${userId}:`, err);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
 // HABITS endpoints -------------------------------------------------------------------
 
-// GET /habits - Fetch all habits
+// GET /habits - Fetch all habits 
 app.get('/habits', async (req, res) => {
   try {
     const habits = await prisma.habit.findMany({
+      where: { current: true }, // Only fetch habits where current = true
       orderBy: { createdAt: 'desc' },
     });
     res.json(habits);
@@ -86,8 +126,13 @@ app.get('/habits', async (req, res) => {
 
 // POST /habits - Add a new habit
 app.post('/habits', async (req, res) => {
-  const { name, frequency, userId } = req.body; // Include userId in the request body
+  const today = new Date().toISOString().split('T')[0];
+  const { name, frequency, userId } = req.body;
+  if (!name || !frequency || !userId)
+    return res.status(400).json({ error: 'Name, frequency, and userId are required' });
+  
   try {
+    // Add the new habit to the habits table
     const newHabit = await prisma.habit.create({
       data: {
         name,
@@ -95,14 +140,35 @@ app.post('/habits', async (req, res) => {
         userId
       },
     });
+    // Add a corresponding entry to the habitCompletions table for today's date
+    // upsert method will insert a new record if it doesn’t exist or update the existing record if it does
+    await prisma.habitCompletion.upsert({
+      where: {
+        habitId_date: {
+          habitId: newHabit.id,
+          date: today,
+        },
+      },
+      update: {}, // No update needed, just ensure the record exists
+      create: {
+        habitId: newHabit.id,
+        date: today,
+        status: false,
+      },
+    });
     res.status(201).json(newHabit);
   } catch (error) {
-    console.error('Error creating habit:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    if (error.code === 'P2002') {
+      console.error('Duplicate entry error:', error);
+      res.status(400).json({ error: 'Duplicate habit entry' });
+    } else {
+      console.error('Error creating habit:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
   }
 });
 
-// GET /habits/:id - Get a habit by ID
+// GET /habits/:id - Get a habit by ID - TESTED
 app.get('/habits/:id', async (req, res) => {
   const { id } = req.params;
   try {
@@ -151,7 +217,7 @@ app.put('/habits/:id', async (req, res) => {
 //   }
 // });
 
-// // to update habit frequency
+// to update habit frequency
 // app.put('/habits/:id/frequency', async (req, res) => {
 //   const { id } = req.params;
 //   const { frequency } = req.body;
@@ -169,19 +235,29 @@ app.put('/habits/:id', async (req, res) => {
 
 // DELETE /habits/:id - Delete a habit
 app.delete('/habits/:id', async (req, res) => {
+  const today = new Date().toISOString().split('T')[0];
   const { id } = req.params;
+  const habitId = parseInt(id);
+  if (isNaN(habitId))
+    return res.status(400).json({ error: 'Invalid habit ID' });
   try {
-    // Delete the habit
-    await prisma.habit.delete({
-      where: { id: parseInt(id) },
-    });
-
-    // Optionally, delete related habit completions
+    const habit = await prisma.habit.findUnique({ where: { id: habitId } });
+    if (!habit)
+      return res.status(404).json({ error: 'Habit not found' });
+    // delete related habit completions for todays date
     await prisma.habitCompletion.deleteMany({
-      where: { habitId: parseInt(id) },
+      where: {
+        habitId: habitId,
+        date: today
+      },
+    });
+    // "Delete" the habit - set it as not current, since its id was used and is referenced in past habit completions 
+    const updatedHabit = await prisma.habit.update({
+      where: { id: habitId },
+      data: { current: false },
     });
 
-    res.status(204).send(); // No content
+    res.json(updatedHabit); // retunr updated habit 
   } catch (error) {
     console.error(`Error deleting habit with ID ${id}:`, error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -189,22 +265,53 @@ app.delete('/habits/:id', async (req, res) => {
 });
 
 // POST /habits/:id/complete - Mark a habit as completed
+// we receive habit id(not completion id) and date, and we have to cehck that habit id on that date in habitCompletions - add record with status = true or change status = true if tehre is record on that day with tht habit 
 app.post('/habits/:id/complete', async (req, res) => {
-  const { id } = req.params;
-  const { date } = req.body;
-  const today = date || new Date().toISOString().split('T')[0];
+  const today = new Date().toISOString().split('T')[0];
+  const { id } = req.params; // Habit ID
+  const { date } = req.body; // Optional date from the request body
+  const day = date || today; // Use the provided date or default to today
+
   try {
-    const completedHabit = await prisma.habitCompletion.upsert({
+    // Check if a record exists for the given habitId and date
+    const existingCompletion = await prisma.habitCompletion.findUnique({
       where: {
         habitId_date: {
           habitId: parseInt(id),
-          date: today,
+          date: day,
         },
       },
-      update: { status: true },
-      create: { habitId: parseInt(id), date: today, status: true },
     });
-    res.json(completedHabit);
+
+    let completedHabit;
+
+    if (existingCompletion) {
+      // If the record exists, update its status to true
+      completedHabit = await prisma.habitCompletion.update({
+        where: {
+          habitId_date: {
+            habitId: parseInt(id),
+            date: day,
+          },
+        },
+        data: {
+          status: true, // Set status to true (completed)
+          timestamp: new Date().toISOString(), // Update the timestamp to the current time
+        },
+      });
+    } else {
+      // If the record does not exist, create a new one with status = true
+      completedHabit = await prisma.habitCompletion.create({
+        data: {
+          habitId: parseInt(id),
+          date: day,
+          status: true, // Set status to true (completed)
+          timestamp: new Date().toISOString(), // Set the timestamp to the current time
+        },
+      });
+    }
+
+    res.json(completedHabit); // Return the updated or created habit completion
   } catch (error) {
     console.error(`Error completing habit with ID ${id}:`, error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -213,18 +320,24 @@ app.post('/habits/:id/complete', async (req, res) => {
 
 // POST /habits/:id/uncomplete - Mark a habit as uncompleted
 app.post('/habits/:id/uncomplete', async (req, res) => {
+  const today = new Date().toISOString().split('T')[0];
   const { id } = req.params;
   const { date } = req.body;
-  const today = date || new Date().toISOString().split('T')[0];
+  const day = date || today;
+
   try {
-    const uncompletedHabit = await prisma.habitCompletion.updateMany({
+    // Update the habit completion for the specified day
+    const uncompletedHabit = await prisma.habitCompletion.update({
       where: {
-        habitId: parseInt(id),
-        date: today,
+        habitId_date: {
+          habitId: parseInt(id),
+          date: day,
+        },
       },
       data: { status: false },
     });
-    res.json(uncompletedHabit);
+
+    res.json(uncompletedHabit); // Return the updated habit completion
   } catch (error) {
     console.error(`Error uncompleting habit with ID ${id}:`, error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -233,19 +346,20 @@ app.post('/habits/:id/uncomplete', async (req, res) => {
 
 // GET /habits/completed - Get completed habits for a specific day
 app.get('/habits/completed', async (req, res) => {
+  const today = new Date().toISOString().split('T')[0];
   const { date } = req.query;
-  const today = date || new Date().toISOString().split('T')[0];
+  const day = date || today;
   try {
     const completedHabits = await prisma.habitCompletion.findMany({
       where: {
-        date: today,
+        date: day,
         status: true,
       },
       select: { habitId: true },
     });
     res.json(completedHabits.map((habit) => habit.habitId));
   } catch (error) {
-    console.error(`Error fetching completed habits for date ${today}:`, error);
+    console.error(`Error fetching completed habits for date ${day}:`, error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -276,11 +390,14 @@ app.get('/completion-percentage', async (req, res) => {
 });
 
 // GET /habits-for-day - Retrieve habits completed for a specific day
+// GET /habits-for-day - Retrieve habits completed for a specific day
 app.get('/habits-for-day', async (req, res) => {
+  const today = new Date().toISOString().split('T')[0];
   const { date } = req.query;
-  const day = date || new Date().toISOString().split('T')[0];
+  const day = date || today;
 
   try {
+    // Fetch habits for the specified day
     const habitsForDay = await prisma.habitCompletion.findMany({
       where: { date: day },
       orderBy: { status: 'asc' },
@@ -296,14 +413,16 @@ app.get('/habits-for-day', async (req, res) => {
       },
     });
 
+    // Map the results to include habit details
     const results = habitsForDay.map((row) => ({
-      habit_id: row.habit.id,
-      name: row.habit.name,
-      frequency: row.habit.frequency,
+      id: row.id,
+      habit_id: row.habit?.id || null,
+      name: row.habit?.name || 'Unknown Habit',
+      frequency: row.habit?.frequency || 'Unknown',
       date: row.date,
       status: row.status,
       timestamp: row.timestamp,
-      current: row.habit.current,
+      current: row.habit?.current || false,
     }));
 
     res.json(results);
@@ -315,9 +434,9 @@ app.get('/habits-for-day', async (req, res) => {
 
 // POST /initialize-habit-completions - Initialize habit completions for a specific day
 app.post('/initialize-habit-completions', async (req, res) => {
+  const today = new Date().toISOString().split('T')[0];
   const { date } = req.body;
-  const day = date || new Date().toISOString().split('T')[0];
-
+  const day = date || today;
   try {
     // Get all current habits
     const currentHabits = await prisma.habit.findMany({
@@ -332,14 +451,18 @@ app.post('/initialize-habit-completions', async (req, res) => {
     // Insert habits into habit_completions if they don't already exist for the day
     const habitIds = currentHabits.map((habit) => habit.id);
 
-    await prisma.habitCompletion.createMany({
-      data: habitIds.map((habitId) => ({
-        habitId,
-        date: day,
-        status: false,
-      })),
-      skipDuplicates: true, // Avoid inserting duplicates
-    });
+    try {
+      await prisma.habitCompletion.createMany({
+        data: habitIds.map((id) => ({
+          habitId: id,
+          date: day,
+          status: false,
+        })),
+      });
+    } catch (err) {
+      if (err.code === 'P2002') console.log('⚠️ Duplicate habit completions skipped');
+      else throw err;
+    }
 
     res.status(200).json({ message: `Initialized habit completions for ${day}` });
   } catch (error) {

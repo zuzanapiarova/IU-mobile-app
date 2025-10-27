@@ -121,8 +121,13 @@ exports.Prisma.UserScalarFieldEnum = {
   id: 'id',
   name: 'name',
   email: 'email',
+  password: 'password',
   themePreference: 'themePreference',
-  createdAt: 'createdAt'
+  language: 'language',
+  dataProcessingAgreed: 'dataProcessingAgreed',
+  notificationsEnabled: 'notificationsEnabled',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.HabitScalarFieldEnum = {
@@ -130,7 +135,8 @@ exports.Prisma.HabitScalarFieldEnum = {
   name: 'name',
   frequency: 'frequency',
   createdAt: 'createdAt',
-  userId: 'userId'
+  userId: 'userId',
+  current: 'current'
 };
 
 exports.Prisma.HabitCompletionScalarFieldEnum = {
@@ -144,11 +150,6 @@ exports.Prisma.HabitCompletionScalarFieldEnum = {
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
-};
-
-exports.Prisma.NullsOrder = {
-  first: 'first',
-  last: 'last'
 };
 
 

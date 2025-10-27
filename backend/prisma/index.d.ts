@@ -1128,24 +1128,39 @@ export namespace Prisma {
     id: number | null
     name: string | null
     email: string | null
+    password: string | null
     themePreference: string | null
+    language: string | null
+    dataProcessingAgreed: boolean | null
+    notificationsEnabled: boolean | null
     createdAt: Date | null
+    updatedAt: Date | null
   }
 
   export type UserMaxAggregateOutputType = {
     id: number | null
     name: string | null
     email: string | null
+    password: string | null
     themePreference: string | null
+    language: string | null
+    dataProcessingAgreed: boolean | null
+    notificationsEnabled: boolean | null
     createdAt: Date | null
+    updatedAt: Date | null
   }
 
   export type UserCountAggregateOutputType = {
     id: number
     name: number
     email: number
+    password: number
     themePreference: number
+    language: number
+    dataProcessingAgreed: number
+    notificationsEnabled: number
     createdAt: number
+    updatedAt: number
     _all: number
   }
 
@@ -1162,24 +1177,39 @@ export namespace Prisma {
     id?: true
     name?: true
     email?: true
+    password?: true
     themePreference?: true
+    language?: true
+    dataProcessingAgreed?: true
+    notificationsEnabled?: true
     createdAt?: true
+    updatedAt?: true
   }
 
   export type UserMaxAggregateInputType = {
     id?: true
     name?: true
     email?: true
+    password?: true
     themePreference?: true
+    language?: true
+    dataProcessingAgreed?: true
+    notificationsEnabled?: true
     createdAt?: true
+    updatedAt?: true
   }
 
   export type UserCountAggregateInputType = {
     id?: true
     name?: true
     email?: true
+    password?: true
     themePreference?: true
+    language?: true
+    dataProcessingAgreed?: true
+    notificationsEnabled?: true
     createdAt?: true
+    updatedAt?: true
     _all?: true
   }
 
@@ -1272,9 +1302,14 @@ export namespace Prisma {
   export type UserGroupByOutputType = {
     id: number
     name: string
-    email: string | null
+    email: string
+    password: string
     themePreference: string
+    language: string
+    dataProcessingAgreed: boolean
+    notificationsEnabled: boolean
     createdAt: Date
+    updatedAt: Date
     _count: UserCountAggregateOutputType | null
     _avg: UserAvgAggregateOutputType | null
     _sum: UserSumAggregateOutputType | null
@@ -1300,8 +1335,13 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     email?: boolean
+    password?: boolean
     themePreference?: boolean
+    language?: boolean
+    dataProcessingAgreed?: boolean
+    notificationsEnabled?: boolean
     createdAt?: boolean
+    updatedAt?: boolean
     habits?: boolean | User$habitsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
@@ -1310,27 +1350,42 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     email?: boolean
+    password?: boolean
     themePreference?: boolean
+    language?: boolean
+    dataProcessingAgreed?: boolean
+    notificationsEnabled?: boolean
     createdAt?: boolean
+    updatedAt?: boolean
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
     email?: boolean
+    password?: boolean
     themePreference?: boolean
+    language?: boolean
+    dataProcessingAgreed?: boolean
+    notificationsEnabled?: boolean
     createdAt?: boolean
+    updatedAt?: boolean
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectScalar = {
     id?: boolean
     name?: boolean
     email?: boolean
+    password?: boolean
     themePreference?: boolean
+    language?: boolean
+    dataProcessingAgreed?: boolean
+    notificationsEnabled?: boolean
     createdAt?: boolean
+    updatedAt?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "themePreference" | "createdAt", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "password" | "themePreference" | "language" | "dataProcessingAgreed" | "notificationsEnabled" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     habits?: boolean | User$habitsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
@@ -1346,9 +1401,14 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: number
       name: string
-      email: string | null
+      email: string
+      password: string
       themePreference: string
+      language: string
+      dataProcessingAgreed: boolean
+      notificationsEnabled: boolean
       createdAt: Date
+      updatedAt: Date
     }, ExtArgs["result"]["user"]>
     composites: {}
   }
@@ -1776,8 +1836,13 @@ export namespace Prisma {
     readonly id: FieldRef<"User", 'Int'>
     readonly name: FieldRef<"User", 'String'>
     readonly email: FieldRef<"User", 'String'>
+    readonly password: FieldRef<"User", 'String'>
     readonly themePreference: FieldRef<"User", 'String'>
+    readonly language: FieldRef<"User", 'String'>
+    readonly dataProcessingAgreed: FieldRef<"User", 'Boolean'>
+    readonly notificationsEnabled: FieldRef<"User", 'Boolean'>
     readonly createdAt: FieldRef<"User", 'DateTime'>
+    readonly updatedAt: FieldRef<"User", 'DateTime'>
   }
     
 
@@ -2234,6 +2299,7 @@ export namespace Prisma {
     frequency: string | null
     createdAt: Date | null
     userId: number | null
+    current: boolean | null
   }
 
   export type HabitMaxAggregateOutputType = {
@@ -2242,6 +2308,7 @@ export namespace Prisma {
     frequency: string | null
     createdAt: Date | null
     userId: number | null
+    current: boolean | null
   }
 
   export type HabitCountAggregateOutputType = {
@@ -2250,6 +2317,7 @@ export namespace Prisma {
     frequency: number
     createdAt: number
     userId: number
+    current: number
     _all: number
   }
 
@@ -2270,6 +2338,7 @@ export namespace Prisma {
     frequency?: true
     createdAt?: true
     userId?: true
+    current?: true
   }
 
   export type HabitMaxAggregateInputType = {
@@ -2278,6 +2347,7 @@ export namespace Prisma {
     frequency?: true
     createdAt?: true
     userId?: true
+    current?: true
   }
 
   export type HabitCountAggregateInputType = {
@@ -2286,6 +2356,7 @@ export namespace Prisma {
     frequency?: true
     createdAt?: true
     userId?: true
+    current?: true
     _all?: true
   }
 
@@ -2381,6 +2452,7 @@ export namespace Prisma {
     frequency: string
     createdAt: Date
     userId: number
+    current: boolean
     _count: HabitCountAggregateOutputType | null
     _avg: HabitAvgAggregateOutputType | null
     _sum: HabitSumAggregateOutputType | null
@@ -2408,6 +2480,7 @@ export namespace Prisma {
     frequency?: boolean
     createdAt?: boolean
     userId?: boolean
+    current?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
     completions?: boolean | Habit$completionsArgs<ExtArgs>
     _count?: boolean | HabitCountOutputTypeDefaultArgs<ExtArgs>
@@ -2419,6 +2492,7 @@ export namespace Prisma {
     frequency?: boolean
     createdAt?: boolean
     userId?: boolean
+    current?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["habit"]>
 
@@ -2428,6 +2502,7 @@ export namespace Prisma {
     frequency?: boolean
     createdAt?: boolean
     userId?: boolean
+    current?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["habit"]>
 
@@ -2437,9 +2512,10 @@ export namespace Prisma {
     frequency?: boolean
     createdAt?: boolean
     userId?: boolean
+    current?: boolean
   }
 
-  export type HabitOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "frequency" | "createdAt" | "userId", ExtArgs["result"]["habit"]>
+  export type HabitOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "frequency" | "createdAt" | "userId" | "current", ExtArgs["result"]["habit"]>
   export type HabitInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     completions?: boolean | Habit$completionsArgs<ExtArgs>
@@ -2464,6 +2540,7 @@ export namespace Prisma {
       frequency: string
       createdAt: Date
       userId: number
+      current: boolean
     }, ExtArgs["result"]["habit"]>
     composites: {}
   }
@@ -2894,6 +2971,7 @@ export namespace Prisma {
     readonly frequency: FieldRef<"Habit", 'String'>
     readonly createdAt: FieldRef<"Habit", 'DateTime'>
     readonly userId: FieldRef<"Habit", 'Int'>
+    readonly current: FieldRef<"Habit", 'Boolean'>
   }
     
 
@@ -4439,8 +4517,13 @@ export namespace Prisma {
     id: 'id',
     name: 'name',
     email: 'email',
+    password: 'password',
     themePreference: 'themePreference',
-    createdAt: 'createdAt'
+    language: 'language',
+    dataProcessingAgreed: 'dataProcessingAgreed',
+    notificationsEnabled: 'notificationsEnabled',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
   };
 
   export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -4451,7 +4534,8 @@ export namespace Prisma {
     name: 'name',
     frequency: 'frequency',
     createdAt: 'createdAt',
-    userId: 'userId'
+    userId: 'userId',
+    current: 'current'
   };
 
   export type HabitScalarFieldEnum = (typeof HabitScalarFieldEnum)[keyof typeof HabitScalarFieldEnum]
@@ -4476,14 +4560,6 @@ export namespace Prisma {
   export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
-  export const NullsOrder: {
-    first: 'first',
-    last: 'last'
-  };
-
-  export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
-
-
   /**
    * Field references
    */
@@ -4504,16 +4580,16 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'DateTime'
+   * Reference to a field of type 'Boolean'
    */
-  export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
+  export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
   /**
-   * Reference to a field of type 'Boolean'
+   * Reference to a field of type 'DateTime'
    */
-  export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+  export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
     
 
 
@@ -4533,39 +4609,59 @@ export namespace Prisma {
     NOT?: UserWhereInput | UserWhereInput[]
     id?: IntFilter<"User"> | number
     name?: StringFilter<"User"> | string
-    email?: StringNullableFilter<"User"> | string | null
+    email?: StringFilter<"User"> | string
+    password?: StringFilter<"User"> | string
     themePreference?: StringFilter<"User"> | string
+    language?: StringFilter<"User"> | string
+    dataProcessingAgreed?: BoolFilter<"User"> | boolean
+    notificationsEnabled?: BoolFilter<"User"> | boolean
     createdAt?: DateTimeFilter<"User"> | Date | string
+    updatedAt?: DateTimeFilter<"User"> | Date | string
     habits?: HabitListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
     id?: SortOrder
     name?: SortOrder
-    email?: SortOrderInput | SortOrder
+    email?: SortOrder
+    password?: SortOrder
     themePreference?: SortOrder
+    language?: SortOrder
+    dataProcessingAgreed?: SortOrder
+    notificationsEnabled?: SortOrder
     createdAt?: SortOrder
+    updatedAt?: SortOrder
     habits?: HabitOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
     id?: number
+    email?: string
     AND?: UserWhereInput | UserWhereInput[]
     OR?: UserWhereInput[]
     NOT?: UserWhereInput | UserWhereInput[]
     name?: StringFilter<"User"> | string
-    email?: StringNullableFilter<"User"> | string | null
+    password?: StringFilter<"User"> | string
     themePreference?: StringFilter<"User"> | string
+    language?: StringFilter<"User"> | string
+    dataProcessingAgreed?: BoolFilter<"User"> | boolean
+    notificationsEnabled?: BoolFilter<"User"> | boolean
     createdAt?: DateTimeFilter<"User"> | Date | string
+    updatedAt?: DateTimeFilter<"User"> | Date | string
     habits?: HabitListRelationFilter
-  }, "id">
+  }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
     id?: SortOrder
     name?: SortOrder
-    email?: SortOrderInput | SortOrder
+    email?: SortOrder
+    password?: SortOrder
     themePreference?: SortOrder
+    language?: SortOrder
+    dataProcessingAgreed?: SortOrder
+    notificationsEnabled?: SortOrder
     createdAt?: SortOrder
+    updatedAt?: SortOrder
     _count?: UserCountOrderByAggregateInput
     _avg?: UserAvgOrderByAggregateInput
     _max?: UserMaxOrderByAggregateInput
@@ -4579,9 +4675,14 @@ export namespace Prisma {
     NOT?: UserScalarWhereWithAggregatesInput | UserScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter<"User"> | number
     name?: StringWithAggregatesFilter<"User"> | string
-    email?: StringNullableWithAggregatesFilter<"User"> | string | null
+    email?: StringWithAggregatesFilter<"User"> | string
+    password?: StringWithAggregatesFilter<"User"> | string
     themePreference?: StringWithAggregatesFilter<"User"> | string
+    language?: StringWithAggregatesFilter<"User"> | string
+    dataProcessingAgreed?: BoolWithAggregatesFilter<"User"> | boolean
+    notificationsEnabled?: BoolWithAggregatesFilter<"User"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
   }
 
   export type HabitWhereInput = {
@@ -4593,6 +4694,7 @@ export namespace Prisma {
     frequency?: StringFilter<"Habit"> | string
     createdAt?: DateTimeFilter<"Habit"> | Date | string
     userId?: IntFilter<"Habit"> | number
+    current?: BoolFilter<"Habit"> | boolean
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     completions?: HabitCompletionListRelationFilter
   }
@@ -4603,6 +4705,7 @@ export namespace Prisma {
     frequency?: SortOrder
     createdAt?: SortOrder
     userId?: SortOrder
+    current?: SortOrder
     user?: UserOrderByWithRelationInput
     completions?: HabitCompletionOrderByRelationAggregateInput
   }
@@ -4616,6 +4719,7 @@ export namespace Prisma {
     frequency?: StringFilter<"Habit"> | string
     createdAt?: DateTimeFilter<"Habit"> | Date | string
     userId?: IntFilter<"Habit"> | number
+    current?: BoolFilter<"Habit"> | boolean
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     completions?: HabitCompletionListRelationFilter
   }, "id">
@@ -4626,6 +4730,7 @@ export namespace Prisma {
     frequency?: SortOrder
     createdAt?: SortOrder
     userId?: SortOrder
+    current?: SortOrder
     _count?: HabitCountOrderByAggregateInput
     _avg?: HabitAvgOrderByAggregateInput
     _max?: HabitMaxOrderByAggregateInput
@@ -4642,6 +4747,7 @@ export namespace Prisma {
     frequency?: StringWithAggregatesFilter<"Habit"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Habit"> | Date | string
     userId?: IntWithAggregatesFilter<"Habit"> | number
+    current?: BoolWithAggregatesFilter<"Habit"> | boolean
   }
 
   export type HabitCompletionWhereInput = {
@@ -4704,65 +4810,101 @@ export namespace Prisma {
 
   export type UserCreateInput = {
     name: string
-    email?: string | null
+    email: string
+    password: string
     themePreference?: string
+    language?: string
+    dataProcessingAgreed?: boolean
+    notificationsEnabled?: boolean
     createdAt?: Date | string
+    updatedAt?: Date | string
     habits?: HabitCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
     id?: number
     name: string
-    email?: string | null
+    email: string
+    password: string
     themePreference?: string
+    language?: string
+    dataProcessingAgreed?: boolean
+    notificationsEnabled?: boolean
     createdAt?: Date | string
+    updatedAt?: Date | string
     habits?: HabitUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
     name?: StringFieldUpdateOperationsInput | string
-    email?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
     themePreference?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    dataProcessingAgreed?: BoolFieldUpdateOperationsInput | boolean
+    notificationsEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     habits?: HabitUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
-    email?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
     themePreference?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    dataProcessingAgreed?: BoolFieldUpdateOperationsInput | boolean
+    notificationsEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     habits?: HabitUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
     id?: number
     name: string
-    email?: string | null
+    email: string
+    password: string
     themePreference?: string
+    language?: string
+    dataProcessingAgreed?: boolean
+    notificationsEnabled?: boolean
     createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type UserUpdateManyMutationInput = {
     name?: StringFieldUpdateOperationsInput | string
-    email?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
     themePreference?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    dataProcessingAgreed?: BoolFieldUpdateOperationsInput | boolean
+    notificationsEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type UserUncheckedUpdateManyInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
-    email?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
     themePreference?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    dataProcessingAgreed?: BoolFieldUpdateOperationsInput | boolean
+    notificationsEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type HabitCreateInput = {
     name: string
     frequency?: string
     createdAt?: Date | string
+    current?: boolean
     user: UserCreateNestedOneWithoutHabitsInput
     completions?: HabitCompletionCreateNestedManyWithoutHabitInput
   }
@@ -4773,6 +4915,7 @@ export namespace Prisma {
     frequency?: string
     createdAt?: Date | string
     userId: number
+    current?: boolean
     completions?: HabitCompletionUncheckedCreateNestedManyWithoutHabitInput
   }
 
@@ -4780,6 +4923,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     frequency?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    current?: BoolFieldUpdateOperationsInput | boolean
     user?: UserUpdateOneRequiredWithoutHabitsNestedInput
     completions?: HabitCompletionUpdateManyWithoutHabitNestedInput
   }
@@ -4790,6 +4934,7 @@ export namespace Prisma {
     frequency?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: IntFieldUpdateOperationsInput | number
+    current?: BoolFieldUpdateOperationsInput | boolean
     completions?: HabitCompletionUncheckedUpdateManyWithoutHabitNestedInput
   }
 
@@ -4799,12 +4944,14 @@ export namespace Prisma {
     frequency?: string
     createdAt?: Date | string
     userId: number
+    current?: boolean
   }
 
   export type HabitUpdateManyMutationInput = {
     name?: StringFieldUpdateOperationsInput | string
     frequency?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    current?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type HabitUncheckedUpdateManyInput = {
@@ -4813,6 +4960,7 @@ export namespace Prisma {
     frequency?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: IntFieldUpdateOperationsInput | number
+    current?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type HabitCompletionCreateInput = {
@@ -4892,18 +5040,9 @@ export namespace Prisma {
     not?: NestedStringFilter<$PrismaModel> | string
   }
 
-  export type StringNullableFilter<$PrismaModel = never> = {
-    equals?: string | StringFieldRefInput<$PrismaModel> | null
-    in?: string[] | null
-    notIn?: string[] | null
-    lt?: string | StringFieldRefInput<$PrismaModel>
-    lte?: string | StringFieldRefInput<$PrismaModel>
-    gt?: string | StringFieldRefInput<$PrismaModel>
-    gte?: string | StringFieldRefInput<$PrismaModel>
-    contains?: string | StringFieldRefInput<$PrismaModel>
-    startsWith?: string | StringFieldRefInput<$PrismaModel>
-    endsWith?: string | StringFieldRefInput<$PrismaModel>
-    not?: NestedStringNullableFilter<$PrismaModel> | string | null
+  export type BoolFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolFilter<$PrismaModel> | boolean
   }
 
   export type DateTimeFilter<$PrismaModel = never> = {
@@ -4923,11 +5062,6 @@ export namespace Prisma {
     none?: HabitWhereInput
   }
 
-  export type SortOrderInput = {
-    sort: SortOrder
-    nulls?: NullsOrder
-  }
-
   export type HabitOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -4936,8 +5070,13 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     email?: SortOrder
+    password?: SortOrder
     themePreference?: SortOrder
+    language?: SortOrder
+    dataProcessingAgreed?: SortOrder
+    notificationsEnabled?: SortOrder
     createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type UserAvgOrderByAggregateInput = {
@@ -4948,16 +5087,26 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     email?: SortOrder
+    password?: SortOrder
     themePreference?: SortOrder
+    language?: SortOrder
+    dataProcessingAgreed?: SortOrder
+    notificationsEnabled?: SortOrder
     createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type UserMinOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
     email?: SortOrder
+    password?: SortOrder
     themePreference?: SortOrder
+    language?: SortOrder
+    dataProcessingAgreed?: SortOrder
+    notificationsEnabled?: SortOrder
     createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type UserSumOrderByAggregateInput = {
@@ -4997,21 +5146,12 @@ export namespace Prisma {
     _max?: NestedStringFilter<$PrismaModel>
   }
 
-  export type StringNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: string | StringFieldRefInput<$PrismaModel> | null
-    in?: string[] | null
-    notIn?: string[] | null
-    lt?: string | StringFieldRefInput<$PrismaModel>
-    lte?: string | StringFieldRefInput<$PrismaModel>
-    gt?: string | StringFieldRefInput<$PrismaModel>
-    gte?: string | StringFieldRefInput<$PrismaModel>
-    contains?: string | StringFieldRefInput<$PrismaModel>
-    startsWith?: string | StringFieldRefInput<$PrismaModel>
-    endsWith?: string | StringFieldRefInput<$PrismaModel>
-    not?: NestedStringNullableWithAggregatesFilter<$PrismaModel> | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedStringNullableFilter<$PrismaModel>
-    _max?: NestedStringNullableFilter<$PrismaModel>
+  export type BoolWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBoolFilter<$PrismaModel>
+    _max?: NestedBoolFilter<$PrismaModel>
   }
 
   export type DateTimeWithAggregatesFilter<$PrismaModel = never> = {
@@ -5049,6 +5189,7 @@ export namespace Prisma {
     frequency?: SortOrder
     createdAt?: SortOrder
     userId?: SortOrder
+    current?: SortOrder
   }
 
   export type HabitAvgOrderByAggregateInput = {
@@ -5062,6 +5203,7 @@ export namespace Prisma {
     frequency?: SortOrder
     createdAt?: SortOrder
     userId?: SortOrder
+    current?: SortOrder
   }
 
   export type HabitMinOrderByAggregateInput = {
@@ -5070,16 +5212,12 @@ export namespace Prisma {
     frequency?: SortOrder
     createdAt?: SortOrder
     userId?: SortOrder
+    current?: SortOrder
   }
 
   export type HabitSumOrderByAggregateInput = {
     id?: SortOrder
     userId?: SortOrder
-  }
-
-  export type BoolFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolFilter<$PrismaModel> | boolean
   }
 
   export type HabitScalarRelationFilter = {
@@ -5126,14 +5264,6 @@ export namespace Prisma {
     habitId?: SortOrder
   }
 
-  export type BoolWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedBoolFilter<$PrismaModel>
-    _max?: NestedBoolFilter<$PrismaModel>
-  }
-
   export type HabitCreateNestedManyWithoutUserInput = {
     create?: XOR<HabitCreateWithoutUserInput, HabitUncheckedCreateWithoutUserInput> | HabitCreateWithoutUserInput[] | HabitUncheckedCreateWithoutUserInput[]
     connectOrCreate?: HabitCreateOrConnectWithoutUserInput | HabitCreateOrConnectWithoutUserInput[]
@@ -5152,8 +5282,8 @@ export namespace Prisma {
     set?: string
   }
 
-  export type NullableStringFieldUpdateOperationsInput = {
-    set?: string | null
+  export type BoolFieldUpdateOperationsInput = {
+    set?: boolean
   }
 
   export type DateTimeFieldUpdateOperationsInput = {
@@ -5258,10 +5388,6 @@ export namespace Prisma {
     connect?: HabitWhereUniqueInput
   }
 
-  export type BoolFieldUpdateOperationsInput = {
-    set?: boolean
-  }
-
   export type HabitUpdateOneRequiredWithoutCompletionsNestedInput = {
     create?: XOR<HabitCreateWithoutCompletionsInput, HabitUncheckedCreateWithoutCompletionsInput>
     connectOrCreate?: HabitCreateOrConnectWithoutCompletionsInput
@@ -5295,18 +5421,9 @@ export namespace Prisma {
     not?: NestedStringFilter<$PrismaModel> | string
   }
 
-  export type NestedStringNullableFilter<$PrismaModel = never> = {
-    equals?: string | StringFieldRefInput<$PrismaModel> | null
-    in?: string[] | null
-    notIn?: string[] | null
-    lt?: string | StringFieldRefInput<$PrismaModel>
-    lte?: string | StringFieldRefInput<$PrismaModel>
-    gt?: string | StringFieldRefInput<$PrismaModel>
-    gte?: string | StringFieldRefInput<$PrismaModel>
-    contains?: string | StringFieldRefInput<$PrismaModel>
-    startsWith?: string | StringFieldRefInput<$PrismaModel>
-    endsWith?: string | StringFieldRefInput<$PrismaModel>
-    not?: NestedStringNullableFilter<$PrismaModel> | string | null
+  export type NestedBoolFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolFilter<$PrismaModel> | boolean
   }
 
   export type NestedDateTimeFilter<$PrismaModel = never> = {
@@ -5364,32 +5481,12 @@ export namespace Prisma {
     _max?: NestedStringFilter<$PrismaModel>
   }
 
-  export type NestedStringNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: string | StringFieldRefInput<$PrismaModel> | null
-    in?: string[] | null
-    notIn?: string[] | null
-    lt?: string | StringFieldRefInput<$PrismaModel>
-    lte?: string | StringFieldRefInput<$PrismaModel>
-    gt?: string | StringFieldRefInput<$PrismaModel>
-    gte?: string | StringFieldRefInput<$PrismaModel>
-    contains?: string | StringFieldRefInput<$PrismaModel>
-    startsWith?: string | StringFieldRefInput<$PrismaModel>
-    endsWith?: string | StringFieldRefInput<$PrismaModel>
-    not?: NestedStringNullableWithAggregatesFilter<$PrismaModel> | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedStringNullableFilter<$PrismaModel>
-    _max?: NestedStringNullableFilter<$PrismaModel>
-  }
-
-  export type NestedIntNullableFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | null
-    notIn?: number[] | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBoolFilter<$PrismaModel>
+    _max?: NestedBoolFilter<$PrismaModel>
   }
 
   export type NestedDateTimeWithAggregatesFilter<$PrismaModel = never> = {
@@ -5406,23 +5503,11 @@ export namespace Prisma {
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
-  export type NestedBoolFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolFilter<$PrismaModel> | boolean
-  }
-
-  export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedBoolFilter<$PrismaModel>
-    _max?: NestedBoolFilter<$PrismaModel>
-  }
-
   export type HabitCreateWithoutUserInput = {
     name: string
     frequency?: string
     createdAt?: Date | string
+    current?: boolean
     completions?: HabitCompletionCreateNestedManyWithoutHabitInput
   }
 
@@ -5431,6 +5516,7 @@ export namespace Prisma {
     name: string
     frequency?: string
     createdAt?: Date | string
+    current?: boolean
     completions?: HabitCompletionUncheckedCreateNestedManyWithoutHabitInput
   }
 
@@ -5468,21 +5554,32 @@ export namespace Prisma {
     frequency?: StringFilter<"Habit"> | string
     createdAt?: DateTimeFilter<"Habit"> | Date | string
     userId?: IntFilter<"Habit"> | number
+    current?: BoolFilter<"Habit"> | boolean
   }
 
   export type UserCreateWithoutHabitsInput = {
     name: string
-    email?: string | null
+    email: string
+    password: string
     themePreference?: string
+    language?: string
+    dataProcessingAgreed?: boolean
+    notificationsEnabled?: boolean
     createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type UserUncheckedCreateWithoutHabitsInput = {
     id?: number
     name: string
-    email?: string | null
+    email: string
+    password: string
     themePreference?: string
+    language?: string
+    dataProcessingAgreed?: boolean
+    notificationsEnabled?: boolean
     createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type UserCreateOrConnectWithoutHabitsInput = {
@@ -5525,17 +5622,27 @@ export namespace Prisma {
 
   export type UserUpdateWithoutHabitsInput = {
     name?: StringFieldUpdateOperationsInput | string
-    email?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
     themePreference?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    dataProcessingAgreed?: BoolFieldUpdateOperationsInput | boolean
+    notificationsEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type UserUncheckedUpdateWithoutHabitsInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
-    email?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
     themePreference?: StringFieldUpdateOperationsInput | string
+    language?: StringFieldUpdateOperationsInput | string
+    dataProcessingAgreed?: BoolFieldUpdateOperationsInput | boolean
+    notificationsEnabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type HabitCompletionUpsertWithWhereUniqueWithoutHabitInput = {
@@ -5569,6 +5676,7 @@ export namespace Prisma {
     name: string
     frequency?: string
     createdAt?: Date | string
+    current?: boolean
     user: UserCreateNestedOneWithoutHabitsInput
   }
 
@@ -5578,6 +5686,7 @@ export namespace Prisma {
     frequency?: string
     createdAt?: Date | string
     userId: number
+    current?: boolean
   }
 
   export type HabitCreateOrConnectWithoutCompletionsInput = {
@@ -5600,6 +5709,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     frequency?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    current?: BoolFieldUpdateOperationsInput | boolean
     user?: UserUpdateOneRequiredWithoutHabitsNestedInput
   }
 
@@ -5609,6 +5719,7 @@ export namespace Prisma {
     frequency?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: IntFieldUpdateOperationsInput | number
+    current?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type HabitCreateManyUserInput = {
@@ -5616,12 +5727,14 @@ export namespace Prisma {
     name: string
     frequency?: string
     createdAt?: Date | string
+    current?: boolean
   }
 
   export type HabitUpdateWithoutUserInput = {
     name?: StringFieldUpdateOperationsInput | string
     frequency?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    current?: BoolFieldUpdateOperationsInput | boolean
     completions?: HabitCompletionUpdateManyWithoutHabitNestedInput
   }
 
@@ -5630,6 +5743,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     frequency?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    current?: BoolFieldUpdateOperationsInput | boolean
     completions?: HabitCompletionUncheckedUpdateManyWithoutHabitNestedInput
   }
 
@@ -5638,6 +5752,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     frequency?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    current?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type HabitCompletionCreateManyHabitInput = {

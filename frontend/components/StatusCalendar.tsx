@@ -42,7 +42,7 @@ export default function StatusCalendar() {
         const currentYear = new Date().getFullYear(); // Current year
         setSelectedMonth(currentMonth); // Update selectedMonth to the current month
         setSelectedYear(currentYear); // Update selectedYear to the current year
-        generateMarkedDates(currentYear, currentMonth); // Generate marked dates for the current month
+        //generateMarkedDates(currentYear, currentMonth); // Generate marked dates for the current month
       }, [])
     );
   
@@ -76,16 +76,16 @@ export default function StatusCalendar() {
       <>
         <Calendar
           // current={`${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01`} // Dynamically set the displayed month and year
-          markedDates={{
-            ...markedDates,
-            [today]: { selected: true }, // Highlight today
-          }}
+          // markedDates={{
+          //   ...markedDates,
+          //   [today]: { selected: true }, // Highlight today
+          // }}
           onDayPress={(day) => handleDateSelect(day.dateString)} // Handle date selection
           onMonthChange={(month) => {
             console.log(`Month changed to year: ${month.year}, month: ${month.month}`);
             setSelectedMonth(month.month); // Update the selected month
             setSelectedYear(month.year); // Update the selected year
-            generateMarkedDates(month.year, month.month); // Generate marked dates for the new month
+            // generateMarkedDates(month.year, month.month); // Generate marked dates for the new month
           }}
           style={{ borderRadius: 8 }}
           theme={{

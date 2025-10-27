@@ -1,23 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Text, Card, Surface, useTheme } from 'react-native-paper';
+import { useUser } from '../../constants/UserContext';
 
-import { getUserByUsername } from '../../api/userApi';
 import HabitsList from '@/components/HabitsCheckList'
 import StatusCalendar from '@/components/StatusCalendar';
-import { Habit } from '../../constants/interfaces'
-import { User } from '../../constants/interfaces'
 
 import { globalStyles } from '../../constants/globalStyles';
 
 export default function HomeScreen()
 {
-  const [userName, setUserName] = useState<User | null>(null);
   const today = new Date().toISOString().split('T')[0];
   const theme = useTheme();
 
-  // useEffect(() => {
-  //      todo: use setUsername to use data from react context
-  // }, []);
+  const { user } = useUser();
 
   return (
     <Surface
@@ -25,11 +20,9 @@ export default function HomeScreen()
       elevation={0}
     >
       <Text variant="displaySmall">
-        Welcome back, {userName?.name ?? 'Guest'}!
+        Welcome back, {user?.name ?? 'Guest'}!
       </Text>
-      <Surface
-        style={[globalStyles.container, { height: 300 }, { backgroundColor: theme.colors.background }]}
-      >
+      <Surface style={[globalStyles.container, { height: 300 }, { backgroundColor: theme.colors.background }]}>
         <HabitsList date={today}/>
       </Surface>
       <Card style={[globalStyles.container, { backgroundColor: theme.colors.background }]}>

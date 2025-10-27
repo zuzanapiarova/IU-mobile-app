@@ -14,17 +14,16 @@ api.interceptors.request.use(async (config) => {
   return config;
 });
 
-// Fetch all habits
+// Fetch all habits - TESTED
 export async function getAllHabits(): Promise<Habit[]>{
   const { data } = await api.get('/habits');
   console.log("Calling API:", api.defaults.baseURL);
   return data;
 }
 
-// TODO: change userId from 1 to real user id 
 // Add a new habit
-export async function addHabit(name: string, frequency: string = 'daily', userId = 1) {
-  const { data } = await api.post('/habits', { name, frequency, userId});
+export async function addHabit(name: string, frequency: string = 'daily', userId: number) {
+  const { data } = await api.post('/habits', { name, frequency, userId });
   return data;
 }
 

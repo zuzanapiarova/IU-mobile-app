@@ -7,24 +7,28 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootTabParamList } from '../constants/navigation'; // navigate to habits page
 
-import { Habit } from '../constants/interfaces'
+import { Habit, HabitWithCompletion } from '../constants/interfaces'
 import { globalStyles } from '../constants/globalStyles';
 import { completeHabit, uncompleteHabit, getHabitsForDay } from '../api/habitsApi';
 
 // gets data from the habit_completions table
 export default function HabitsList({ date, onHabitsUpdated }: { date: string; onHabitsUpdated?: () => void })
 {
+  const [habits, setHabits] = useState<HabitWithCompletion[]>([]);
+
   const today = new Date().toISOString().split('T')[0];
   const theme = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<RootTabParamList>>();
-
-  const [habits, setHabits] = useState<Habit[]>([]);
 
   // fetch habits for the day
   const loadHabits = async () => {
     try {
       const data = await getHabitsForDay(date);
-      setHabits(data);
+      const transformedData = data.map((habit: HabitWithCompletion) => ({
+        ...habit,
+        status: habit.status ? 1 : 0, // Convert boolean to integer
+      }));
+      setHabits(transformedData);
     } catch (error) {
       console.error('Error loading habits:', error);
     }
@@ -44,17 +48,6 @@ export default function HabitsList({ date, onHabitsUpdated }: { date: string; on
 
   const toggleCheck = async (id: number) => {
     try {
-      // Optimistically update the local state
-      const updatedHabits = habits.map((habit) => {
-        if (habit.habit_id === id) {
-          const newStatus = habit.status === 1 ? 0 : 1; // Toggle status
-          return { ...habit, status: newStatus }; // Update the habit's status
-        }
-        return habit;
-      });
-      setHabits(updatedHabits); // Update the habits state immediately
-  
-      // Update the database
       const habitToUpdate = habits.find((habit) => habit.habit_id === id);
       if (habitToUpdate) {
         const newStatus = habitToUpdate.status === 1 ? 0 : 1;
@@ -64,7 +57,7 @@ export default function HabitsList({ date, onHabitsUpdated }: { date: string; on
           await uncompleteHabit(id, date); // Wait for the database update to complete
         }
       }
-  
+      await loadHabits();
       // Trigger the callback after the database update is complete
       if (onHabitsUpdated) {
         onHabitsUpdated();
@@ -72,20 +65,20 @@ export default function HabitsList({ date, onHabitsUpdated }: { date: string; on
     } catch (error) {
       console.error('Error toggling habit:', error);
     }
-  };
+  };  
 
   const completedPercentage =
     habits.length > 0
       ? Math.round((habits.filter((habit) => habit.status === 1).length / habits.length) * 100)
       : 0;
 
-  // sort habits so unfinished ar ealways on top 
+  // sort habits so unfinished are always on top 
   const sortedHabits = [
     ...habits.filter((h) => h.status === 0),
     ...habits.filter((h) => h.status === 1),
   ];
 
-  const renderItem = ({ item }: { item: Habit }) => {
+  const renderItem = ({item}: {item: HabitWithCompletion}) => {
     const isChecked = item.status === 1;
     return (
       <List.Item
@@ -137,7 +130,7 @@ export default function HabitsList({ date, onHabitsUpdated }: { date: string; on
         ) : (
           <FlatList
             data={sortedHabits}
-            keyExtractor={(item) => item.habit_id.toString()}
+            keyExtractor={(item) => item.id.toString()}
             renderItem={renderItem}
             ItemSeparatorComponent={() => <View style={globalStyles.separator} />}
           />
@@ -158,7 +151,7 @@ export default function HabitsList({ date, onHabitsUpdated }: { date: string; on
           </Text>
           <FlatList
             data={sortedHabits}
-            keyExtractor={(item) => item.habit_id.toString()}
+            keyExtractor={(item) => item.id.toString()}
             renderItem={renderItem}
             ItemSeparatorComponent={() => <View style={globalStyles.separator} />}
           />

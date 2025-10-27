@@ -1,26 +1,24 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+generator client {
+  provider = "prisma-client-js"
+}
 
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-  output   = "."
-}
-
 model User {
-  id              Int      @id @default(autoincrement())
-  name            String
-  email           String?  @unique
-  themePreference String   @default("system")
-  createdAt       DateTime @default(now())
-  habits          Habit[] // reference for habits that belongs to this user
+  id                   Int      @id @default(autoincrement())
+  name                 String
+  email                String   @unique
+  password             String
+  themePreference      String   @default("system")
+  language             String   @default("en")
+  dataProcessingAgreed Boolean  @default(false)
+  notificationsEnabled Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  habits               Habit[]
 }
 
 model Habit {
@@ -29,17 +27,18 @@ model Habit {
   frequency   String            @default("daily")
   createdAt   DateTime          @default(now())
   userId      Int
+  current     Boolean           @default(true)
   user        User              @relation(fields: [userId], references: [id])
-  completions HabitCompletion[] // reference for completions that belong to this habit 
+  completions HabitCompletion[]
 }
 
 model HabitCompletion {
   id        Int      @id @default(autoincrement())
-  habit     Habit    @relation(fields: [habitId], references: [id])
   habitId   Int
   date      String
   status    Boolean
   timestamp DateTime @default(now())
+  habit     Habit    @relation(fields: [habitId], references: [id])
 
-  @@unique([habitId, date]) // matches the UNIQUE(habit_id, date)
+  @@unique([habitId, date])
 }
