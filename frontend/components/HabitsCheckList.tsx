@@ -10,11 +10,14 @@ import { RootTabParamList } from '../constants/navigation'; // navigate to habit
 import { Habit, HabitWithCompletion } from '../constants/interfaces'
 import { globalStyles } from '../constants/globalStyles';
 import { completeHabit, uncompleteHabit, getHabitsForDay } from '../api/habitsApi';
+import { useUser } from "@/constants/UserContext";
+
 
 // gets data from the habit_completions table
 export default function HabitsList({ date, onHabitsUpdated }: { date: string; onHabitsUpdated?: () => void })
 {
   const [habits, setHabits] = useState<HabitWithCompletion[]>([]);
+  const { user } = useUser(); // Get the logged-in user
 
   const today = new Date().toISOString().split('T')[0];
   const theme = useTheme();
@@ -22,8 +25,9 @@ export default function HabitsList({ date, onHabitsUpdated }: { date: string; on
 
   // fetch habits for the day
   const loadHabits = async () => {
+    if (!user) return; // Ensure the user is logged in
     try {
-      const data = await getHabitsForDay(date);
+      const data = await getHabitsForDay(user.id, date);
       const transformedData = data.map((habit: HabitWithCompletion) => ({
         ...habit,
         status: habit.status ? 1 : 0, // Convert boolean to integer
