@@ -7,16 +7,20 @@ import { useFocusEffect } from '@react-navigation/native';
 import { getCompletionPercentageForDay } from './OverViewCalculations';
 import { globalStyles } from '../constants/globalStyles'
 import HabitsList from './HabitsCheckList';
+import { useUser } from "@/constants/UserContext"; // Import the UserContext
 
 export default function StatusCalendar() {
-    const theme = useTheme();
-    const today = new Date().toISOString().split('T')[0];
-    const [markedDates, setMarkedDates] = useState<{ [key: string]: any }>({});
-    const [selectedDate, setSelectedDate] = useState<string | null>(null);
-    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1); // Current month (1-based)
-    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear()); // Current year
-    const [isModalVisible, setModalVisible] = useState(false);
+  const theme = useTheme();
+  const today = new Date().toISOString().split('T')[0];
+  const [markedDates, setMarkedDates] = useState<{ [key: string]: any }>({});
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1); // Current month (1-based)
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear()); // Current year
+  const [isModalVisible, setModalVisible] = useState(false);
   
+  const { user } = useUser(); // Access user data and actions from context
+  if (!user) return;
+
     // Generate dot color for the given month and year to be used as marked dates in Calendar component
     const generateMarkedDates = async (year: number, month: number) => {
       if (year > new Date().getFullYear() || (year === new Date().getFullYear() && month > new Date().getMonth() + 1)) return;
@@ -26,7 +30,7 @@ export default function StatusCalendar() {
   
       for (let day = 1; day <= daysInMonth; day++) {
         const date = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const percentage = await getCompletionPercentageForDay(date);
+        const percentage = await getCompletionPercentageForDay(user.id, date);
         let dotColor = globalStyles.yellow.color;
         if (percentage > 80) dotColor = 'green';
         else if (percentage < 20) dotColor = 'red';
@@ -55,7 +59,7 @@ export default function StatusCalendar() {
   
     // Update the dot color for the selected date
     const updateSelectedDateDotColor = async (date: string) => {
-      const percentage = await getCompletionPercentageForDay(date);
+      const percentage = await getCompletionPercentageForDay(user.id, date);
   
       // Determine the new dot color based on the percentage
       let dotColor = globalStyles.yellow.color;

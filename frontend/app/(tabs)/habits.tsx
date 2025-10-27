@@ -24,7 +24,8 @@ export default function HabitsScreen()
 
   useEffect(() => {
     async function load() {
-      const data = await getAllHabits();
+      if (!user) return alert('You must be logged in!');
+      const data = await getAllHabits(user.id);
       setHabits(data);
     }
     load();
@@ -36,10 +37,9 @@ export default function HabitsScreen()
     if (!user) return alert('You must be logged in!');
   
     try {
-      console.log("New habit: " + newHabit.trim());
       await addHabit(newHabit.trim(), 'daily', user.id);
       setNewHabit('');
-      const updated = await getAllHabits();
+      const updated = await getAllHabits(user.id);
       setHabits(updated);
     } catch (error) {
       console.error('Error adding habit:', error);
@@ -49,9 +49,10 @@ export default function HabitsScreen()
   // delete habit from db 
   async function handleDeleteHabit() {
     if (selectedHabit) {
+      if (!user) return alert('You must be logged in!');
       try {
         await deleteHabit(selectedHabit.id);
-        const updated = await getAllHabits();
+        const updated = await getAllHabits(user.id);
         setHabits(updated);
         setDeleteModalVisible(false);
         setSelectedHabit(null);
@@ -65,9 +66,10 @@ export default function HabitsScreen()
   // todo: change frequency if it was changed, if not, keep selectedHabit.frequency
   async function handleUpdateHabit() {
     if (selectedHabit) {
+      if (!user) return alert('You must be logged in!');
       if (updatedHabitName.trim() || updatedHabitFrequency) {
         await updateHabit(selectedHabit.id, updatedHabitName.trim(), updatedHabitFrequency);
-        const updated = await getAllHabits();
+        const updated = await getAllHabits(user.id);
         setHabits(updated);
         setEditModalVisible(false);
         setSelectedHabit(null);

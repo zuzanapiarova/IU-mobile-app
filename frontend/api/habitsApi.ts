@@ -1,6 +1,7 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { Habit } from "@/constants/interfaces";
+import { useUser } from "@/constants/UserContext"; // Import the UserContext
 
 export const api = axios.create({
   baseURL: process.env.EXPO_PUBLIC_API_URL || 'http://192.168.0.41:3000',
@@ -14,10 +15,9 @@ api.interceptors.request.use(async (config) => {
   return config;
 });
 
-// Fetch all habits - TESTED
-export async function getAllHabits(): Promise<Habit[]>{
-  const { data } = await api.get('/habits');
-  console.log("Calling API:", api.defaults.baseURL);
+// Fetch all habits for the logged-in user
+export async function getAllHabits(userId: number): Promise<Habit[]> {
+  const { data } = await api.get('/habits', { params: { userId } });
   return data;
 }
 
@@ -85,21 +85,22 @@ export async function getCompletionPercentageForDay(date: string): Promise<{ dat
   return data;
 }
 
-// Get habits for a specific day
-export async function getHabitsForDay(date?: string) {
+
+// Get habits for a specific day for the logged-in user
+export async function getHabitsForDay(userId: number, date?: string) {
   const { data } = await api.get('/habits-for-day', {
-    params: { date },
+    params: { userId, date },
   });
   return data;
 }
 
-// Initialize habit completions for a specific day
+// Initialize habit completions for a specific day - REDO: add user id
 export async function initializeHabitCompletionsForDay(date?: string) {
   const { data } = await api.post('/initialize-habit-completions', { date });
   return data;
 }
 
-// Get the most recent date from habit completions
+// Get the most recent date from habit completions - REDO: add user id
 export async function getMostRecentDate(): Promise<string | null> {
   const { data } = await api.get('/habits-completions/most-recent-date');
   return data.maxDate;

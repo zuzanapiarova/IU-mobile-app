@@ -110,11 +110,17 @@ app.put('/users/:id', async (req, res) => {
 
 // HABITS endpoints -------------------------------------------------------------------
 
-// GET /habits - Fetch all habits 
+// GET /habits - Fetch all habits for a specific user
 app.get('/habits', async (req, res) => {
+  const { userId } = req.query;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'User is required to be logged in' });
+  }
+
   try {
     const habits = await prisma.habit.findMany({
-      where: { current: true }, // Only fetch habits where current = true
+      where: { userId: parseInt(userId), current: true },
       orderBy: { createdAt: 'desc' },
     });
     res.json(habits);
@@ -390,17 +396,20 @@ app.get('/completion-percentage', async (req, res) => {
 });
 
 // GET /habits-for-day - Retrieve habits completed for a specific day
-// GET /habits-for-day - Retrieve habits completed for a specific day
 app.get('/habits-for-day', async (req, res) => {
   const today = new Date().toISOString().split('T')[0];
-  const { date } = req.query;
+  const { userId, date } = req.query;
   const day = date || today;
 
+  if (!userId)
+    return res.status(400).json({ error: 'User ID is required' });
+
   try {
-    // Fetch habits for the specified day
     const habitsForDay = await prisma.habitCompletion.findMany({
-      where: { date: day },
-      orderBy: { status: 'asc' },
+      where: { 
+        habit: { userId: parseInt(userId) },
+        date: day,
+      },
       include: {
         habit: {
           select: {
