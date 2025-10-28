@@ -23,15 +23,23 @@ export default function StatusCalendar() {
   
   const { user } = useUser(); // Access user data and actions from context
   if (!user) return;
+  const createdAtDate = new Date(user.createdAt);
+  const createdAtYear = createdAtDate.getFullYear();
+  const createdAtMonth = createdAtDate.getMonth() + 1;
+  const createdAtDay = createdAtDate.getDate();
 
     // Generate dot color for the given month and year to be used as marked dates in Calendar component
     const generateMarkedDates = async (year: number, month: number) => {
-      if (year > new Date().getFullYear() || (year === new Date().getFullYear() && month > new Date().getMonth() + 1)) return;
+      // do not generate dates the user was not using the app or in the future 
+      if (year < createdAtYear ||  year > new Date().getFullYear()) return ;
+      if ((year <= createdAtYear && month < createdAtMonth) || (year === new Date().getFullYear() && month > new Date().getMonth() + 1)) return; 
+      
       let daysInMonth = new Date(year, month, 0).getDate(); // Get the number of days in the month
       if (month === new Date(today).getMonth() + 1) daysInMonth = new Date(today).getDate();
       const newMarkedDates: { [key: string]: any } = {};
   
       for (let day = 1; day <= daysInMonth; day++) {
+        if (day < createdAtDay) continue; // do not genrate for date user was not using the app
         const date = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const percentage = await getCompletionPercentageForDay(user.id, date);
         let dotColor = globalStyles.yellow.color;
