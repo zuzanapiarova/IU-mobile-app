@@ -139,13 +139,18 @@ export default function HabitsList({ date, onHabitsUpdated }: { date: string; on
             ItemSeparatorComponent={() => <View style={globalStyles.separator} />}
           />
         )}
-    </Surface>
-  );
-} else {
-  return (
-    <Surface style={[globalStyles.card, { marginTop: 50, backgroundColor: theme.colors.background }]} elevation={0}>
-        <Text variant="titleMedium" style={{padding: 10}}>Tasks for {date}</Text>
-        {habits.length > 0 ? (
+      </Surface>
+    );
+  } else {
+    return (
+      <Surface style={[globalStyles.card, { marginTop: 50, backgroundColor: theme.colors.background }]} elevation={0}>
+          <Text variant="titleMedium" style={{padding: 10}}>Tasks for {date}</Text>
+          {new Date(date).toISOString().split('T')[0] < new Date(user.createdAt).toISOString().split('T')[0] ? (
+            // Render this message if the date is before the user's createdAt date
+            <Text style={{ padding: 10, color: theme.colors.onSurfaceDisabled }}>
+              Your account was not active on this day yet. No records saved.
+            </Text>
+          ) : habits.length > 0 ? (
           <>
           <Text
             variant="titleLarge"
