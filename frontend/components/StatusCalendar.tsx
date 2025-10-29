@@ -30,29 +30,36 @@ export default function StatusCalendar() {
 
     // Generate dot color for the given month and year to be used as marked dates in Calendar component
     const generateMarkedDates = async (year: number, month: number) => {
-      // do not generate dates the user was not using the app or in the future 
-      if (year < createdAtYear ||  year > new Date().getFullYear()) return ;
-      if ((year <= createdAtYear && month < createdAtMonth) || (year === new Date().getFullYear() && month > new Date().getMonth() + 1)) return; 
-      
+      // Do not generate dates the user was not using the app or in the future
+      if (year < createdAtYear || year > new Date().getFullYear()) return;
+      if (
+        (year <= createdAtYear && month < createdAtMonth) ||
+        (year === new Date().getFullYear() && month > new Date().getMonth() + 1)
+      )
+        return;
+    
       let daysInMonth = new Date(year, month, 0).getDate(); // Get the number of days in the month
       if (month === new Date(today).getMonth() + 1) daysInMonth = new Date(today).getDate();
       const newMarkedDates: { [key: string]: any } = {};
-  
+    
       for (let day = 1; day <= daysInMonth; day++) {
-        if (day < createdAtDay) continue; // do not genrate for date user was not using the app
+        if (day < createdAtDay) continue; // Do not generate for dates before the user started using the app
         const date = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const percentage = await getCompletionPercentageForDay(user.id, date);
+    
+        // Determine the dot color based on the updated success and failure limits
         let dotColor = globalStyles.yellow.color;
         if (percentage >= user.successLimit) dotColor = 'green';
         else if (percentage <= user.failureLimit) dotColor = 'red';
+    
         newMarkedDates[date] = { marked: true, dotColor };
       }
-      // Only update state if the data has changed
-      setMarkedDates((prevMarkedDates) => {
-        if (JSON.stringify(prevMarkedDates) === JSON.stringify(newMarkedDates))
-          return prevMarkedDates;
-        return newMarkedDates;
-      });
+    
+      // Update the state with the new marked dates
+      setMarkedDates((prevMarkedDates) => ({
+        ...prevMarkedDates,
+        ...newMarkedDates, // Merge the new marked dates with the previous ones
+      }));
     };
   
     // Reset to the current month and year when the screen is focused
@@ -61,13 +68,19 @@ export default function StatusCalendar() {
         setSelectedMonth(currentMonth); // Update selectedMonth to the current month
         setSelectedYear(currentYear); // Update selectedYear to the current year
         generateMarkedDates(currentYear, currentMonth); // Generate marked dates for the current month
-      }, [])
+      }, [user.successLimit, user.failureLimit])
     );
 
     // Generate marked dates on the initial render
     useEffect(() => {
       generateMarkedDates(currentYear, currentMonth); // Generate marked dates for the current month
     }, []);
+
+    // Regenerate dots when successLimit or failureLimit changes
+    useEffect(() => {
+      generateMarkedDates(selectedYear, selectedMonth); // Regenerate dots for the currently selected month and year
+    }, [user.successLimit, user.failureLimit]);
+
   
     // Handle date selection
     const handleDateSelect = async (date: string) => {
