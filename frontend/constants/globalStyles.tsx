@@ -142,4 +142,18 @@ export const globalStyles = StyleSheet.create(
       backgroundColor: 'rgba(0, 0, 0, 0.5)', // Adjust based on your theme
     },
 
+    successMessageContainer: {
+      position: 'absolute',
+      top: 0, // Center vertically
+      left: '50%', // Center horizontally
+      transform: [{ translateX: -50 }, { translateY: -50 }], // Adjust for centering
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1000, // Ensure it appears above all other elements
+      backgroundColor: 'rgba(0, 0, 0, 0.1)', // Optional: Add a semi-transparent background
+      width: 120, // Set width to make it square
+      height: 120, // Set height to match width
+      borderRadius: 10, // Slightly rounded corners
+    },
+
 });
