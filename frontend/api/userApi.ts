@@ -16,14 +16,12 @@ api.interceptors.request.use(async (config) => {
 
 // Add a new user 
 export async function addUser(name: string, email: string, password: string): Promise<User> {
-  console.log('📤 Sending signup request', { email, password, name });
   const { data } = await api.post('/users', { name, email, password });
   return data;
 }
 
 // login user - get user by email
 export async function loginUser(email: string, password: string): Promise<User> {
-  console.log('📤 Sending login request', { email, password });
   const res = await api.post(`/login`, { email, password });
   return res.data;
 }
