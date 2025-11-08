@@ -100,7 +100,7 @@ export default function HabitsScreen()
           <MaterialCommunityIcons
             name="trash-can"
             size={24}
-            color={theme.colors.error}
+            color={globalStyles.red.color}
             onPress={() => {
               setSelectedHabit(item);
               setDeleteModalVisible(true);
@@ -116,7 +116,7 @@ export default function HabitsScreen()
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-        <Surface style={ [globalStyles.display, { flex: 1}] } elevation={0}>
+        <Surface style={ [globalStyles.display, {backgroundColor: theme.colors.surface, flex: 1}] } elevation={0}>
           <Text variant='displaySmall'>My Habits</Text>
           <Card style={ [globalStyles.card, {backgroundColor: theme.colors.background }]} mode="elevated">
             <Card.Content>
@@ -160,7 +160,7 @@ export default function HabitsScreen()
               <Text>Are you sure you want to delete this habit?</Text>
               <Surface style={ globalStyles.inRow } elevation={0}>
                 <Button onPress={() => setDeleteModalVisible(false)}>Cancel</Button>
-                <Button onPress={handleDeleteHabit} textColor={theme.colors.error}>
+                <Button onPress={handleDeleteHabit} textColor={globalStyles.red.color}>
                   Delete
                 </Button>
               </Surface>

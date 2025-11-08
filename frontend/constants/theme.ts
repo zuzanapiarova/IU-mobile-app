@@ -1,7 +1,7 @@
 import { Platform, useColorScheme } from 'react-native';
 
 const tintColorLight = '#4CAF50';  // fresh green
-const tintColorDark = '#A7D7A7';   // soft mint accent
+const tintColorDark = '#93c47d';   // may change later
 
 export const Colors = {
   light: {
@@ -15,6 +15,8 @@ export const Colors = {
     tabIconDefault: '#B6B6B6',
     tabIconSelected: tintColorLight,
     shadow: 'rgba(0, 0, 0, 0.05)', // soft shadow
+    disabled: '#ccc', 
+    disabledText: '#4e504b',
   },
   dark: {
     text: '#E8F1E8',              // light text on dark bg
@@ -27,6 +29,8 @@ export const Colors = {
     tabIconDefault: '#6C786A',
     tabIconSelected: tintColorDark,
     shadow: 'rgba(0, 0, 0, 0.3)',
+    disabled: '#4e504b', 
+    disabledText: '#ccc'
   },
 };
 

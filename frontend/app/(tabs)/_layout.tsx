@@ -18,7 +18,13 @@ export default function TabLayout()
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: theme.colors.primary,
-        tabBarStyle: { backgroundColor: theme.colors.background },
+        tabBarStyle: {
+          backgroundColor: theme.colors.background,
+          borderTopColor: theme.colors.background, // 🔹 change the top line color
+          borderTopWidth: 1,                    // width of the line
+          elevation: 0,                          // remove shadow on Android
+          shadowOpacity: 0,                      // remove shadow on iOS
+        },
       }}>
       <Tabs.Screen
         name="index"

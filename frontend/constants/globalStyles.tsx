@@ -7,6 +7,7 @@ export const globalStyles = StyleSheet.create(
         justifyContent: 'space-around',
         paddingHorizontal: 16,
         paddingTop: 64,
+        paddingBottom: 12
     },
 
     container: {
@@ -20,6 +21,13 @@ export const globalStyles = StyleSheet.create(
       padding: 8,
       marginVertical: 6,
       marginHorizontal: 4
+    },
+
+    overlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.7)', // Darker semi-transparent black
+      justifyContent: 'center',
+      alignItems: 'center',
     },
 
     title: {

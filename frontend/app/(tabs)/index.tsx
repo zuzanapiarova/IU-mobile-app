@@ -72,7 +72,7 @@ export default function HomeScreen() {
         <HabitsList date={today} />
       </Surface>
 
-      <Card style={[globalStyles.container, { backgroundColor: theme.colors.background }]}>
+      <Card style={[globalStyles.container, {backgroundColor: theme.colors.background }]}>
         <StatusCalendar />
       </Card>
     </Surface>

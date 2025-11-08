@@ -78,7 +78,7 @@ export default function StatusCalendar() {
     // Regenerate dots when successLimit or failureLimit changes
     useEffect(() => {
       generateMarkedDates(selectedYear, selectedMonth); // Regenerate dots for the currently selected month and year
-    }, [user.successLimit, user.failureLimit]);
+    }, [user.successLimit, user.failureLimit, user.themePreference]);
 
   
     // Handle date selection
@@ -111,7 +111,7 @@ export default function StatusCalendar() {
     return (
       <>
         <Calendar
-          key={`${selectedYear}-${selectedMonth}`} // Force re-render when month or year changes
+          key={`${selectedYear}-${selectedMonth}-${user.themePreference}`} // Force re-render when month or year changes
           current={`${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01`} // Dynamically set the displayed month and year
            markedDates={{
             ...markedDates,
@@ -125,6 +125,7 @@ export default function StatusCalendar() {
           }}
           style={{ borderRadius: 8 }}
           theme={{
+            monthTextColor: theme.colors.primary,
             backgroundColor: theme.colors.background,
             calendarBackground: theme.colors.background,
             selectedDayBackgroundColor: theme.colors.primary,
