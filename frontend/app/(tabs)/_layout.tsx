@@ -1,4 +1,4 @@
-import { Tabs, useRouter } from 'expo-router';
+import { Tabs, Redirect } from 'expo-router';
 import React, { useEffect } from 'react';
 import { useTheme } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -7,9 +7,11 @@ import { useUser } from '../../constants/UserContext';
 export default function TabLayout()
 {
   const theme = useTheme();
-
   const { user } = useUser(); // Access the user from context
-  const router = useRouter();
+
+  if (!user) {
+    return <Redirect href="/login" />;
+  }
 
   return (
     <Tabs

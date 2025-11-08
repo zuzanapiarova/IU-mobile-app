@@ -18,9 +18,9 @@ export default function HomeScreen() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (!navigationState?.key) return; // Wait until the navigation system is ready
     const initialize = async () => {
       try {
-        if (!navigationState?.key) return; // Wait until the navigation system is ready
         if (!user) {
           // If no user is logged in, redirect to the login screen
           router.replace('/login');
@@ -37,7 +37,7 @@ export default function HomeScreen() {
       }
     };
     initialize();
-  }, [user, navigationState]);
+  }, [user, navigationState?.key]);
 
   // While initializing or redirecting
   if (!navigationState?.key || isLoading) {
