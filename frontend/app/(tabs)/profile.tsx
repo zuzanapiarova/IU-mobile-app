@@ -20,9 +20,7 @@ export default function ProfileScreen() {
 
   useEffect(() => {
     if (!navigationState?.key) return; // Wait until the navigation system is ready
-    if (!user) {
-      router.replace('/login'); // Navigate to the login page
-    }
+    if (!user) router.replace('/login'); // Navigate to the login page
   }, [user, navigationState]);
   
   const [darkMode, setDarkMode] = useState(user?.themePreference === 'dark');
@@ -96,8 +94,7 @@ export default function ProfileScreen() {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
           <Surface style={[globalStyles.display, {backgroundColor: theme.colors.surface}]} elevation={0}>
-            <Text variant="headlineMedium" style={[globalStyles.title, globalStyles.header]}>Profile</Text>
-
+            <Text variant='displaySmall'>Profile Settings</Text>
             {/* User Info */}
             <Card style={[globalStyles.card, { backgroundColor: theme.colors.background }]}>
               <Card.Content>
@@ -165,7 +162,7 @@ export default function ProfileScreen() {
 
                 <Text style={globalStyles.title}>Failure Limit</Text>
                 <Text style={{marginBottom: 8}}>
-                  Percentage of completed habits at which the day is considered unsuccessful
+                  Percentage of completed habits below which the day is considered unsuccessful
                 </Text>
                 <TextInput
                   mode="outlined"
@@ -248,8 +245,6 @@ export default function ProfileScreen() {
         </Portal>
         </ScrollView>
       </TouchableWithoutFeedback>
-
-      
     </KeyboardAvoidingView>
   );
 }

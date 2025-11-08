@@ -7,7 +7,8 @@ export const globalStyles = StyleSheet.create(
         justifyContent: 'space-around',
         paddingHorizontal: 16,
         paddingTop: 64,
-        paddingBottom: 12
+        paddingBottom: 12, 
+        backgroundColor: 'rgba(255, 255, 255, 0.8)'
     },
 
     container: {

@@ -1,8 +1,10 @@
 import React, { useMemo } from 'react';
 import { Stack } from 'expo-router';
+import { StyleSheet, View, Text } from 'react-native';
 import { PaperProvider, MD3LightTheme, MD3DarkTheme } from 'react-native-paper';
 import { Colors } from '@/constants/theme';
 import { UserProvider, useUser } from '../constants/UserContext';
+import MovingBackground from '@/components/BackgroundAnimation';
 
 function ThemedApp() {
   const { user } = useUser();
@@ -16,8 +18,8 @@ function ThemedApp() {
       primary: Colors[scheme].tint,
       onPrimary: Colors[scheme].background,
       secondary: Colors[scheme].accent,
-      background: Colors[scheme].background,
-      surface: Colors[scheme].surface,
+      background: Colors[scheme].background, // Add transparency (80% opacity),
+      surface: Colors[scheme].surface, // Add transparency (80% opacity),
       onSurface: Colors[scheme].text,
       onBackground: Colors[scheme].text,
       outline: Colors[scheme].border,
@@ -34,7 +36,12 @@ function ThemedApp() {
 
   return (
     <PaperProvider theme={customTheme}>
-      <Stack screenOptions={{ headerShown: false }} />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: 'transparent' }, // Transparent background for screens
+        }}
+      />
     </PaperProvider>
   );
 }

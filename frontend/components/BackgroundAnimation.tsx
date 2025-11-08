@@ -1,37 +1,48 @@
 import React, { useEffect } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
-import Svg, { Path, Defs, LinearGradient, Stop } from 'react-native-svg';
+import Svg, { Circle } from 'react-native-svg';
 import Animated, {
   useSharedValue,
   useAnimatedProps,
+  withRepeat,
   withTiming,
   Easing,
-  withRepeat,
 } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
+import { useTheme } from 'react-native-paper';
 
 const { width, height } = Dimensions.get('window');
-const AnimatedPath = Animated.createAnimatedComponent(Path);
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
-function getRandomPath() {
-  // Simple irregular blob shape using SVG Path
-  return `M${Math.random() * width},${Math.random() * height}
-    C${Math.random() * width},${Math.random() * height}
-    ${Math.random() * width},${Math.random() * height}
-    ${Math.random() * width},${Math.random() * height}
-    Z`;
-}
+export default function MovingBackground() {
+  const theme = useTheme();
 
-export default function MotivationalBackground() {
-  const blob1 = useSharedValue(getRandomPath());
-  const blob2 = useSharedValue(getRandomPath());
-  const blob3 = useSharedValue(getRandomPath());
+  // Number of circles
+  const numCircles = 5;
 
+  // Define specific positions for the circles
+  const circlePositions = [
+    { cx: width * 0.8, cy: height * 0.1 }, // Top-left corner
+    { cx: width * 0.3, cy: height * 0.2 }, // Slightly below and to the right
+    { cx: width * 0.6, cy: height * 0.45 }, // Below and to the left
+    { cx: width * 0.2, cy: height * 0.7 }, // Somewhere on the right
+    { cx: width * 0.8, cy: height * 0.9 }, // Bottom-center area
+  ];
+
+  // Generate shared values for radii and positions
+  const circles = Array.from({ length: numCircles }, (_, index) => ({
+    radius: useSharedValue(10 + (index % 2 + 1) * 20), // Start with different radii
+    cx: circlePositions[index].cx, // Explicit x position
+    cy: circlePositions[index].cy, // Explicit y position
+    duration: (index % 2 + 1) * 50, // Different animation durations
+  }));
+
+  // Animate the radii to grow and shrink continuously
   useEffect(() => {
-    [blob1, blob2, blob3].forEach((blob) => {
-      blob.value = withRepeat(
-        withTiming(getRandomPath(), {
-          duration: 15000,
+    circles.forEach((circle) => {
+      circle.radius.value = withRepeat(
+        withTiming(circle.radius.value, {
+          duration: circle.duration,
           easing: Easing.inOut(Easing.ease),
         }),
         -1,
@@ -40,32 +51,36 @@ export default function MotivationalBackground() {
     });
   }, []);
 
-  const animatedProps1 = useAnimatedProps(() => ({
-    d: blob1.value,
-  }));
-  const animatedProps2 = useAnimatedProps(() => ({
-    d: blob2.value,
-  }));
-  const animatedProps3 = useAnimatedProps(() => ({
-    d: blob3.value,
-  }));
+  // Create animated props for each circle
+  const animatedProps = circles.map((circle) =>
+    useAnimatedProps(() => ({
+      r: circle.radius.value + 40,
+    }))
+  );
 
   return (
-    <View style={StyleSheet.absoluteFill}>
-      {/* Glass blur layer */}
-      <BlurView intensity={80} style={StyleSheet.absoluteFill} tint="light" />
-
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      {/* Animated Background */}
       <Svg height={height} width={width} style={StyleSheet.absoluteFill}>
-        <Defs>
-          <LinearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-            <Stop offset="0%" stopColor="#A0F9A0" stopOpacity="0.6" />
-            <Stop offset="100%" stopColor="#00C853" stopOpacity="0.4" />
-          </LinearGradient>
-        </Defs>
-        <AnimatedPath animatedProps={animatedProps1} fill="url(#grad1)" />
-        <AnimatedPath animatedProps={animatedProps2} fill="url(#grad1)" />
-        <AnimatedPath animatedProps={animatedProps3} fill="url(#grad1)" />
+        {circles.map((circle, index) => (
+          <AnimatedCircle
+            key={index}
+            cx={circle.cx} // Explicit x position
+            cy={circle.cy} // Explicit y position
+            fill='#93c47d' // Semi-transparent green
+            animatedProps={animatedProps[index]} // Bind animated props
+          />
+        ))}
       </Svg>
+
+      {/* Glass Effect */}
+      <BlurView intensity={80} style={StyleSheet.absoluteFill} tint="light" />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});
