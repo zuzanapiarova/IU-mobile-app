@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Text, TextInput, useTheme, Button, Card, Switch, Surface, Snackbar, Portal } from 'react-native-paper';
+import { Text, TextInput, useTheme, Button, Card, Switch, Surface, Snackbar, Portal, Dialog } from 'react-native-paper';
 import { StyleSheet, View, ScrollView, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { globalStyles } from '../../constants/globalStyles';
 import { useUser } from '../../constants/UserContext';
@@ -32,6 +32,7 @@ export default function ProfileScreen() {
   const [failureLimit, setFailureLimit] = useState(user?.failureLimit || 20);
   const [name, setName] = useState(user?.name || '');
   const [snackbarVisible, setSnackbarVisible] = useState(false); // State for Snackbar visibility
+  const [logoutDialogVisible, setLogoutDialogVisible] = useState(false); // State for Logout Confirmation Dialog
 
   const saveLimits = async () => {
     if (!user) return; // Ensure the user is logged in
@@ -46,20 +47,32 @@ export default function ProfileScreen() {
 
   const handleToggleTheme = async () => {
     const newTheme = darkMode ? 'light' : 'dark';
-    await updateUser({ themePreference: newTheme });
-    setDarkMode(!darkMode);
+    setDarkMode(!darkMode); // Update local state immediately
+    try {
+      await updateUser({ themePreference: newTheme }); // Update user data asynchronously
+    } catch (error) {
+      console.error('Error updating theme preference:', error);
+    }
   };
 
   const handleToggleDataPolicy = async () => {
     const newStatus = !dataPolicyAccepted;
-    await updateUser({ dataProcessingAgreed: newStatus });
-    setDataPolicyAccepted(newStatus);
+    setDataPolicyAccepted(newStatus); // Update local state immediately
+    try {
+      await updateUser({ dataProcessingAgreed: newStatus }); // Update user data asynchronously
+    } catch (error) {
+      console.error('Error updating data policy acceptance:', error);
+    }
   };
 
   const handleToggleNotifications = async () => {
     const newStatus = !notificationsEnabled;
-    await updateUser({ notificationsEnabled: newStatus });
-    setNotificationsEnabled(newStatus);
+    setNotificationsEnabled(newStatus); // Update local state immediately
+    try {
+      await updateUser({ notificationsEnabled: newStatus }); // Update user data asynchronously
+    } catch (error) {
+      console.error('Error updating notifications:', error);
+    }
   };
 
   const handleNameChange = async () => {
@@ -86,7 +99,7 @@ export default function ProfileScreen() {
             <Text variant="headlineMedium" style={[globalStyles.title, globalStyles.header]}>Profile</Text>
 
             {/* User Info */}
-            <Card style={globalStyles.card}>
+            <Card style={[globalStyles.card, { backgroundColor: theme.colors.surface }]}>
               <Card.Content>
                 <Text style={globalStyles.title}>Name</Text>
                 <TextInput
@@ -109,7 +122,7 @@ export default function ProfileScreen() {
             </Card>
 
             {/* Theme Toggle */}
-            <Card style={globalStyles.card}>
+            <Card style={[globalStyles.card, { backgroundColor: theme.colors.surface }]}>
               <Card.Content>
                 <View style={globalStyles.inRow}>
                   <Text>Dark Mode</Text>
@@ -119,7 +132,7 @@ export default function ProfileScreen() {
             </Card>
 
             {/* Data Policy */}
-            <Card style={globalStyles.card}>
+            <Card style={[globalStyles.card, { backgroundColor: theme.colors.surface }]}>
               <Card.Content>
                 <View style={globalStyles.inRow}>
                   <Text>Data Policy Acceptance</Text>
@@ -129,7 +142,7 @@ export default function ProfileScreen() {
             </Card>
 
             {/* Notifications */}
-            <Card style={globalStyles.card}>
+            <Card style={[globalStyles.card, { backgroundColor: theme.colors.surface }]}>
               <Card.Content>
                 <View style={globalStyles.inRow}>
                   <Text>Enable Notifications</Text>
@@ -139,7 +152,7 @@ export default function ProfileScreen() {
             </Card>
 
             {/* Success and Failure Limits */}
-            <Card style={globalStyles.card}>
+            <Card style={[globalStyles.card, { backgroundColor: theme.colors.surface }]}>
               <Card.Content>
                 <Text style={globalStyles.title}>Success Limit</Text>
                 <Text style={globalStyles.text}>
@@ -210,12 +223,27 @@ export default function ProfileScreen() {
             </Card>
 
             {/* Logout Button */}
-            <Button mode="contained" onPress={handleLogout} style={[globalStyles.button, { marginTop: 16 }]}>
+            <Button mode="contained" onPress={() => setLogoutDialogVisible(true)} style={[globalStyles.button, { marginTop: 16 }]}>
               Logout
             </Button>
           </Surface>
         </ScrollView>
       </TouchableWithoutFeedback>
+
+      {/* Logout Confirmation Dialog */}
+      <Portal>
+        <Dialog style={{backgroundColor: theme.colors.surface}} visible={logoutDialogVisible} onDismiss={() => setLogoutDialogVisible(false)}>
+          <Dialog.Title>Confirm Logout</Dialog.Title>
+          <Dialog.Content>
+            <Text>Are you sure you want to log out?</Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setLogoutDialogVisible(false)} >Cancel</Button>
+            <Button buttonColor={globalStyles.red.color} textColor={theme.colors.background} onPress={handleLogout} style={{paddingHorizontal:8, borderRadius: 20 }}>Logout</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+      
       {/* Success Message */}
       <Portal>
         <Snackbar

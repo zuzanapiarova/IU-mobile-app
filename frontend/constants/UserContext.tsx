@@ -11,6 +11,7 @@ interface UserContextType {
   logout: () => Promise<void>;
   updateUser: (updates: Partial<User>) => Promise<void>;
   errorMessage: string | null; // Add errorMessage to the context type
+  clearErrorMessage: () => void; // Add this method to clear the error message
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -18,6 +19,17 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null); // State for error messages
+
+
+  const validateEmail = (value: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(value)) { 
+      setErrorMessage('Please enter a valid email address.');
+      return false;
+    }
+    setErrorMessage(null);
+    return true;
+  };
 
   // Load stored user on app start
   useEffect(() => {
@@ -46,8 +58,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     name?: string
   ) => {
     try {
+      if (!validateEmail(email)) return;
       let userData: User | null = null;
-  
       if (authMode === 'login') {
         userData = await loginUser(email, password);
         if (!userData) {
@@ -61,14 +73,15 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         userData = await addUser(name, email, password);
       }
-  
+
+      // set user data if received, store user for persistent login, 
       if (userData) {
         setUser(userData);
         await SecureStore.setItemAsync('user', JSON.stringify(userData));
         setErrorMessage(null); // Clear error message on successful login
       }
     } catch (err) {
-      setErrorMessage('Invalid email or password. Please try again.'); // Set error message for Axios errors
+      setErrorMessage('Invalid email or password, user with this email already exists, or other network error. Please try again later.'); // Set error message for Axios errors
     }
   };
 
@@ -89,9 +102,13 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await SecureStore.deleteItemAsync('user');
   };
 
+  const clearErrorMessage = () => {
+    setErrorMessage(null); // Clear the error message
+  };
+
   return (
     <PaperProvider>
-      <UserContext.Provider value={{ user, login, logout, updateUser , errorMessage}}>
+      <UserContext.Provider value={{ user, login, logout, updateUser, errorMessage, clearErrorMessage}}>
         {children}
       </UserContext.Provider>
     </PaperProvider>

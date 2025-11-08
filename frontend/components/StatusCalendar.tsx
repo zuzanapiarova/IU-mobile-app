@@ -51,7 +51,7 @@ export default function StatusCalendar() {
         
         // Determine the dot color based on the updated success and failure limits
         let dotColor = globalStyles.yellow.color;
-        if (percentage >= user.successLimit) dotColor = 'green';
+        if (percentage >= user.successLimit) dotColor = globalStyles.green.color;
         else if (percentage <= user.failureLimit) dotColor = 'red';
         newMarkedDates[date] = { marked: true, dotColor };
       }

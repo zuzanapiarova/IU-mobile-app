@@ -25,6 +25,8 @@ export default function RootLayout() {
       icon: Colors[scheme].icon,
       tabIconDefault: Colors[scheme].tabIconDefault,
       tabIconSelected: Colors[scheme].tabIconSelected,
+      secondaryContainer:Colors[scheme].tint, 
+      surfaceVariant:Colors[scheme].background
     },
   };
 
