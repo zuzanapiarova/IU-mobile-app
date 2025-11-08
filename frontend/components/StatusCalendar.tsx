@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, ScrollView, FlatList, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { useTheme, Surface, Button, Card, Modal, Portal } from 'react-native-paper';
@@ -17,8 +17,8 @@ export default function StatusCalendar() {
 
   const [markedDates, setMarkedDates] = useState<{ [key: string]: any }>({});
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1); // Current month (1-based)
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear()); // Current year
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth); // Current month (1-based)
+  const [selectedYear, setSelectedYear] = useState(currentYear); // Current year
   const [isModalVisible, setModalVisible] = useState(false);
   
   const { user } = useUser(); // Access user data and actions from context
@@ -30,45 +30,44 @@ export default function StatusCalendar() {
 
     // Generate dot color for the given month and year to be used as marked dates in Calendar component
     const generateMarkedDates = async (year: number, month: number) => {
-      // Do not generate dates the user was not using the app or in the future
+      // Always reset before generating (so UI stays consistent)
+      setMarkedDates({});
+      // Do not generate dots for dates when user was not using the app or in the future
       if (year < createdAtYear || year > new Date().getFullYear()) return;
       if (
         (year <= createdAtYear && month < createdAtMonth) ||
         (year === new Date().getFullYear() && month > new Date().getMonth() + 1)
       )
-        return;
-    
+      return;
+      
       let daysInMonth = new Date(year, month, 0).getDate(); // Get the number of days in the month
       if (month === new Date(today).getMonth() + 1) daysInMonth = new Date(today).getDate();
       const newMarkedDates: { [key: string]: any } = {};
-    
+      
       for (let day = 1; day <= daysInMonth; day++) {
-        if (day < createdAtDay) continue; // Do not generate for dates before the user started using the app
+        if (month === createdAtMonth && year === createdAtYear && day < createdAtDay) continue; // Do not generate for dates before the user started using the app
         const date = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const percentage = await getCompletionPercentageForDay(user.id, date);
-    
+        
         // Determine the dot color based on the updated success and failure limits
         let dotColor = globalStyles.yellow.color;
         if (percentage >= user.successLimit) dotColor = 'green';
         else if (percentage <= user.failureLimit) dotColor = 'red';
-    
         newMarkedDates[date] = { marked: true, dotColor };
       }
-    
+      
       // Update the state with the new marked dates
-      setMarkedDates((prevMarkedDates) => ({
-        ...prevMarkedDates,
-        ...newMarkedDates, // Merge the new marked dates with the previous ones
-      }));
+      setMarkedDates(newMarkedDates);
     };
   
     // Reset to the current month and year when the screen is focused
     useFocusEffect(
       React.useCallback(() => {
-        setSelectedMonth(currentMonth); // Update selectedMonth to the current month
-        setSelectedYear(currentYear); // Update selectedYear to the current year
-        generateMarkedDates(currentYear, currentMonth); // Generate marked dates for the current month
-      }, [user.successLimit, user.failureLimit])
+        const now = new Date();
+        setSelectedMonth(now.getMonth() + 1); // Update to the current month
+        setSelectedYear(now.getFullYear()); // Update to the current year
+        generateMarkedDates(now.getFullYear(), now.getMonth() + 1); // Generate marked dates for the current month
+      }, [])
     );
 
     // Generate marked dates on the initial render
@@ -107,7 +106,8 @@ export default function StatusCalendar() {
         return updatedMarkedDates;
       });
     };
-  
+    // console.log("marked days: ");
+    // console.log(markedDates);
     return (
       <>
         <Calendar
