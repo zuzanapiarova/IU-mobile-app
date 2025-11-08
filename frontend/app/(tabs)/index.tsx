@@ -56,7 +56,7 @@ export default function HomeScreen() {
   // Only render actual UI after initialization
   return (
     <Surface
-      style={[globalStyles.display, { backgroundColor: theme.colors.surface, flex: 1 }]}
+      style={[globalStyles.display, { flex: 1, backgroundColor: 'transparent' }]}
       elevation={0}
     >
       <Text variant="displaySmall">
@@ -66,7 +66,7 @@ export default function HomeScreen() {
       <Surface
         style={[
           globalStyles.container,
-          { height: 300, backgroundColor: theme.colors.background },
+          { height: 270, backgroundColor: theme.colors.background },
         ]}
       >
         <HabitsList date={today} />

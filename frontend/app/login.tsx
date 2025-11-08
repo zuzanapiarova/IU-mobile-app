@@ -4,7 +4,7 @@ import { Text, Button, TextInput, SegmentedButtons, useTheme } from 'react-nativ
 import { useUser } from '../constants/UserContext';
 import { globalStyles } from '@/constants/globalStyles';
 import { useRouter, useRootNavigationState } from 'expo-router';
-import MotivationalBackground from '@/components/BackgroundAnimation';
+import MovingBackground from '@/components/BackgroundAnimation';
 import TestAnim from '@/components/TestAnim';
 
 const Login: React.FC = () => {
@@ -42,8 +42,12 @@ const Login: React.FC = () => {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <View style={{ flex: 1 }}>
+      {/* Background Animation */}
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: 'transparent' }]}>
+        <MovingBackground />
+      </View>
     <View style={[globalStyles.container, styles.container]}>
-    <TestAnim/>
       <Text variant="titleLarge" style={[globalStyles.title, styles.title]}>
         {authMode === 'login' ? 'Login' : 'Sign Up'}
       </Text>
@@ -109,6 +113,7 @@ const Login: React.FC = () => {
         {authMode === 'login' ? 'Login' : 'Sign Up'}
       </Button>
     </View>
+    </View>
     </TouchableWithoutFeedback>
   );
 };
@@ -117,7 +122,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    backgroundColor: '#f5f5f5',
   },
   title: {
     textAlign: 'center',
