@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Text, Button, TextInput, SegmentedButtons } from 'react-native-paper';
+import { View, StyleSheet, TouchableWithoutFeedback, KeyboardAvoidingView, Keyboard, Platform } from 'react-native';
+import { Text, Button, TextInput, SegmentedButtons, useTheme } from 'react-native-paper';
 import { useUser } from '../constants/UserContext';
 import { globalStyles } from '@/constants/globalStyles';
 import { useRouter, useRootNavigationState } from 'expo-router';
+import MotivationalBackground from '@/components/BackgroundAnimation';
+import TestAnim from '@/components/TestAnim';
 
 const Login: React.FC = () => {
-  const { login, user, errorMessage } = useUser(); // Access the login function from context
+  const theme = useTheme();
+  const { login, user, errorMessage, clearErrorMessage } = useUser(); // Access the login function from context
   const router = useRouter(); // Use router for navigation
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [name, setName] = useState(''); // Only used for signup
@@ -21,7 +24,6 @@ const Login: React.FC = () => {
       await login(email, password, authMode, name); // Pass the name parameter
       if (user) router.replace('/(tabs)'); // Navigate to the main app after login/signup
     } catch (error) {
-      console.error('Error during authentication:', error);
       alert('Failed to authenticate. Please try again.');
     } finally {
         setLoading(false);
@@ -39,16 +41,21 @@ const Login: React.FC = () => {
   const isLoginDisabled = authMode === 'login' && (!email.trim() || !password.trim());
 
   return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
     <View style={[globalStyles.container, styles.container]}>
+    <TestAnim/>
       <Text variant="titleLarge" style={[globalStyles.title, styles.title]}>
         {authMode === 'login' ? 'Login' : 'Sign Up'}
       </Text>
       <SegmentedButtons
         value={authMode}
-        onValueChange={setAuthMode}
+        onValueChange={(value) => {
+          setAuthMode(value);
+          clearErrorMessage();
+        }}
         buttons={[
-          { value: 'login', label: 'Login' },
-          { value: 'signup', label: 'Sign Up' },
+          { value: 'login', label: 'Login', },
+          { value: 'signup', label: 'Sign Up'},
         ]}
         style={[styles.segmentedButtons, globalStyles.inputCard]}
       />
@@ -56,7 +63,10 @@ const Login: React.FC = () => {
         <TextInput
           label="Name"
           value={name}
-          onChangeText={setName}
+          onChangeText={(text) => {
+            setName(text);
+            clearErrorMessage(); // Clear error message when typing
+          }}
           mode="outlined"
           style={[globalStyles.input, styles.input]}
         />
@@ -64,7 +74,14 @@ const Login: React.FC = () => {
       <TextInput
         label="Email"
         value={email}
-        onChangeText={setEmail}
+        keyboardType="email-address"    // 👈 Shows '@' and '.' on keyboard
+        autoCapitalize="none"           // 👈 Prevents capital letters
+        autoCorrect={false}             // 👈 Stops unwanted corrections
+        textContentType="emailAddress"  // 👈 Helps with autofill / iOS hints
+        onChangeText={(text) => {
+          setEmail(text);
+          clearErrorMessage(); // Clear error message when typing
+        }}
         mode="outlined"
         style={[globalStyles.input, styles.input]}
       />
@@ -72,23 +89,27 @@ const Login: React.FC = () => {
         label="Password"
         value={password}
         secureTextEntry
-        onChangeText={setPassword}
+        onChangeText={(text) => {
+          setPassword(text);
+          clearErrorMessage(); // Clear error message when typing
+        }}
         mode="outlined"
         style={[globalStyles.input, styles.input]}
       />
       {/* Display error message */}
       {errorMessage && (
-        <Text style={styles.errorText}>{errorMessage}</Text>
+        <Text style={[globalStyles.red, {marginTop: 8,textAlign: 'center'}]}>{errorMessage}</Text>
       )}
       <Button
         mode="contained"
         onPress={handleAuth}
         disabled={authMode === 'signup' ? isSignupDisabled : isLoginDisabled}
-        style={[globalStyles.button, styles.button]}
+        style={globalStyles.button}
       >
         {authMode === 'login' ? 'Login' : 'Sign Up'}
       </Button>
     </View>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -107,15 +128,6 @@ const styles = StyleSheet.create({
   },
   input: {
     marginBottom: 12,
-  },
-  button: {
-    marginTop: 16,
-    backgroundColor: '#4CAF50',
-  },
-  errorText: {
-    color: 'red',
-    marginTop: 8,
-    textAlign: 'center',
   },
 });
 

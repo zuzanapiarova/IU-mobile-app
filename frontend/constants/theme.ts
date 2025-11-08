@@ -1,6 +1,6 @@
 import { Platform, useColorScheme } from 'react-native';
 
-const tintColorLight = '#6BAA75';  // fresh sage green
+const tintColorLight = '#4CAF50';  // fresh green
 const tintColorDark = '#A7D7A7';   // soft mint accent
 
 export const Colors = {

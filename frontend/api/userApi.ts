@@ -21,7 +21,7 @@ export async function addUser(name: string, email: string, password: string): Pr
 }
 
 // login user - get user by email
-export async function loginUser(email: string, password: string): Promise<User> {
+export async function loginUser(email: string, password: string): Promise<User | null> {
   const res = await api.post(`/login`, { email, password });
   return res.data;
 }

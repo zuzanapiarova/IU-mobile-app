@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { red } from 'react-native-reanimated/lib/typescript/Colors';
 export const globalStyles = StyleSheet.create(
 {
 
@@ -109,6 +110,14 @@ export const globalStyles = StyleSheet.create(
 
     yellow: {
       color: '#e6bb02'
+    }, 
+
+    green: {
+      color: '#4CAF50'
+    }, 
+
+    red: {
+      color: '#be2020'
     }, 
 
     modalContainer: {
