@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Text, TextInput, useTheme, Button, Card, Switch, Surface, Snackbar, Portal, Dialog } from 'react-native-paper';
-import { StyleSheet, View, ScrollView, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback } from 'react-native';
+import { Text, TextInput, useTheme, Button, Card, Switch, Surface, Snackbar, Portal, Modal } from 'react-native-paper';
+import { View, ScrollView, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { globalStyles } from '../../constants/globalStyles';
 import { useUser } from '../../constants/UserContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -32,7 +32,7 @@ export default function ProfileScreen() {
   const [failureLimit, setFailureLimit] = useState(user?.failureLimit || 20);
   const [name, setName] = useState(user?.name || '');
   const [snackbarVisible, setSnackbarVisible] = useState(false); // State for Snackbar visibility
-  const [logoutDialogVisible, setLogoutDialogVisible] = useState(false); // State for Logout Confirmation Dialog
+  const [isLogoutModalVisible, setLogoutModalVisible] = useState(false);
 
   const saveLimits = async () => {
     if (!user) return; // Ensure the user is logged in
@@ -95,34 +95,31 @@ export default function ProfileScreen() {
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-          <Surface style={globalStyles.display} elevation={0}>
+          <Surface style={[globalStyles.display, {backgroundColor: theme.colors.surface}]} elevation={0}>
             <Text variant="headlineMedium" style={[globalStyles.title, globalStyles.header]}>Profile</Text>
 
             {/* User Info */}
-            <Card style={[globalStyles.card, { backgroundColor: theme.colors.surface }]}>
+            <Card style={[globalStyles.card, { backgroundColor: theme.colors.background }]}>
               <Card.Content>
                 <Text style={globalStyles.title}>Name</Text>
                 <TextInput
                   mode="outlined"
                   value={name}
                   onChangeText={setName}
-                  style={globalStyles.input}
+                  style={[globalStyles.input]}
                 />
                 <Button
                   mode="contained"
                   onPress={handleNameChange}
                   disabled={name.trim() === user?.name?.trim()} // Disable if no change in name
-                  style={[
-                    globalStyles.button,
-                    name.trim() === user?.name?.trim() && { backgroundColor: '#ccc' }, // Gray background when disabled
-                ]}>
+                  style={globalStyles.button}>
                   Change Name
                 </Button>
               </Card.Content>
             </Card>
 
             {/* Theme Toggle */}
-            <Card style={[globalStyles.card, { backgroundColor: theme.colors.surface }]}>
+            <Card style={[globalStyles.card, { backgroundColor: theme.colors.background }]}>
               <Card.Content>
                 <View style={globalStyles.inRow}>
                   <Text>Dark Mode</Text>
@@ -132,7 +129,7 @@ export default function ProfileScreen() {
             </Card>
 
             {/* Data Policy */}
-            <Card style={[globalStyles.card, { backgroundColor: theme.colors.surface }]}>
+            <Card style={[globalStyles.card, { backgroundColor: theme.colors.background }]}>
               <Card.Content>
                 <View style={globalStyles.inRow}>
                   <Text>Data Policy Acceptance</Text>
@@ -142,7 +139,7 @@ export default function ProfileScreen() {
             </Card>
 
             {/* Notifications */}
-            <Card style={[globalStyles.card, { backgroundColor: theme.colors.surface }]}>
+            <Card style={[globalStyles.card, { backgroundColor: theme.colors.background }]}>
               <Card.Content>
                 <View style={globalStyles.inRow}>
                   <Text>Enable Notifications</Text>
@@ -152,10 +149,10 @@ export default function ProfileScreen() {
             </Card>
 
             {/* Success and Failure Limits */}
-            <Card style={[globalStyles.card, { backgroundColor: theme.colors.surface }]}>
+            <Card style={[globalStyles.card, { backgroundColor: theme.colors.background }]}>
               <Card.Content>
                 <Text style={globalStyles.title}>Success Limit</Text>
-                <Text style={globalStyles.text}>
+                <Text style={{marginBottom: 8}}>
                   Percentage of completed habits at which the day is considered successful
                 </Text>
                 <TextInput
@@ -163,11 +160,11 @@ export default function ProfileScreen() {
                   keyboardType="numeric"
                   value={successLimit !== null ? successLimit.toString() : ''} // Allow empty input
                   onChangeText={(text) => setSuccessLimit(parseInt(text) || 0)}
-                  style={globalStyles.input}
+                  style={[globalStyles.input, {backgroundColor: theme.colors.surface}]}
                 />
 
                 <Text style={globalStyles.title}>Failure Limit</Text>
-                <Text style={globalStyles.text}>
+                <Text style={{marginBottom: 8}}>
                   Percentage of completed habits at which the day is considered unsuccessful
                 </Text>
                 <TextInput
@@ -175,7 +172,7 @@ export default function ProfileScreen() {
                   keyboardType="numeric"
                   value={failureLimit !== null ? failureLimit.toString() : ''} // Allow empty input
                   onChangeText={(text) => setFailureLimit(parseInt(text) || 0)}
-                  style={globalStyles.input}
+                  style={[globalStyles.input, {backgroundColor: theme.colors.surface}]}
                 />
                 {/* Error Messages */}
                 {failureLimit >= successLimit && (
@@ -207,54 +204,52 @@ export default function ProfileScreen() {
                     failureLimit < 0 || // Check if failureLimit is less than 0
                     (successLimit === user?.successLimit && failureLimit === user?.failureLimit) // Check if values have changed
                   }
-                  style={[
-                    globalStyles.button,
-                    (successLimit === null || // Ensure successLimit is not empty
-                      failureLimit === null || 
-                      successLimit <= failureLimit ||
-                      successLimit > 100 ||
-                      failureLimit < 0 ||
-                      (successLimit === user?.successLimit &&
-                        failureLimit === user?.failureLimit)) && { backgroundColor: '#ccc' }, // Gray background when disabled
-                ]}>
+                  style={globalStyles.button}
+                > 
                   Save Limits
                 </Button>
               </Card.Content>
             </Card>
 
             {/* Logout Button */}
-            <Button mode="contained" onPress={() => setLogoutDialogVisible(true)} style={[globalStyles.button, { marginTop: 16 }]}>
+            <Button mode="contained" onPress={() => setLogoutModalVisible(true)} textColor={theme.colors.background} style={[globalStyles.button, {marginTop: 16 }]}>
               Logout
             </Button>
           </Surface>
+          {/* Delete Modal */}
+        <Portal >
+          <Modal visible={isLogoutModalVisible} onDismiss={() => setLogoutModalVisible(false)}>
+            <Card style={[globalStyles.modal, { backgroundColor: theme.colors.background}]} >
+              <Card.Content>
+                <Text>Are you sure you want to logout?</Text>
+                <Surface style={ globalStyles.inRow } elevation={0}>
+                  <Button onPress={() => setLogoutModalVisible(false)}>Cancel</Button>
+                  <Button onPress={handleLogout} buttonColor={globalStyles.red.color} textColor={theme.colors.onPrimary} style={[globalStyles.button, {paddingHorizontal: 8}]}>
+                    Logout
+                  </Button>
+                </Surface>
+              </Card.Content>
+            </Card>
+          </Modal>
+        </Portal>
+
+        {/* Success Message */}
+        <Portal>
+          <Modal visible={snackbarVisible} onDismiss={() => setSnackbarVisible(false)}>
+            <Snackbar
+              visible={snackbarVisible}
+              onDismiss={() => setSnackbarVisible(false)}
+              duration={500} // Automatically disappear after 2 seconds
+              style={globalStyles.successMessageContainer} // Custom style for positioning
+            >
+              <MaterialCommunityIcons name="check-circle-outline" size={80} color={theme.colors.primary} />
+            </Snackbar>
+          </Modal>
+        </Portal>
         </ScrollView>
       </TouchableWithoutFeedback>
 
-      {/* Logout Confirmation Dialog */}
-      <Portal>
-        <Dialog style={{backgroundColor: theme.colors.surface}} visible={logoutDialogVisible} onDismiss={() => setLogoutDialogVisible(false)}>
-          <Dialog.Title>Confirm Logout</Dialog.Title>
-          <Dialog.Content>
-            <Text>Are you sure you want to log out?</Text>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setLogoutDialogVisible(false)} >Cancel</Button>
-            <Button buttonColor={globalStyles.red.color} textColor={theme.colors.background} onPress={handleLogout} style={{paddingHorizontal:8, borderRadius: 20 }}>Logout</Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
       
-      {/* Success Message */}
-      <Portal>
-        <Snackbar
-          visible={snackbarVisible}
-          onDismiss={() => setSnackbarVisible(false)}
-          duration={2000} // Automatically disappear after 2 seconds
-          style={globalStyles.successMessageContainer} // Custom style for positioning
-        >
-          <MaterialCommunityIcons name="check-circle-outline" size={80} color={theme.colors.primary} />
-        </Snackbar>
-      </Portal>
     </KeyboardAvoidingView>
   );
 }

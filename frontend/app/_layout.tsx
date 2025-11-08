@@ -1,20 +1,20 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Stack } from 'expo-router';
 import { PaperProvider, MD3LightTheme, MD3DarkTheme } from 'react-native-paper';
-import { useColorScheme } from 'react-native';
 import { Colors } from '@/constants/theme';
-import { UserProvider } from '../constants/UserContext';
+import { UserProvider, useUser } from '../constants/UserContext';
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const scheme = colorScheme ?? 'light';
+function ThemedApp() {
+  const { user } = useUser();
+  const scheme = user?.themePreference === 'dark' ? 'dark' : 'light';
   const baseTheme = scheme === 'dark' ? MD3DarkTheme : MD3LightTheme;
 
-  const customTheme = {
+  const customTheme = useMemo(() => ({
     ...baseTheme,
     colors: {
       ...baseTheme.colors,
       primary: Colors[scheme].tint,
+      onPrimary: Colors[scheme].background,
       secondary: Colors[scheme].accent,
       background: Colors[scheme].background,
       surface: Colors[scheme].surface,
@@ -25,17 +25,24 @@ export default function RootLayout() {
       icon: Colors[scheme].icon,
       tabIconDefault: Colors[scheme].tabIconDefault,
       tabIconSelected: Colors[scheme].tabIconSelected,
-      secondaryContainer:Colors[scheme].tint, 
-      surfaceVariant:Colors[scheme].background
+      secondaryContainer: Colors[scheme].tint,
+      surfaceVariant: Colors[scheme].background,
+      surfaceDisabled: Colors[scheme].disabled, 
+      onSurfaceDisabled: Colors[scheme].disabledText
     },
-  };
+  }), [scheme]);
 
   return (
+    <PaperProvider theme={customTheme}>
+      <Stack screenOptions={{ headerShown: false }} />
+    </PaperProvider>
+  );
+}
+
+export default function RootLayout() {
+  return (
     <UserProvider>
-      <PaperProvider theme={customTheme}>
-        {/* Always render navigation tree */}
-        <Stack screenOptions={{ headerShown: false }} />
-      </PaperProvider>
+      <ThemedApp />
     </UserProvider>
   );
 }

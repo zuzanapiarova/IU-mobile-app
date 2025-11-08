@@ -11,6 +11,7 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
+    "constants/**/*",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
 , "../database/prismadb.js", "api/habitsApi.ts" ]

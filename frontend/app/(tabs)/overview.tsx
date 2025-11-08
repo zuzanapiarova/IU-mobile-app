@@ -54,7 +54,7 @@ export default function OverviewScreen()
   ];
 
   return (
-    <Surface style={ [globalStyles.display, { flex: 1}] } elevation={0}>
+    <Surface style={ [globalStyles.display, {backgroundColor: theme.colors.surface, flex: 1}] } elevation={0}>
       <Text variant='displaySmall' style={{ textAlign: 'center'}}>Overview</Text>
       {/* Date Picker */}
       {/* <Button
