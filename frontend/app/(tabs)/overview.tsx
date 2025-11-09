@@ -1,18 +1,19 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity,ScrollView  } from 'react-native';
+import { View, ScrollView, TouchableOpacity  } from 'react-native';
 import { Text, Card, useTheme, Button, Portal, Surface, List, ActivityIndicator, SegmentedButtons } from 'react-native-paper';
-import { DatePickerModal } from 'react-native-paper-dates';
 import { globalStyles } from '../../constants/globalStyles';
 import { PieChart } from 'react-native-chart-kit'; // Install this library
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 // import { VictoryBar, VictoryChart, VictoryTheme } from 'victory-native';
 import { useUser } from '../../constants/UserContext'
 import { getHabitsForDay, getHabitStreak } from '../../api/habitsApi'
+import { Habit } from '@/constants/interfaces';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import OverviewCard from '@/components/OverviewCard';
 
-// functions:
+// FUNCTIONS
 
-// calculate date span for period selected
+// get date span for period selected - current week/month/year
 const calculateDateSpan = (dateString: string, period: 'week' | 'month' | 'year') => {
   const date = new Date(dateString);
 
@@ -20,7 +21,6 @@ const calculateDateSpan = (dateString: string, period: 'week' | 'month' | 'year'
   let end: string;
 
   if (period === 'week') {
-    // Calculate start and end of the week (Monday as the first day)
     const dayOfWeek = (date.getDay() + 6) % 7; // Adjust Sunday (0) to be the last day of the week
     const startDate = new Date(date);
     startDate.setDate(date.getDate() - dayOfWeek); // Go back to the start of the week (Monday)
@@ -57,14 +57,13 @@ const generateDatesInRange = (start: string, end: string): string[] => {
   for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
     dates.push(new Date(d).toISOString().split('T')[0]);
   }
-
   return dates;
 };
 
 // fetch array of habits for dates in the selected period
 const fetchHabitsForPeriod = async (userId: number, dateSpan: { start: string; end: string }) => {
   const dates = generateDatesInRange(dateSpan.start, dateSpan.end);
-  const allHabits: any[] = [];
+  const allHabits: Habit[] = [];
 
   for (const date of dates) {
     try {
@@ -79,7 +78,7 @@ const fetchHabitsForPeriod = async (userId: number, dateSpan: { start: string; e
 };
 
 // streaks - longest and shortest
-const groupAndSortHabitsByStreak = async (userId: number, startsAfterDate: string, habits: any[]) => {
+const getCompletionsAndStreaks = async (userId: number, startsAfterDate: string, habits: any[]) => {
   const groupedHabits: Record<number, any[]> = {};
   // Group habits by habitId
   habits.forEach((habit) => {
@@ -104,7 +103,7 @@ const groupAndSortHabitsByStreak = async (userId: number, startsAfterDate: strin
       }
 
       // Fetch the longest streak for the habit using the API
-      const streakData = await getHabitStreak(userId, parseInt(habitId), startsAfterDate); // ! error in this unction 
+      const streakData = await getHabitStreak(userId, parseInt(habitId), startsAfterDate); 
       return {
         habitId: parseInt(habitId),
         name: habitGroup[0].name, // Use the name from the first habit in the group
@@ -136,7 +135,12 @@ export default function OverviewScreen()
   const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'year'>('month');
   const [habits, setHabits] = useState<any[]>([]); // State to store fetched habits
   const [loading, setLoading] = useState(false);
-  const [streaks, setStreaks] = useState<any[]>([]);
+  const [processedHabits, setProcessedHabits] = useState<any[]>([]);
+  const [isStatisticsExpanded, setIsStatisticsExpanded] = useState(false); // State to toggle statistics visibility
+
+  const toggleStatistics = () => {
+    setIsStatisticsExpanded((prev) => !prev);
+  };
 
   // fetch habits when the screen is focused or dateSpan changes
 
@@ -147,8 +151,8 @@ export default function OverviewScreen()
     try {
       const fetchedHabits = await fetchHabitsForPeriod(user.id, dateSpan);
       setHabits(fetchedHabits); // Store fetched habits in state
-      const calculatedStreaks = await groupAndSortHabitsByStreak(user.id, dateSpan.start, fetchedHabits);
-      setStreaks(calculatedStreaks);
+      const processedHabitsTemp = await getCompletionsAndStreaks(user.id, dateSpan.start, fetchedHabits);
+      setProcessedHabits(processedHabitsTemp);
     } catch (error) {
       console.error('Error fetching habits:', error);
     } finally {
@@ -196,10 +200,73 @@ return (
           { value: 'year', label: 'Year'},
         ]}
         style={[globalStyles.segmentedButtons, globalStyles.inputCard]}
+      />  
+    </Card>
+
+    {/* cards with overview of streaks and completions */}
+    {processedHabits.length > 0 ? (
+    <Surface elevation={0}>
+
+      {/* Longest Streak */}
+      <OverviewCard
+        title={'Longest Streak'}
+        habitName={processedHabits.reduce((max, habit) => (habit.streak > max.streak ? habit : max), processedHabits[0]).name}
+        value={processedHabits.reduce((max, habit) => (habit.streak > max.streak ? habit : max), processedHabits[0]).streak}
+        unit={'days'}
       />
-      {/* Render grouped habits */}
-      {streaks.length > 0 ? (
-            streaks.map((habit) => (
+
+      {/* Shortest Streak */}
+      <OverviewCard
+        title={'Shortest Streak'}
+        habitName={processedHabits.reduce((min, habit) => (habit.streak < min.streak ? habit : min), processedHabits[0]).name}
+        value={processedHabits.reduce((min, habit) => (habit.streak < min.streak ? habit : min), processedHabits[0]).streak}
+        unit={'days'}
+      />
+
+      {/* Most Completions */}
+      <OverviewCard
+        title={'Most Completed in this period'}
+        habitName={processedHabits.reduce((max, habit) => (habit.totalCompletions > max.totalCompletions ? habit : max),processedHabits[0]).name}
+        value={processedHabits.reduce((max, habit) => (habit.totalCompletions > max.totalCompletions ? habit : max),processedHabits[0]).totalCompletions}
+        unit={'done'}
+      />
+
+      {/* Least Completions */}
+      <OverviewCard
+        title={'Least Completed in this period'}
+        habitName={processedHabits.reduce((min, habit) => (habit.totalCompletions < min.totalCompletions ? habit : min),processedHabits[0]).name}
+        value={processedHabits.reduce((min, habit) => (habit.totalCompletions < min.totalCompletions ? habit : min),processedHabits[0]).totalCompletions}
+        unit={'done'}
+      />
+      </Surface>
+  ) : (
+    <Text>No habits found for the selected period.</Text>
+  )}
+
+    <Card style={[globalStyles.card, { backgroundColor: theme.colors.background }]}>
+      <Text>Graphs</Text>
+    </Card>
+
+    {/* Collapsible Statistics Section */}
+    <Card style={[globalStyles.card, { backgroundColor: theme.colors.background, marginTop: 16 }]}>
+      <TouchableOpacity onPress={toggleStatistics} style={{ flexDirection: 'row', alignItems: 'center', margin: 6}}>
+        <View style={{ flex: 1 }}>
+          <Text variant="titleMedium" >
+            Statistics
+          </Text>
+          <Text>
+            See completions and streaks for habits in the current period
+          </Text>
+        </View>
+        <MaterialCommunityIcons color={theme.colors.primary} style={{marginLeft: 6}}
+          name={isStatisticsExpanded ? 'chevron-up' : 'chevron-down'} size={28}
+        />
+      </TouchableOpacity>
+
+      {isStatisticsExpanded && (
+        <View style={{ padding: 16 }}>
+          {processedHabits.length > 0 ? (
+            processedHabits.map((habit) => (
               <View key={habit.habitId} style={{ marginVertical: 8 }}>
                 <Text style={{ fontWeight: 'bold' }}>{habit.name}</Text>
                 <Text>Longest Streak: {habit.streak}</Text>
@@ -209,7 +276,9 @@ return (
           ) : (
             <Text>No habits found for the selected period.</Text>
           )}
-  </Card>
+        </View>
+      )}
+    </Card>
   </Surface>
   </ScrollView>
 )};

@@ -1,7 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { View, ScrollView, FlatList, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
 import { Calendar } from 'react-native-calendars';
-import { useTheme, Surface, Button, Card, Modal, Portal } from 'react-native-paper';
+import { useTheme, Button, Modal, Portal } from 'react-native-paper';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { getCompletionPercentageForDay } from './OverViewCalculations';
@@ -106,8 +105,7 @@ export default function StatusCalendar() {
         return updatedMarkedDates;
       });
     };
-    // console.log("marked days: ");
-    // console.log(markedDates);
+
     return (
       <>
         <Calendar

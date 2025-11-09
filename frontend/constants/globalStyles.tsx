@@ -1,5 +1,4 @@
 import { StyleSheet } from 'react-native';
-import { red } from 'react-native-reanimated/lib/typescript/Colors';
 export const globalStyles = StyleSheet.create(
 {
 
@@ -7,8 +6,7 @@ export const globalStyles = StyleSheet.create(
         justifyContent: 'space-around',
         paddingHorizontal: 16,
         paddingTop: 64,
-        paddingBottom: 12, 
-        backgroundColor: 'rgba(255, 255, 255, 0.8)'
+        paddingBottom: 12
     },
 
     container: {
@@ -26,7 +24,7 @@ export const globalStyles = StyleSheet.create(
 
     overlay: {
       flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.7)', // Darker semi-transparent black
+      backgroundColor: 'rgba(0, 0, 0, 0.7)',
       justifyContent: 'center',
       alignItems: 'center',
     },
@@ -161,7 +159,7 @@ export const globalStyles = StyleSheet.create(
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-      backgroundColor: 'rgba(0, 0, 0, 0.5)', // Adjust based on your theme
+      backgroundColor: 'rgba(0, 0, 0, 0.5)'
     },
 
     successMessageContainer: {
@@ -177,5 +175,14 @@ export const globalStyles = StyleSheet.create(
       height: 120, // Set height to match width
       borderRadius: 10, // Slightly rounded corners
     },
+
+    circle: {
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 16, // Space between circle and text
+    }
 
 });

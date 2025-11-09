@@ -1,10 +1,8 @@
 import React, { useMemo } from 'react';
 import { Stack } from 'expo-router';
-import { StyleSheet, View, Text } from 'react-native';
 import { PaperProvider, MD3LightTheme, MD3DarkTheme } from 'react-native-paper';
 import { Colors } from '@/constants/theme';
 import { UserProvider, useUser } from '../constants/UserContext';
-import MovingBackground from '@/components/BackgroundAnimation';
 
 function ThemedApp() {
   const { user } = useUser();
