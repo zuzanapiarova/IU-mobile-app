@@ -46,8 +46,8 @@ const Login: React.FC = () => {
       <View style={[StyleSheet.absoluteFill, { backgroundColor: 'transparent' }]}>
         <MovingBackground />
       </View>
-    <View style={[globalStyles.container, styles.container]}>
-      <Text variant="titleLarge" style={[globalStyles.title, styles.title]}>
+    <View style={[globalStyles.container, {flex: 1, justifyContent: 'center' }]}>
+      <Text variant="titleLarge" style={[globalStyles.title, {textAlign: 'center', marginBottom: 16}]}>
         {authMode === 'login' ? 'Login' : 'Sign Up'}
       </Text>
       <SegmentedButtons
@@ -71,7 +71,7 @@ const Login: React.FC = () => {
             clearErrorMessage(); // Clear error message when typing
           }}
           mode="outlined"
-          style={[globalStyles.input, styles.input]}
+          style={[globalStyles.input]}
         />
       )}
       <TextInput
@@ -86,7 +86,7 @@ const Login: React.FC = () => {
           clearErrorMessage(); // Clear error message when typing
         }}
         mode="outlined"
-        style={[globalStyles.input, styles.input]}
+        style={[globalStyles.input]} 
       />
       <TextInput
         label="Password"
@@ -97,7 +97,7 @@ const Login: React.FC = () => {
           clearErrorMessage(); // Clear error message when typing
         }}
         mode="outlined"
-        style={[globalStyles.input, styles.input]}
+        style={[globalStyles.input]}
       />
       {/* Display error message */}
       {errorMessage && (
@@ -116,19 +116,5 @@ const Login: React.FC = () => {
     </TouchableWithoutFeedback>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  title: {
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  input: {
-    marginBottom: 12,
-  },
-});
 
 export default Login;

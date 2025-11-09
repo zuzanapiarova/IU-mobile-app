@@ -535,7 +535,6 @@ app.get('/habit-streaks', async (req, res) => {
 
   const today = new Date().toISOString().split('T')[0];
   const startDate = startsAfterDate || '1970-01-01'; // Default to the earliest possible date
-  console.log("params: ",userId, habitId);
   try {
     // Fetch habit completions for the habit from today backward
     const completions = await prisma.habitCompletion.findMany({

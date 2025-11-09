@@ -55,12 +55,12 @@ export default function HomeScreen() {
 
   // Only render actual UI after initialization
   return (
-    <Surface
-      style={[globalStyles.display, { flex: 1, backgroundColor: 'transparent' }]}
+    <Surface 
+      style={[globalStyles.display, { flex: 1, backgroundColor: theme.colors.surface}]}
       elevation={0}
     >
       <Text variant="displaySmall">
-        Welcome back, {user?.name ?? 'Guest'}!
+        Welcome {(user?.createdAt < today) && "back, " } {user?.name ?? 'Guest'}!
       </Text>
 
       <Surface

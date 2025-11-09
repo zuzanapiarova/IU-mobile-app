@@ -59,7 +59,7 @@ export default function MovingBackground() {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View style={{ backgroundColor: theme.colors.background, flex: 1 }}>
       {/* Animated Background */}
       <Svg height={height} width={width} style={StyleSheet.absoluteFill}>
         {circles.map((circle, index) => (
@@ -78,9 +78,3 @@ export default function MovingBackground() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});

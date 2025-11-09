@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, FlatList, Keyboard, KeyboardAvoidingView, Platform, TouchableWithoutFeedback } from 'react-native';
+import { FlatList,  KeyboardAvoidingView, Platform } from 'react-native';
 import { Text, Card, TextInput, Button, List, useTheme, Surface, Modal, Portal } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useUser } from '@/constants/UserContext';
