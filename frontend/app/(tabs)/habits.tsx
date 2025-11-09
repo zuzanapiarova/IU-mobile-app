@@ -125,7 +125,7 @@ export default function HabitsScreen()
                 value={newHabit}
                 mode="outlined"
                 onChangeText={setNewHabit}
-                style={globalStyles.input}
+                style={[globalStyles.input,{backgroundColor: theme.colors.surface}]}
               />
               <Button 
                 mode='contained-tonal'

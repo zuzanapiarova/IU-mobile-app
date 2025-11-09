@@ -68,7 +68,6 @@ app.post('/login', async (req, res) => {
 });
 
 // SAFE UPDATE USER
-// SAFE UPDATE USER
 app.put('/users/:id', async (req, res) => {
   const userId = Number(req.params.id);
   const updates = req.body;
@@ -425,8 +424,11 @@ app.get('/completion-percentage', async (req, res) => {
 // GET /habits-for-day - Retrieve habits completed for a specific day
 app.get('/habits-for-day', async (req, res) => {
   const today = new Date().toISOString().split('T')[0];
-  const { userId, date } = req.query;
+  const { userId, allowDeleted, date } = req.query;
   const day = date || today;
+  // Convert allowDeleted to a boolean (default to false if undefined)
+  const includeDeleted = allowDeleted === 'true';
+
 
   if (!userId)
     return res.status(400).json({ error: 'User ID is required' });
@@ -443,7 +445,7 @@ app.get('/habits-for-day', async (req, res) => {
             id: true,
             name: true,
             frequency: true,
-            current: true,
+            current: includeDeleted,
           },
         },
       },
@@ -519,6 +521,48 @@ app.get('/habits-completions/most-recent-date', async (req, res) => {
     res.json({ maxDate });
   } catch (error) {
     console.error('Error fetching most recent date:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// GET /habits/streaks - Calculate the longest streak for a specific habit
+app.get('/habit-streaks', async (req, res) => {
+  const { userId, habitId, startsAfterDate } = req.query;
+
+  if (!userId || !habitId) {
+    return res.status(400).json({ error: 'userId and habitId are required' });
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  const startDate = startsAfterDate || '1970-01-01'; // Default to the earliest possible date
+  console.log("params: ",userId, habitId);
+  try {
+    // Fetch habit completions for the habit from today backward
+    const completions = await prisma.habitCompletion.findMany({
+      where: {
+        habitId: parseInt(habitId),
+        habit: { userId: parseInt(userId) },
+        date: { gte: startDate, lte: today },
+      },
+      orderBy: { date: 'desc' }, // Sort by date in descending order
+    });
+
+    let longestStreak = 0;
+    let currentStreak = 0;
+
+    // Calculate the streak
+    for (const completion of completions) {
+      if (completion.status === true) {
+        currentStreak++;
+        longestStreak = Math.max(longestStreak, currentStreak);
+      } else {
+        currentStreak = 0; // Reset streak if a day is missed
+      }
+    }
+
+    res.json({ habitId: parseInt(habitId), streak: longestStreak });
+  } catch (error) {
+    console.error('Error calculating longest streak:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });

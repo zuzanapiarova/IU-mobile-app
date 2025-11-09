@@ -103,7 +103,7 @@ export default function ProfileScreen() {
                   mode="outlined"
                   value={name}
                   onChangeText={setName}
-                  style={[globalStyles.input]}
+                  style={[globalStyles.input, {backgroundColor: theme.colors.surface}]}
                 />
                 <Button
                   mode="contained"
