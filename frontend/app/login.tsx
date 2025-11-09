@@ -5,7 +5,6 @@ import { useUser } from '../constants/UserContext';
 import { globalStyles } from '@/constants/globalStyles';
 import { useRouter, useRootNavigationState } from 'expo-router';
 import MovingBackground from '@/components/BackgroundAnimation';
-import TestAnim from '@/components/TestAnim';
 
 const Login: React.FC = () => {
   const theme = useTheme();
@@ -61,7 +60,7 @@ const Login: React.FC = () => {
           { value: 'login', label: 'Login', },
           { value: 'signup', label: 'Sign Up'},
         ]}
-        style={[styles.segmentedButtons, globalStyles.inputCard]}
+        style={[globalStyles.segmentedButtons, globalStyles.inputCard]}
       />
       {authMode === 'signup' && (
         <TextInput
@@ -125,9 +124,6 @@ const styles = StyleSheet.create({
   },
   title: {
     textAlign: 'center',
-    marginBottom: 16,
-  },
-  segmentedButtons: {
     marginBottom: 16,
   },
   input: {

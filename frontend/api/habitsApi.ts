@@ -45,18 +45,6 @@ export async function updateHabit(id: number, name: string, frequency: string) {
   return data;
 }
 
-// todo: renaming habit will rename ts past occurences and completions too, change later to adding new one 
-// Update a habit's name
-// export async function updateHabitName(id: number, name: string): Promise<void> {
-//   const { data } = await api.put(`/habits/${id}/name`, { name });
-//   return data;
-// }
-// // Update a habit's frequency
-// export async function updateHabitFrequency(id: number, frequency: string): Promise<void> {
-//   const { data } = await api.put(`/habits/${id}/frequency`, { frequency });
-//   return data;
-// }
-
 // Complete a habit
 export async function completeHabit(habitId: number, date?: string) {
   const { data } = await api.post(`/habits/${habitId}/complete`, { date });
@@ -85,13 +73,12 @@ export async function getCompletionPercentageForDay(date: string): Promise<{ dat
   return data;
 }
 
-
 // Get habits for a specific day for the logged-in user
-export async function getHabitsForDay(userId: number, date?: string) {
+export async function getHabitsForDay(userId: number, allowDeleted: boolean, date?: string) {
   const { data } = await api.get('/habits-for-day', {
-    params: { userId, date },
+    params: { userId, allowDeleted, date },
   });
-  return data;
+  return data; // data: { habitId: parseInt(habitId), streak: longestStreak }
 }
 
 // Initialize habit completions for a specific day - REDO: add user id
@@ -104,4 +91,10 @@ export async function initializeHabitCompletionsForDay(date?: string) {
 export async function getMostRecentDate(): Promise<string | null> {
   const { data } = await api.get('/habits-completions/most-recent-date');
   return data.maxDate;
+}
+
+export async function getHabitStreak(userId: number, habitId: number, startsAfterDate: string)
+{
+  const { data } = await api.get('/habit-streaks', { params: { userId, habitId, startsAfterDate } });
+  return data; // Expected response: [{ habitId, streak }]
 }

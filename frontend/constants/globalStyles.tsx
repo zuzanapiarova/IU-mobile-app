@@ -78,6 +78,10 @@ export const globalStyles = StyleSheet.create(
       marginBottom: 10,
     },
 
+    segmentedButtons: {
+      marginBottom: 16,
+    },
+
     button: {
       alignSelf: 'flex-end',
     },

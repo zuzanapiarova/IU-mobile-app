@@ -35,7 +35,7 @@ export default function HabitsList({ date, onHabitsUpdated }: { date: string; on
   const loadHabits = async () => {
     if (!user) return;
     try {
-      const data = await getHabitsForDay(user.id, date);
+      const data = await getHabitsForDay(user.id, false, date);
       const transformedData = data.map((habit: HabitWithCompletion) => ({
         ...habit,
         status: habit.status ? 1 : 0,

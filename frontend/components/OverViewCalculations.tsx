@@ -4,10 +4,9 @@ import { Habit } from "@/constants/interfaces";
 // Function to fetch habits for a specific day and calculate the completion percentage
 export async function getCompletionPercentageForDay(userId: number, date: string): Promise<number>
 {
-
   try {
     // Fetch all habits for the given day
-    const habits: Habit[] = await getHabitsForDay(userId, date);
+    const habits: Habit[] = await getHabitsForDay(userId, false, date);
 
     // if there are no habits, 0% completion (avoid zero division)
     if (habits.length === 0) return 0;

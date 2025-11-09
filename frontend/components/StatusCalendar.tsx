@@ -133,6 +133,7 @@ export default function StatusCalendar() {
             dayTextColor: theme.colors.onSurface,
             arrowColor: theme.colors.secondary,
           }}
+          firstDay={1} // Start the week on Monday
         />
         {selectedDate && (
           <Portal>
