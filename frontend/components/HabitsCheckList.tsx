@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
-import { List, Checkbox, Text, useTheme, Surface, Button, Portal, Modal, Card } from 'react-native-paper';
+import { View, FlatList, TouchableOpacity } from 'react-native';
+import { List, Text, useTheme, Surface, Button, ActivityIndicator} from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -11,37 +11,47 @@ import { Habit, HabitWithCompletion } from '../constants/interfaces'
 import { globalStyles } from '../constants/globalStyles';
 import { completeHabit, uncompleteHabit, getHabitsForDay } from '../api/habitsApi';
 import { useUser } from "@/constants/UserContext";
+import { useRouter } from 'expo-router';
 
 
 // gets data from the habit_completions table
 export default function HabitsList({ date, onHabitsUpdated }: { date: string; onHabitsUpdated?: () => void })
 {
   const [habits, setHabits] = useState<HabitWithCompletion[]>([]);
-  const { user } = useUser(); // Get the logged-in user
-  if (!user) return; // Ensure the user is logged in
-
   const today = new Date().toISOString().split('T')[0];
   const theme = useTheme();
+  const router = useRouter();
   const navigation = useNavigation<NativeStackNavigationProp<RootTabParamList>>();
+  const { user } = useUser(); // Get the logged-in user
+  const [loading, setLoading] = useState(true);
+
+  // Redirect if not logged in
+  useEffect(() => {
+    if (!user) router.replace('/login');
+    loadHabits();
+  }, [user]);
 
   // fetch habits for the day
   const loadHabits = async () => {
+    if (!user) return;
     try {
       const data = await getHabitsForDay(user.id, date);
       const transformedData = data.map((habit: HabitWithCompletion) => ({
         ...habit,
-        status: habit.status ? 1 : 0, // Convert boolean to integer
+        status: habit.status ? 1 : 0,
       }));
       setHabits(transformedData);
     } catch (error) {
       console.error('Error loading habits:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Load habits on component mount
+  // Load habits when component mounts or user/date changes
   useEffect(() => {
     loadHabits();
-  }, []);
+  }, [user, date]);
 
   // Reload data whenever the screen is focused
   useFocusEffect(
@@ -81,6 +91,22 @@ export default function HabitsList({ date, onHabitsUpdated }: { date: string; on
     ...habits.filter((h) => h.status === 0),
     ...habits.filter((h) => h.status === 1),
   ];
+
+  if (loading) {
+    return (
+      <View style={globalStyles.center}>
+        <ActivityIndicator animating size="large" color={theme.colors.primary} />
+      </View>
+    );
+  }
+
+  if (!user) {
+    return (
+      <Surface style={[globalStyles.center, { height: 250 }]}>
+        <Text variant="bodyMedium">Please log in to view your habits.</Text>
+      </Surface>
+    );
+  }
 
   const renderItem = ({item}: {item: HabitWithCompletion}) => {
     const isChecked = item.status === 1;

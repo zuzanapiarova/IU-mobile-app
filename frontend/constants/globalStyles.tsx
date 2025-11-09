@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { red } from 'react-native-reanimated/lib/typescript/Colors';
 export const globalStyles = StyleSheet.create(
 {
 
@@ -6,6 +7,8 @@ export const globalStyles = StyleSheet.create(
         justifyContent: 'space-around',
         paddingHorizontal: 16,
         paddingTop: 64,
+        paddingBottom: 12, 
+        backgroundColor: 'rgba(255, 255, 255, 0.8)'
     },
 
     container: {
@@ -19,6 +22,13 @@ export const globalStyles = StyleSheet.create(
       padding: 8,
       marginVertical: 6,
       marginHorizontal: 4
+    },
+
+    overlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.7)', // Darker semi-transparent black
+      justifyContent: 'center',
+      alignItems: 'center',
     },
 
     title: {
@@ -109,6 +119,14 @@ export const globalStyles = StyleSheet.create(
 
     yellow: {
       color: '#e6bb02'
+    }, 
+
+    green: {
+      color: '#4CAF50'
+    }, 
+
+    red: {
+      color: '#be2020'
     }, 
 
     modalContainer: {
