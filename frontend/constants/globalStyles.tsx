@@ -11,7 +11,7 @@ export const globalStyles = StyleSheet.create(
 
     container: {
         paddingHorizontal: 12,
-        marginVertical: 12,
+        marginVertical: 8,
         borderRadius: 8,
     },
 

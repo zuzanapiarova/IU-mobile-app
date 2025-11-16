@@ -6,14 +6,11 @@ const today = new Date().toISOString().split('T')[0];
 export async function initializeHabitCompletions() {
   try {
     const mostRecentDate = await getMostRecentDate() ?? null;
-    console.log('Most recent date:', mostRecentDate);
-    console.log('Today:', today);
 
     let currentDate = mostRecentDate ? new Date(mostRecentDate) : new Date(today);
 
     while (currentDate <= new Date(today)) {
       const dateString = currentDate.toISOString().split('T')[0];
-      console.log(`Processing date: ${dateString}`);
       await initializeHabitCompletionsForDay(dateString);
       currentDate.setDate(currentDate.getDate() + 1); // Increment date for next loop run
     }

@@ -28,7 +28,7 @@ app.get('/users', async (req, res) => {
 // SIGNUP
 app.post('/users', async (req, res) => {
   const { name, email, password } = req.body;
-  console.log('📥 Received signup body:', req.body);
+  console.log('Received signup body:', req.body);
 
   try {
     const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -50,7 +50,7 @@ app.post('/users', async (req, res) => {
 // LOGIN
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
-  console.log('📥 Received login body:', req.body);
+  console.log('Received login body:', req.body);
 
   try {
     const user = await prisma.user.findUnique({ where: { email } });
@@ -71,6 +71,8 @@ app.post('/login', async (req, res) => {
 app.put('/users/:id', async (req, res) => {
   const userId = Number(req.params.id);
   const updates = req.body;
+  console.log('updates');
+  console.log(updates);
 
   try {
     const allowedFields = [
@@ -83,6 +85,7 @@ app.put('/users/:id', async (req, res) => {
       'notificationsEnabled',
       'successLimit', // Add successLimit
       'failureLimit', // Add failureLimit
+      'notificationTime'
     ];
 
     const safeUpdates = {};
@@ -118,7 +121,7 @@ app.put('/users/:id', async (req, res) => {
 });
 
 
-// HABITS endpoints -------------------------------------------------------------------
+// HABITS endpoints -------------------------------------------------------------------------
 
 // GET /habits - Fetch all habits for a specific user
 app.get('/habits', async (req, res) => {
@@ -426,9 +429,7 @@ app.get('/habits-for-day', async (req, res) => {
   const today = new Date().toISOString().split('T')[0];
   const { userId, allowDeleted, date } = req.query;
   const day = date || today;
-  // Convert allowDeleted to a boolean (default to false if undefined)
-  const includeDeleted = allowDeleted === 'true';
-
+  const includeDeleted = allowDeleted === 'true';  // Convert allowDeleted to a boolean (default to false if undefined)
 
   if (!userId)
     return res.status(400).json({ error: 'User ID is required' });

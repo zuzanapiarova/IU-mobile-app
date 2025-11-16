@@ -27,6 +27,7 @@ export async function loginUser(email: string, password: string): Promise<User |
 }
 
 export async function updateUserBackend(userId: number, updates: Partial<User>): Promise<User> {
+  console.log('Updates:', updates); // Log the updates object to verify its content
   const { data } = await api.put(`/users/${userId}`, updates);
   return data;
 }

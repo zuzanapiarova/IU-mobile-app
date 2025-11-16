@@ -4,19 +4,26 @@ import { Text, Card, useTheme } from 'react-native-paper';
 import { globalStyles } from '../constants/globalStyles';
 
 interface OverviewCardProps {
-  habitName: string;
+  habitNames: string[];
   title: string;
   unit: string;
   value: number;
+  color: string;
 }
 
-export default function OverviewCard({ habitName, title, unit, value }: OverviewCardProps) {
+export default function OverviewCard({ habitNames, title, unit, value, color }: OverviewCardProps) {
   const theme = useTheme();
+
+  if (title === 'Longest Streak' && value === 0)
+    return ;
+
+  if (title === 'Most Completed' && value === 0)
+    return ;
 
   return (
     <Card style={[globalStyles.card, { backgroundColor: theme.colors.background }]}>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <View style={[globalStyles.circle, { backgroundColor: theme.colors.primary }]}>
+        <View style={[globalStyles.circle, { backgroundColor: color }]}>
           <Text style={{ color: theme.colors.background, fontWeight: 'bold', fontSize: 24 }}>
             {value}
           </Text>
@@ -24,9 +31,13 @@ export default function OverviewCard({ habitName, title, unit, value }: Overview
             {unit}
           </Text>
         </View>
-        <View style={{ marginLeft: 4 }}>
+        <View style={{flex: 1}}>
           <Text style={{ fontWeight: 'bold', fontSize: 16 }}>{title}</Text>
-          <Text style={{ fontSize: 14, color: 'gray' }}>{habitName}</Text>
+          {habitNames.map((name, index) => (
+            <Text key={index} style={{ fontSize: 14, color: 'gray', flexWrap: 'wrap', flex: 1 }}>
+              {name}
+            </Text>
+          ))}
         </View>
       </View>
     </Card>

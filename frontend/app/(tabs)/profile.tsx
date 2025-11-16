@@ -5,6 +5,7 @@ import { globalStyles } from '../../constants/globalStyles';
 import { useUser } from '../../constants/UserContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter, useRootNavigationState } from 'expo-router';
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 export default function ProfileScreen() {
   const { user, updateUser, logout } = useUser(); // Access user data and actions from context
@@ -24,54 +25,15 @@ export default function ProfileScreen() {
   }, [user, navigationState]);
   
   const [darkMode, setDarkMode] = useState(user?.themePreference === 'dark');
-  const [dataPolicyAccepted, setDataPolicyAccepted] = useState(user?.dataProcessingAgreed || false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(user?.notificationsEnabled || false);
   const [successLimit, setSuccessLimit] = useState(user?.successLimit || 80);
   const [failureLimit, setFailureLimit] = useState(user?.failureLimit || 20);
   const [name, setName] = useState(user?.name || '');
-  const [snackbarVisible, setSnackbarVisible] = useState(false); // State for Snackbar visibility
+  const [snackbarVisible, setSnackbarVisible] = useState(false); // success message when changes are done
   const [isLogoutModalVisible, setLogoutModalVisible] = useState(false);
-
-  const saveLimits = async () => {
-    if (!user) return; // Ensure the user is logged in
-    try {
-      await updateUser({ successLimit, failureLimit });
-      setSnackbarVisible(true); // Show success message
-    } catch (error) {
-      console.error('Error updating limits:', error);
-      alert('Failed to update limits. Please try again.');
-    }
-  };
-
-  const handleToggleTheme = async () => {
-    const newTheme = darkMode ? 'light' : 'dark';
-    setDarkMode(!darkMode); // Update local state immediately
-    try {
-      await updateUser({ themePreference: newTheme }); // Update user data asynchronously
-    } catch (error) {
-      console.error('Error updating theme preference:', error);
-    }
-  };
-
-  const handleToggleDataPolicy = async () => {
-    const newStatus = !dataPolicyAccepted;
-    setDataPolicyAccepted(newStatus); // Update local state immediately
-    try {
-      await updateUser({ dataProcessingAgreed: newStatus }); // Update user data asynchronously
-    } catch (error) {
-      console.error('Error updating data policy acceptance:', error);
-    }
-  };
-
-  const handleToggleNotifications = async () => {
-    const newStatus = !notificationsEnabled;
-    setNotificationsEnabled(newStatus); // Update local state immediately
-    try {
-      await updateUser({ notificationsEnabled: newStatus }); // Update user data asynchronously
-    } catch (error) {
-      console.error('Error updating notifications:', error);
-    }
-  };
+  const [notificationTime, setNotificationTime] = useState(user?.notificationTime || '18:00');
+  const [selectedTime, setSelectedTime] = useState(notificationTime); // Temporary selected time in the picker
+  const [isTimePickerVisible, setTimePickerVisible] = useState(false); // State for time picker visibility
 
   const handleNameChange = async () => {
     if (!name.trim()) {
@@ -80,9 +42,69 @@ export default function ProfileScreen() {
     }
     try {
       await updateUser({ name });
-      setSnackbarVisible(true); // Show success message
+      setSnackbarVisible(true);
     } catch (error) {
       console.error('Error updating name:', error);
+    }
+  };
+
+  const handleToggleTheme = async () => {
+    const newTheme = darkMode ? 'light' : 'dark';
+    setDarkMode(!darkMode);
+    try {
+      await updateUser({ themePreference: newTheme });
+    } catch (error) {
+      console.error('Error updating theme preference:', error);
+    }
+  };
+
+  const handleToggleNotifications = async () => {
+    const newStatus = !notificationsEnabled;
+    setNotificationsEnabled(newStatus);
+    try {
+      await updateUser({ notificationsEnabled: newStatus });
+    } catch (error) {
+      console.error('Error updating notifications:', error);
+    }
+  };
+
+  const showTimePicker = () => setTimePickerVisible(true);
+
+  const hideTimePicker = () => {
+    // Reset the selected time to the current notification time when canceled
+    setSelectedTime(notificationTime);
+    setTimePickerVisible(false);
+  };
+  
+  const handleTimePickerConfirm = (date: Date) => {
+    // Format the selected time as hh:mm
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const formattedTime = `${hours}:${minutes}`;
+    setSelectedTime(formattedTime); // Temporarily store the selected time
+    setTimePickerVisible(false); // Close the time picker
+  };
+
+  const handleTimeChange = async () => {
+    if (!user) return; // Ensure the user is logged in
+
+    try {
+      // Update the user with the new notification time
+      await updateUser({ notificationTime: selectedTime });
+      setNotificationTime(selectedTime);
+      setSnackbarVisible(true);
+    } catch (error) {
+      console.error('Error updating notification time:', error);
+    }
+  };
+
+  const saveLimits = async () => {
+    if (!user) return; // Ensure the user is logged in
+    try {
+      await updateUser({ successLimit, failureLimit });
+      setSnackbarVisible(true);
+    } catch (error) {
+      console.error('Error updating limits:', error);
     }
   };
 
@@ -92,9 +114,10 @@ export default function ProfileScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <ScrollView style={{backgroundColor: theme.colors.surface}} contentContainerStyle={{ flexGrow: 1 }}>
           <Surface style={[globalStyles.display, {backgroundColor: theme.colors.surface}]} elevation={0}>
             <Text variant='displaySmall'>Profile Settings</Text>
+
             {/* User Info */}
             <Card style={[globalStyles.card, { backgroundColor: theme.colors.background }]}>
               <Card.Content>
@@ -119,18 +142,8 @@ export default function ProfileScreen() {
             <Card style={[globalStyles.card, { backgroundColor: theme.colors.background }]}>
               <Card.Content>
                 <View style={globalStyles.inRow}>
-                  <Text>Dark Mode</Text>
+                  <Text variant="titleMedium">Dark Mode</Text>
                   <Switch value={darkMode} onValueChange={handleToggleTheme} />
-                </View>
-              </Card.Content>
-            </Card>
-
-            {/* Data Policy */}
-            <Card style={[globalStyles.card, { backgroundColor: theme.colors.background }]}>
-              <Card.Content>
-                <View style={globalStyles.inRow}>
-                  <Text>Data Policy Acceptance</Text>
-                  <Switch value={dataPolicyAccepted} onValueChange={handleToggleDataPolicy} />
                 </View>
               </Card.Content>
             </Card>
@@ -139,9 +152,42 @@ export default function ProfileScreen() {
             <Card style={[globalStyles.card, { backgroundColor: theme.colors.background }]}>
               <Card.Content>
                 <View style={globalStyles.inRow}>
-                  <Text>Enable Notifications</Text>
+                  <Text variant="titleMedium" style={{ flex: 1 }}>
+                    Enable Notifications
+                  </Text>
                   <Switch value={notificationsEnabled} onValueChange={handleToggleNotifications} />
                 </View>
+              {notificationsEnabled && (
+              <View>
+              <Text variant="bodyMedium" style={{marginVertical: 8}}>
+                Reminder Time
+              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Button
+                  mode="outlined"
+                  onPress={showTimePicker}
+                  style={{ flex: 1, marginRight: 8, backgroundColor: theme.colors.surface, borderRadius: 6}} // Adjust spacing between buttons
+                >
+                  {selectedTime}
+                </Button>
+                <Button
+                  mode="contained"
+                  onPress={handleTimeChange}
+                  disabled={selectedTime === notificationTime}
+                  style={{ flex: 1 }} // Make both buttons the same width
+                >
+                  Save Time
+                </Button>
+              </View>
+              <DateTimePickerModal
+                isVisible={isTimePickerVisible}
+                mode="time"
+                onConfirm={handleTimePickerConfirm}
+                onCancel={hideTimePicker}
+                is24Hour={true}
+              />
+            </View>
+            )}
               </Card.Content>
             </Card>
 
@@ -191,7 +237,7 @@ export default function ProfileScreen() {
                   mode="contained"
                   onPress={async () => {
                     await saveLimits();
-                    setSnackbarVisible(true); // Show success message
+                    setSnackbarVisible(true);
                   }}
                   disabled={
                     successLimit === null || // Ensure successLimit is not empty
