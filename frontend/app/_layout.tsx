@@ -1,9 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useMemo,useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { PaperProvider, MD3LightTheme, MD3DarkTheme } from 'react-native-paper';
 import { Colors } from '@/constants/theme';
 import { UserProvider, useUser } from '../constants/UserContext';
-
+import { createNotificationChannel } from '../components/Notifications';
+ 
 function ThemedApp() {
   const { user } = useUser();
   const scheme = user?.themePreference === 'dark' ? 'dark' : 'light';
@@ -31,6 +32,10 @@ function ThemedApp() {
       onSurfaceDisabled: Colors[scheme].disabledText
     },
   }), [scheme]);
+
+  useEffect(() => {
+    createNotificationChannel();
+  }, []);
 
   return (
     <PaperProvider theme={customTheme}>

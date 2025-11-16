@@ -1,46 +1,56 @@
+// NotificationsManager.ts
 import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
+import { SchedulableTriggerInputTypes } from 'expo-notifications';
 import { Platform } from 'react-native';
 
-// Request permissions
-async function registerForPushNotificationsAsync() {
-  if (Device.isDevice) {
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true
+  }),
+});
 
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
+  export const createNotificationChannel = async () => {
+    if (Platform.OS === 'android') {
+      await Notifications.setNotificationChannelAsync('default', {
+        name: 'Default',
+        importance: Notifications.AndroidImportance.HIGH,
+        sound: 'default', // Ensure the channel is configured to play sound
+      });
     }
+  };
 
-    if (finalStatus !== 'granted') {
-      alert('Failed to get push token for notifications!');
-      return;
-    }
+export const requestNotificationPermission = async () => {
+  const { status } = await Notifications.getPermissionsAsync();
+
+  if (status !== 'granted') {
+    const { status: newStatus } = await Notifications.requestPermissionsAsync();
+    return newStatus === 'granted';
   }
 
-  if (Platform.OS === 'android') {
-    Notifications.setNotificationChannelAsync('default', {
-      name: 'default',
-      importance: Notifications.AndroidImportance.MAX,
-    });
-  }
-}
+  return true;
+};
 
-// Schedule notification at a specific time
-export async function scheduleDailyNotification(hour = 9, minute = 0) {
-    const trigger: Notifications.CalendarTriggerInput = {
-      type: 'calendar',
+export const scheduleDailyNotification = async (time: string) => {
+  const [hour, minute] = time.split(':').map(Number);
+
+  return Notifications.scheduleNotificationAsync({
+    content: {
+      title: 'OnePlace',
+      body: 'Do not forget to complete all habits today and celebrate your journey!',
+      sound: 'default'
+    },
+    trigger: {
+      type: SchedulableTriggerInputTypes.DAILY,
       hour,
       minute,
-      repeats: true, // Repeat daily at the specified time
-    };
-  
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: 'Reminder!',
-        body: 'This is your daily notification.',
-      },
-      trigger, // Use the properly typed trigger
-    });
-}
+    },
+  });
+};
+
+// Cancel all scheduled notifications on disabling Receiving notification
+export const cancelAllNotifications = async () => {
+  await Notifications.cancelAllScheduledNotificationsAsync();
+};

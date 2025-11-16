@@ -139,17 +139,17 @@ export default function HabitsList({ date, onHabitsUpdated }: { date: string; on
   if (date === today) {
     return (
       <Surface style={[globalStyles.container, { height: 250 }, { backgroundColor: theme.colors.background }]} elevation={0}>
-        <Surface elevation={0} style={globalStyles.inRow}>
-            <Text variant="titleMedium">Today's Tasks</Text>
-            {habits.length > 0 && (
-              <Text
-                variant="titleLarge"
-                style={{ color: completedPercentage >= user?.successLimit ? 'green' : completedPercentage <= user.failureLimit ? 'red' : globalStyles.yellow.color }}
-              >
-                {completedPercentage}%
-              </Text>
-            )}
-          </Surface>
+        <Surface elevation={0} style={[globalStyles.inRow, {paddingBottom: 6}]}>
+          <Text variant="titleMedium">Today's Tasks</Text>
+          {habits.length > 0 && (
+            <Text
+              variant="titleLarge"
+              style={{ color: completedPercentage >= user?.successLimit ? 'green' : completedPercentage <= user.failureLimit ? 'red' : globalStyles.yellow.color }}
+            >
+              {completedPercentage}%
+            </Text>
+          )}
+        </Surface>
       
           {habits.length === 0 ? (
           <Surface style={globalStyles.center} elevation={0}>

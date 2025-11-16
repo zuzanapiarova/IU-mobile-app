@@ -1,7 +1,7 @@
 import { Platform, useColorScheme } from 'react-native';
 
 const tintColorLight = '#4CAF50';  // fresh green
-const tintColorDark = '#93c47d';   // may change later
+const tintColorDark = '#66a44a';   // may change later
 
 export const Colors = {
   light: {

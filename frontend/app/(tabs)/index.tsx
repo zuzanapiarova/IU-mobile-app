@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { View, ScrollView } from 'react-native';
 import { Text, Card, Surface, useTheme, ActivityIndicator } from 'react-native-paper';
 import { useRouter, useRootNavigationState } from 'expo-router';
 import { useUser } from '../../constants/UserContext';
@@ -37,7 +37,7 @@ export default function HomeScreen() {
       }
     };
     initialize();
-  }, [user, navigationState?.key]);
+  }, [navigationState?.key]);
 
   // While initializing or redirecting
   if (!navigationState?.key || isLoading) {
@@ -55,8 +55,9 @@ export default function HomeScreen() {
 
   // Only render actual UI after initialization
   return (
+    // <ScrollView style={{backgroundColor: theme.colors.surface}}>
     <Surface 
-      style={[globalStyles.display, { flex: 1, backgroundColor: theme.colors.surface}]}
+      style={[globalStyles.display, { flex: 1, justifyContent: 'flex-start', backgroundColor: theme.colors.surface}]}
       elevation={0}
     >
       <Text variant="displaySmall">
@@ -76,5 +77,6 @@ export default function HomeScreen() {
         <StatusCalendar />
       </Card>
     </Surface>
+    // </ScrollView>
   );
 }

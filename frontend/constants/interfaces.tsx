@@ -38,8 +38,9 @@ export interface User
     hasAcceptedTerms?: boolean;
     dataProcessingAgreed?: boolean;
     notificationsEnabled?: boolean;
-    successLimit: number; // The percentage threshold for success (default: 80)
-    failureLimit: number; // The percentage threshold for failure (default: 20)
+    successLimit: number; // percentage threshold for success (default: 80)
+    failureLimit: number; // percentage threshold for failure (default: 20)
+    notificationTime: string; // time to send them default notification if the notifications are enabled
 }
 
 export interface CompletionQueryOptions
