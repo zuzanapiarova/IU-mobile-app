@@ -138,7 +138,7 @@ export default function HabitsList({ date, onHabitsUpdated }: { date: string; on
 
   if (date === today) {
     return (
-      <Surface style={[globalStyles.container, { height: 250 }, { backgroundColor: theme.colors.background }]} elevation={0}>
+      <Surface style={[globalStyles.container, {flex: 1, backgroundColor: theme.colors.background }]} elevation={0}>
         <Surface elevation={0} style={[globalStyles.inRow, {paddingBottom: 6}]}>
           <Text variant="titleMedium">Today's Tasks</Text>
           {habits.length > 0 && (
