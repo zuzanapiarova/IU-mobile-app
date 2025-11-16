@@ -8,35 +8,41 @@ import { useUser } from '../constants/UserContext'
 interface PeriodGraphProps {
     habitsByDate: any[];
     graphData: any[];
+    userSignupDate: string;
 }
 
 const getXAxisLabels = (habitsByDate: any[]) => {
     const labels = habitsByDate.map((item) => {
       const parsedDate = new Date(item.date);
-      console.log(item.date);
-      return parsedDate.toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: '2-digit',
-      });
+      const day = parsedDate.toLocaleDateString('en-GB', { day: '2-digit' });
+      const month = parsedDate.toLocaleDateString('en-GB', { month: '2-digit' });
+      return { day, month };
     });
-
-    console.log('habitsByDate:', habitsByDate); //! ERROR - i am passing it in as a wrong DT and it cannot resolve 
   
-    const interval = labels.length > 31 ? 30 : labels.length > 7 ? 7 : 1;
+    const length = labels.length;
   
-    return labels.map((label, index) => (index % interval === 0 ? label : ''));
-};
+    // Determine the interval for rendering labels
+    const interval = length > 31 ? length - 15 : length > 8 ? 2 : 1;
+  
+    // Generate labels based on the interval
+    return labels.map((label, index) => {
+      if (length > 31) {
+        return ''; // Render the month for every (length - 30)th label
+      } else if (length > 7) {
+        return index % interval === 0 ? label.day : ''; // Render the day for every 7th label
+      } else {
+        return (`${label.day}/${label.month}`); // Render all labels as the day
+      }
+    });
+  };
 
-export default function PeriodGraph({ habitsByDate, graphData }: PeriodGraphProps) {
+export default function PeriodGraph({ habitsByDate, graphData, userSignupDate }: PeriodGraphProps) {
     const theme = useTheme();
     const { user } = useUser();
     const screenWidth = Dimensions.get('window').width;
-    const [xAxisLabels, setXAxisLabels] = useState<any[]>(getXAxisLabels(graphData));
+    const [xAxisLabels, setXAxisLabels] = useState<any[]>(getXAxisLabels(habitsByDate));
  
-    if (!user) {
-        alert('You must be logged in!');
-        return null;
-    }
+    if (!user) return null;
 
     return (
         <Card style={[globalStyles.card, { backgroundColor: theme.colors.background, marginTop: 16 }]}>
@@ -44,7 +50,7 @@ export default function PeriodGraph({ habitsByDate, graphData }: PeriodGraphProp
         {/* Calculate and display the average completion */}
         {(() => {
             const today = new Date().toISOString().split('T')[0]; // Get today's date
-            const filteredHabitsByDate = habitsByDate.filter((item) => item.date <= today); // Exclude future dates
+            const filteredHabitsByDate = habitsByDate.filter((item) => ((item.date <= today) && (item.date >= userSignupDate))); // Exclude future dates
             const totalCompletion = filteredHabitsByDate.reduce((sum, item) => sum + item.completionPercentage, 0);
             const averageCompletion = filteredHabitsByDate.length > 0
             ? Math.round(totalCompletion / filteredHabitsByDate.length)
@@ -65,27 +71,26 @@ export default function PeriodGraph({ habitsByDate, graphData }: PeriodGraphProp
             data={graphData}
             color={'grey'} // Gradient colors for the line
             thickness={1}
+            initialSpacing={8}
+            endSpacing={8}
             adjustToWidth
             showScrollIndicator={false}
-            initialSpacing={0} // No extra spacing at the start
-            endSpacing={0} // No extra spacing at the end
             yAxisOffset={0}
-            width={screenWidth - 92} // Explicitly set the chart's width (subtract padding/margin if needed)
+            width={screenWidth - 84} // Explicitly set the chart's width (subtract padding/margin if needed)
             yAxisLabelTexts={["0", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100"]} // Fixed y-axis labels
             yAxisLabelWidth={20}
             yAxisTextStyle={{
-            color: theme.colors.onSurface,
-            fontSize: 10,
-            marginRight: 3,
+                color: theme.colors.onSurface,
+                fontSize: 10,
+                marginRight: 3,
             }}
             xAxisLabelTexts={xAxisLabels}      
             xAxisLabelTextStyle={{
-            color: theme.colors.onSurface,
-            fontSize: 10,
-            textAlign: 'right',
+                color: theme.colors.onSurface,
+                fontSize: 8
             }}
             maxValue={100} // Forces chart top to be 100
-            stepValue={10} // Distance between sections
+            stepValue={10} // y step value
             noOfSections={10} // Determines number of lines (0-100)
             hideDataPoints={false}
             xAxisThickness={1}
