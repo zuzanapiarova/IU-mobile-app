@@ -26,8 +26,7 @@ export default function HomeScreen() {
           router.replace('/login');
           return;
         }
-
-        // Logged in → initialize user data
+        // if ogged in, initialize user data
         await initializeHabitCompletions();
         console.log('✅ Habit completions initialized.');
       } catch (err) {
@@ -49,9 +48,7 @@ export default function HomeScreen() {
   }
 
   // Render the main screen only if the user is logged in
-  if (!user) {
-    return null; // Prevent rendering if the user is not logged in
-  }
+  if (!user) return null; // Prevent rendering if the user is not logged in
 
   // Only render actual UI after initialization
   return (
@@ -64,12 +61,7 @@ export default function HomeScreen() {
         Welcome {(user?.createdAt < today) && "back, " } {user?.name ?? 'Guest'}!
       </Text>
 
-      <Surface
-        style={[
-          globalStyles.container,
-          { height: 270, backgroundColor: theme.colors.background },
-        ]}
-      >
+      <Surface style={[globalStyles.container,{flex: 1, backgroundColor: theme.colors.background }]}>
         <HabitsList date={today} />
       </Surface>
 
