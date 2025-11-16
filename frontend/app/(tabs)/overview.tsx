@@ -159,25 +159,19 @@ const getHabitsByDate = (dates: string[], unprocessedHabits: any[]) => {
 
     return {
       date,
-      habits,
-      completionPercentage
+      completionPercentage,
+      habits // []
     };
   });
 
-  return habitsByDate;
+  return habitsByDate; // [ {date, completionPercentage, habits[]}, {date, completionPercentage, habits[]}, ... ]
 };
 
 const getGraphData = (habitsByDate: any[], minCompletion: number, maxCompletion: number, userSignupDate: string) => {
-  //considered making it shorted for the year but the values are not valid then - they might have some 100 days but it willnot be visible 
-  // if (habitsByDate.length > 31) {
-  //   habitsByDate = habitsByDate.filter((item) => {
-  //     const day = new Date(item.date).getDate();
-  //     return day === 1 || day === 15; // Keep only the 1st and 15th
-  //   });
-  // }
-  const data = habitsByDate.map((item, index) => {
-    const isFutureDate = item.date > today; // Check if the date is in the future
-    const isPastDate = item.date < userSignupDate;
+
+  const data = habitsByDate.map((item) => {
+    const isFutureDate = new Date(item.date).toISOString().split('T')[0] > today; // Convert both to Date objects
+    const isPastDate = new Date(item.date).toISOString().split('T')[0] < new Date(userSignupDate).toISOString().split('T')[0]; // Convert both to Date objects
 
     // Determine the color based on completionPercentage or date 
     let dataPointColor = globalStyles.green.color; // Default color
@@ -185,27 +179,16 @@ const getGraphData = (habitsByDate: any[], minCompletion: number, maxCompletion:
       dataPointColor = globalStyles.yellow.color;
     if (item.completionPercentage < minCompletion)
       dataPointColor = globalStyles.red.color;
-    if (isFutureDate || isPastDate)
-      dataPointColor = 'gray';
-    const dataPointRadius = isFutureDate ? 0 : 3; // no dot for future dates 
-
+    const dataPointRadius = (isFutureDate || isPastDate) ? 0 : 3; // no dot for future dates 
 
     return {
-      value: isFutureDate ? 0 : item.completionPercentage, // Set value to null for future dates
-      // label: new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' }), // x-axis: formatted date
-      // index, // Keep track of the index for filtering
-      dataPointColor, // Add the color for the data point
-      dataPointRadius, // Add the size for the data point
+      value: (isFutureDate || isPastDate) ? 0 : item.completionPercentage, // Set value to null for future dates
+      dataPointColor,
+      dataPointRadius,
     };
   });
-  return data;
 
-  // Filter labels based on the length of the data
-  // const labelInterval = data.length > 31 ? 30 : data.length > 7 ? 7 : 1;
-  // return data.map((item) => ({
-  //   ...item,
-  //   label: item.index % labelInterval === 0 ? item.label : '', // Show label only for specific intervals
-  // }));
+  return data; // array of objects: [{value, dataPointColor, dataPointRadius}, {value, dataPointColor, dataPointRadius}, ...]
 };
 
 export default function OverviewScreen()
@@ -219,6 +202,7 @@ export default function OverviewScreen()
   const [habitsByDate, setHabitsByDate] = useState<any[]>([]); // State to store fetched habits
   const [graphData, setGraphData] = useState<any[]>([]);
   const [isStatisticsExpanded, setIsStatisticsExpanded] = useState(false); // State to toggle statistics visibility
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Function to load data
   const loadData = async () => {
@@ -237,6 +221,7 @@ export default function OverviewScreen()
       const graphDataTemp = getGraphData(processedHabitsByDate, user.failureLimit, user.successLimit,user.createdAt);
       setHabitsByDate(processedHabitsByDate);
       setGraphData(graphDataTemp);
+      setRefreshKey((prev) => prev + 1);
     } catch (error) {
       console.error('Error fetching habits:', error);
     } finally {
@@ -253,7 +238,7 @@ export default function OverviewScreen()
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [dateSpan]) // Dependency array ensures it uses the latest dateSpan
+    }, [dateSpan, user]) // Dependency array ensures it uses the latest dateSpan
   );
 
   const toggleStatistics = () => {
@@ -290,14 +275,13 @@ return (
       />  
       <Text style={ { textAlign: 'center'}}>Displaying habit information for period</Text>
       <Text variant="titleMedium" style={ { textAlign: 'center',marginVertical: 8 }}>{new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(dateSpan.start))} - {new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(dateSpan.end))}</Text>
-      
     </Card>
 
     {/* line graph with completions for the current selected period */}
-    <PeriodGraph habitsByDate={habitsByDate} graphData={graphData} />
-
+      <PeriodGraph key={refreshKey} habitsByDate={habitsByDate} graphData={graphData} userSignupDate={user.createdAt} />
+    
     {/* Cards with overview of streaks and completions */}
-    {habitsById.length > 0 ? (
+    {habitsById.length > 0 && (
     <Surface elevation={0}>
       <OverviewCard title={'Longest Streak'}
         habitNames={habitsById
@@ -335,9 +319,7 @@ return (
         color={globalStyles.red.color}
       />
       </Surface>
-  ) : (
-    <Text>No habits found for the selected period.</Text>
-  )}
+    )}
 
     {/* Collapsible Statistics Section */}
     <Card style={[globalStyles.card, { backgroundColor: theme.colors.background, marginTop: 8 }]}>
