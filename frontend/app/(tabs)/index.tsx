@@ -8,7 +8,8 @@ import Loading from '@/components/Loading';
 import HabitsList from '@/components/HabitsCheckList';
 import StatusCalendar from '@/components/StatusCalendar';
 
-export default function HomeScreen() {
+export default function HomeScreen()
+{
   const today = new Date().toISOString().split('T')[0];
   const router = useRouter();
   const theme = useTheme();

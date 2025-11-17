@@ -1,11 +1,12 @@
-import React from 'react';
-import { Dimensions, StyleSheet, View } from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
-import { BlurView } from 'expo-blur';
-import { useTheme } from 'react-native-paper';
+import React from "react";
+import { Dimensions, StyleSheet, View } from "react-native";
+import Svg, { Circle } from "react-native-svg";
+import { BlurView } from "expo-blur";
+import { useTheme } from "react-native-paper";
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get("window");
 
+// background for the login page
 export default function Background() {
   const theme = useTheme();
 

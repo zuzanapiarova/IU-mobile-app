@@ -7,7 +7,8 @@ import { useRouter } from 'expo-router';
 import Background from '@/components/Background';
 import Loading from '@/components/Loading';
 
-const Login: React.FC = () => {
+const Login: React.FC = () =>
+{
   const { login, user, errorMessage, clearErrorMessage } = useUser();
   const router = useRouter();
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
@@ -16,6 +17,7 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // authoenticate user 
   const handleAuth = async () => {
     setLoading(true);
     try {
@@ -48,6 +50,8 @@ const Login: React.FC = () => {
       <Text variant="titleLarge" style={[globalStyles.title, {textAlign: 'center', marginBottom: 16}]}>
         {authMode === 'login' ? 'Login' : 'Sign Up'}
       </Text>
+
+      {/* Signup or Login selection */}
       <SegmentedButtons
         value={authMode}
         onValueChange={(value) => {
@@ -60,6 +64,8 @@ const Login: React.FC = () => {
         ]}
         style={[globalStyles.segmentedButtons, globalStyles.inputCard]}
       />
+
+      {/* User inputs  */}
       {authMode === 'signup' && (
         <TextInput
           label="Name"
@@ -100,7 +106,9 @@ const Login: React.FC = () => {
 
       {/* Display error message */}
       {errorMessage && (
-        <Text style={[globalStyles.red, {marginTop: 8,textAlign: 'center'}]}>{errorMessage}</Text>
+        <Text style={[globalStyles.red, {marginTop: 8,textAlign: 'center'}]}>
+          {errorMessage}
+        </Text>
       )}
       <Button
         mode="contained"
