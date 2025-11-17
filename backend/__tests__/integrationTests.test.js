@@ -72,7 +72,7 @@ describe('API Endpoints', () => {
 
   describe('POST /users (signup)', () => {
     it('should create a new user', async () => {
-      prisma.user.findUnique.mockResolvedValue(null); // no existing user
+      prisma.user.findUnique.mockResolvedValue(null);
       const hashed = 'hashed-password';
       bcrypt.hash = jest.fn().mockResolvedValue(hashed);
       prisma.user.create.mockResolvedValue({ id: 1, name: 'Bob', email: 'bob@test.com', password: hashed });
