@@ -28,7 +28,7 @@ export default function HabitsList({ date, onHabitsUpdated }: {date: string, onH
     if (!user) return alert("You must be logged in!");
     try {
       const data = await getHabitsForDay(user.id, false, date);
-      const transformedData = data.map((habit: HabitWithCompletion) => ({
+      const transformedData = (data || []).map((habit: HabitWithCompletion) => ({
         ...habit,
         status: habit.status ? 1 : 0,
       }));

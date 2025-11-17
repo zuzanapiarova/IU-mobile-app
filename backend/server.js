@@ -568,6 +568,12 @@ app.get('/habit-streaks', async (req, res) => {
 });
 
 // Start the server ------------------------------------------------------------
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+// for production
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+  });
+}
+
+// for testing
+module.exports = { app, prisma }; // export app for Jest + supertest
