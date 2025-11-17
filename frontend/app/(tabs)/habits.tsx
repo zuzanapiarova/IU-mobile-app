@@ -8,10 +8,11 @@ import { getAllHabits, addHabit, updateHabit, deleteHabit } from '../../api/habi
 import { Habit } from '../../constants/interfaces'
 import { globalStyles } from '../../constants/globalStyles';
 
-// gets data from the habits table
+// habit management component - render current habits, add habits
 export default function HabitsScreen()
 {
   const theme = useTheme();
+  const { user } = useUser();
   const [habits, setHabits] = useState<Habit[]>([]);
   const [newHabit, setNewHabit] = useState('');
   const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
@@ -20,8 +21,6 @@ export default function HabitsScreen()
   const [updatedHabitName, setUpdatedHabitName] = useState('');
   const [updatedHabitFrequency, setUpdatedHabitFrequency] = useState('');
 
-  const { user } = useUser();
-
   useEffect(() => {
     async function load() {
       if (!user) return alert('You must be logged in!');
@@ -29,7 +28,7 @@ export default function HabitsScreen()
       setHabits(data);
     }
     load();
-  }, []);
+  }, [user]);
 
   // add new habit to database
   const handleAddHabit = async () => {
@@ -63,7 +62,7 @@ export default function HabitsScreen()
     }
   }
 
-  // todo: change frequency if it was changed, if not, keep selectedHabit.frequency
+  // update habid identified by its id
   async function handleUpdateHabit() {
     if (selectedHabit) {
       if (!user) return alert('You must be logged in!');

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React from 'react';
 import { Dimensions } from 'react-native';
 import { Text, Card, useTheme } from 'react-native-paper';
 import { globalStyles } from '../constants/globalStyles';
@@ -11,36 +11,10 @@ interface PeriodGraphProps {
     userSignupDate: string;
 }
 
-const getXAxisLabels = (habitsByDate: any[]) => {
-    const labels = habitsByDate.map((item) => {
-      const parsedDate = new Date(item.date);
-      const day = parsedDate.toLocaleDateString('en-GB', { day: '2-digit' });
-      const month = parsedDate.toLocaleDateString('en-GB', { month: '2-digit' });
-      return { day, month };
-    });
-  
-    const length = labels.length;
-  
-    // Determine the interval for rendering labels
-    const interval = length > 31 ? length - 15 : length > 8 ? 2 : 1;
-  
-    // Generate labels based on the interval
-    return labels.map((label, index) => {
-      if (length > 31) {
-        return ''; // Render the month for every (length - 30)th label
-      } else if (length > 7) {
-        return index % interval === 0 ? label.day : ''; // Render the day for every 7th label
-      } else {
-        return (`${label.day}/${label.month}`); // Render all labels as the day
-      }
-    });
-  };
-
 export default function PeriodGraph({ habitsByDate, graphData, userSignupDate }: PeriodGraphProps) {
     const theme = useTheme();
     const { user } = useUser();
     const screenWidth = Dimensions.get('window').width;
-    const [xAxisLabels, setXAxisLabels] = useState<any[]>(getXAxisLabels(habitsByDate));
  
     if (!user) return null;
 
@@ -84,7 +58,6 @@ export default function PeriodGraph({ habitsByDate, graphData, userSignupDate }:
                 fontSize: 10,
                 marginRight: 3,
             }}
-            xAxisLabelTexts={xAxisLabels}      
             xAxisLabelTextStyle={{
                 color: theme.colors.onSurface,
                 fontSize: 8

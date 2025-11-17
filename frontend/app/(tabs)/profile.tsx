@@ -4,25 +4,22 @@ import { View, ScrollView, KeyboardAvoidingView, Platform, Keyboard, TouchableWi
 import { globalStyles } from '../../constants/globalStyles';
 import { useUser } from '../../constants/UserContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRouter, useRootNavigationState } from 'expo-router';
+import { useRouter } from 'expo-router';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 export default function ProfileScreen() {
   const { user, updateUser, logout } = useUser(); // Access user data and actions from context
   const theme = useTheme();
   const router = useRouter();
-  const navigationState = useRootNavigationState(); // Check if navigation is ready
 
   const handleLogout = async () => {
-    if (!navigationState?.key) return; // Wait until the navigation system is ready
     await logout(); // Perform logout
     router.replace('/login'); // Navigate to the login page
   };
 
   useEffect(() => {
-    if (!navigationState?.key) return; // Wait until the navigation system is ready
     if (!user) router.replace('/login'); // Navigate to the login page
-  }, [user, navigationState]);
+  }, [user,router]);
   
   const [darkMode, setDarkMode] = useState(user?.themePreference === 'dark');
   const [notificationsEnabled, setNotificationsEnabled] = useState(user?.notificationsEnabled || false);
@@ -86,7 +83,7 @@ export default function ProfileScreen() {
   };
 
   const handleTimeChange = async () => {
-    if (!user) return; // Ensure the user is logged in
+    if (!user) return alert('You must be logged in!');
 
     try {
       // Update the user with the new notification time
@@ -99,7 +96,7 @@ export default function ProfileScreen() {
   };
 
   const saveLimits = async () => {
-    if (!user) return; // Ensure the user is logged in
+    if (!user) return alert('You must be logged in!')
     try {
       await updateUser({ successLimit, failureLimit });
       setSnackbarVisible(true);

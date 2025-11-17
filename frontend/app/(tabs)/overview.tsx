@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, ScrollView, TouchableOpacity } from 'react-native';
-import { Text, Card, useTheme, Button, Portal, Surface, List, ActivityIndicator, SegmentedButtons } from 'react-native-paper';
+import { Text, Card, useTheme, Surface, SegmentedButtons } from 'react-native-paper';
 import { globalStyles } from '../../constants/globalStyles';
 import { useFocusEffect } from '@react-navigation/native';
 import { useUser } from '../../constants/UserContext'
@@ -9,6 +9,7 @@ import { Habit } from '@/constants/interfaces';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import OverviewCard from '@/components/OverviewCard';
 import PeriodGraph from '../../components/PeriodGraph'
+import Loading from '@/components/Loading';
 
 const today = new Date().toISOString().split('T')[0];
 
@@ -167,14 +168,22 @@ const getHabitsByDate = (dates: string[], unprocessedHabits: any[]) => {
   return habitsByDate; // [ {date, completionPercentage, habits[]}, {date, completionPercentage, habits[]}, ... ]
 };
 
+// generte data fromhabitdByDate to be visualized in the graph
+// returns an array of objects: [{value, dataPointColor, dataPointRadius}, {value, dataPointColor, dataPointRadius}, ...]
 const getGraphData = (habitsByDate: any[], minCompletion: number, maxCompletion: number, userSignupDate: string) => {
 
-  const data = habitsByDate.map((item) => {
-    const isFutureDate = new Date(item.date).toISOString().split('T')[0] > today; // Convert both to Date objects
-    const isPastDate = new Date(item.date).toISOString().split('T')[0] < new Date(userSignupDate).toISOString().split('T')[0]; // Convert both to Date objects
+  const length = habitsByDate.length;
+  const interval = length > 31 ? length - 15 : length > 8 ? 2 : 1;
+
+  const data = habitsByDate.map((item, index) => {
+    const parsedDate = new Date(item.date);
+    const day = parsedDate.toLocaleDateString('en-GB', { day: '2-digit' });
+    const month = parsedDate.toLocaleDateString('en-GB', { month: '2-digit' });
+    const isFutureDate = parsedDate.toISOString().split('T')[0] > today; // Convert both to Date objects
+    const isPastDate = parsedDate.toISOString().split('T')[0] < new Date(userSignupDate).toISOString().split('T')[0]; // Convert both to Date objects
 
     // Determine the color based on completionPercentage or date 
-    let dataPointColor = globalStyles.green.color; // Default color
+    let dataPointColor = globalStyles.green.color;
     if (item.completionPercentage < maxCompletion)
       dataPointColor = globalStyles.yellow.color;
     if (item.completionPercentage < minCompletion)
@@ -185,10 +194,11 @@ const getGraphData = (habitsByDate: any[], minCompletion: number, maxCompletion:
       value: (isFutureDate || isPastDate) ? 0 : item.completionPercentage, // Set value to null for future dates
       dataPointColor,
       dataPointRadius,
+      label: ((length > 31) ? '' : (length > 7) ? (index % interval === 0 ? day : '') : (`${day}/${month}`))
     };
   });
 
-  return data; // array of objects: [{value, dataPointColor, dataPointRadius}, {value, dataPointColor, dataPointRadius}, ...]
+  return data;
 };
 
 export default function OverviewScreen()
@@ -205,8 +215,8 @@ export default function OverviewScreen()
   const [refreshKey, setRefreshKey] = useState(0);
 
   // Function to load data
-  const loadData = async () => {
-    if (!user) return alert('User must be logged in');
+  const loadData = useCallback(async () => {
+    if (!user) return alert('You must be logged in!');
     setLoading(true);
     try {
       // fetch from database according to selected period 
@@ -227,18 +237,18 @@ export default function OverviewScreen()
     } finally {
       setLoading(false);
     }
-  };
+  }, [dateSpan, user]);
 
   // Fetch habits when the screen is focused or dateSpan changes
   useEffect(() => {
     loadData();
-  }, [dateSpan, user]);
+  }, [loadData]);
 
   // Recalculate data when the screen is focused again
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [dateSpan, user]) // Dependency array ensures it uses the latest dateSpan
+    }, [loadData]) // Dependency array ensures it uses the latest dateSpan
   );
 
   const toggleStatistics = () => {
@@ -247,116 +257,110 @@ export default function OverviewScreen()
 
   if (!user) return alert('You must be logged in!');
 
-  if (loading) {
-    return (
-      <View style={globalStyles.loadingContainer}>
-        <ActivityIndicator animating size="large" color={theme.colors.primary} />
-      </View>
-    );
-  }
+  if (loading) return <Loading/>;
 
-return (
-  <ScrollView style={{backgroundColor: theme.colors.surface}}>
-  <Surface style={ [globalStyles.display, {backgroundColor: theme.colors.surface}] } elevation={0}>
-    <Text variant='displaySmall'>Overview</Text>
-    <Card style={[globalStyles.card, {backgroundColor: theme.colors.background }]}>
-      <SegmentedButtons
-        value={selectedPeriod}
-        onValueChange={(value) => {
-          setSelectedPeriod(value as 'week' | 'month' | 'year'); // Update the selected period
-          setDateSpan(calculateDateSpan(today, value as 'week' | 'month' | 'year')); // Update the date span
-        }}
-        buttons={[
-          { value: 'week', label: 'Week' },
-          { value: 'month', label: 'Month'},
-          { value: 'year', label: 'Year'},
-        ]}
-        style={[globalStyles.segmentedButtons, globalStyles.inputCard, {marginTop: 8}]}
-      />  
-      <Text style={ { textAlign: 'center'}}>Displaying habit information for period</Text>
-      <Text variant="titleMedium" style={ { textAlign: 'center',marginVertical: 8 }}>{new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(dateSpan.start))} - {new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(dateSpan.end))}</Text>
-    </Card>
+  return (
+    <ScrollView style={{backgroundColor: theme.colors.surface}}>
+    <Surface style={ [globalStyles.display, {backgroundColor: theme.colors.surface}] } elevation={0}>
+      <Text variant='displaySmall'>Overview</Text>
+      <Card style={[globalStyles.card, {backgroundColor: theme.colors.background }]}>
+        <SegmentedButtons
+          value={selectedPeriod}
+          onValueChange={(value) => {
+            setSelectedPeriod(value as 'week' | 'month' | 'year'); // Update the selected period
+            setDateSpan(calculateDateSpan(today, value as 'week' | 'month' | 'year')); // Update the date span
+          }}
+          buttons={[
+            { value: 'week', label: 'Week' },
+            { value: 'month', label: 'Month'},
+            { value: 'year', label: 'Year'},
+          ]}
+          style={[globalStyles.segmentedButtons, globalStyles.inputCard, {marginTop: 8}]}
+        />  
+        <Text style={ { textAlign: 'center'}}>Displaying habit information for period</Text>
+        <Text variant="titleMedium" style={ { textAlign: 'center',marginVertical: 8 }}>{new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(dateSpan.start))} - {new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(dateSpan.end))}</Text>
+      </Card>
 
-    {/* line graph with completions for the current selected period */}
-      <PeriodGraph key={refreshKey} habitsByDate={habitsByDate} graphData={graphData} userSignupDate={user.createdAt} />
-    
-    {/* Cards with overview of streaks and completions */}
-    {habitsById.length > 0 && (
-    <Surface elevation={0}>
-      <OverviewCard title={'Longest Streak'}
-        habitNames={habitsById
-          .filter((habit) => habit.streak === Math.max(...habitsById.map((h) => h.streak)))
-          .map((habit) => habit.name)}
-        value={Math.max(...habitsById.map((habit) => habit.streak))}
-        unit={'days'}
-        color={theme.colors.primary}
-      />
-
-      <OverviewCard title={'Shortest Streak'}
-        habitNames={habitsById
-          .filter((habit) => habit.streak === Math.min(...habitsById.map((h) => h.streak)))
-          .map((habit) => habit.name)}
-        value={Math.min(...habitsById.map((habit) => habit.streak))}
-        unit={'days'}
-        color={globalStyles.red.color}
-      />
-
-      <OverviewCard title={'Most Completed'}
-        habitNames={habitsById
-          .filter((habit) => habit.totalCompletions === Math.max(...habitsById.map((h) => h.totalCompletions)))
-          .map((habit) => habit.name)}
-        value={Math.max(...habitsById.map((habit) => habit.totalCompletions))}
-        unit={'done'}
-        color={theme.colors.primary}
-      />
-
-      <OverviewCard title={'Least Completed'}
-        habitNames={habitsById
-          .filter((habit) => habit.totalCompletions === Math.min(...habitsById.map((h) => h.totalCompletions)))
-          .map((habit) => habit.name)}
-        value={Math.min(...habitsById.map((habit) => habit.totalCompletions))}
-        unit={'done'}
-        color={globalStyles.red.color}
-      />
-      </Surface>
-    )}
-
-    {/* Collapsible Statistics Section */}
-    <Card style={[globalStyles.card, { backgroundColor: theme.colors.background, marginTop: 8 }]}>
-      <TouchableOpacity onPress={toggleStatistics} style={{ flexDirection: 'row', alignItems: 'center', margin: 6}}>
-        <View style={{ flex: 1 }}>
-          <Text variant="titleMedium" >
-            Statistics
-          </Text>
-          <Text>
-            See completions and streaks for habits in the current period
-          </Text>
-        </View>
-        <MaterialCommunityIcons color={theme.colors.primary} style={{marginLeft: 6}}
-          name={isStatisticsExpanded ? 'chevron-up' : 'chevron-down'} size={28}
+      {/* line graph with completions for the current selected period */}
+        <PeriodGraph key={refreshKey} habitsByDate={habitsByDate} graphData={graphData} userSignupDate={user.createdAt} />
+      
+      {/* Cards with overview of streaks and completions */}
+      {habitsById.length > 0 && (
+      <Surface elevation={0}>
+        <OverviewCard title={'Longest Streak'}
+          habitNames={habitsById
+            .filter((habit) => habit.streak === Math.max(...habitsById.map((h) => h.streak)))
+            .map((habit) => habit.name)}
+          value={Math.max(...habitsById.map((habit) => habit.streak))}
+          unit={'days'}
+          color={theme.colors.primary}
         />
-      </TouchableOpacity>
 
-      {isStatisticsExpanded && (
-        <View style={{ padding: 16 }}>
-          {habitsById.length > 0 ? (
-            habitsById.map((habit) => (
-              <View key={habit.habitId} style={{ marginVertical: 8 }}>
-                <Text style={{ fontWeight: 'bold' }}>{habit.name}</Text>
-                <Text>Longest Streak: {habit.streak}</Text>
-                <Text>Total Completions: {habit.totalCompletions}</Text>
-                <Text>Times to complete: {habit.maxCompletions}</Text>
-                <Text>Completion percentage: {habit.completionPercentage}%</Text>
-              </View>
-            ))
-          ) : (
-            <Text>No habits found for the selected period.</Text>
-          )}
-        </View>
+        <OverviewCard title={'Shortest Streak'}
+          habitNames={habitsById
+            .filter((habit) => habit.streak === Math.min(...habitsById.map((h) => h.streak)))
+            .map((habit) => habit.name)}
+          value={Math.min(...habitsById.map((habit) => habit.streak))}
+          unit={'days'}
+          color={globalStyles.red.color}
+        />
+
+        <OverviewCard title={'Most Completed'}
+          habitNames={habitsById
+            .filter((habit) => habit.totalCompletions === Math.max(...habitsById.map((h) => h.totalCompletions)))
+            .map((habit) => habit.name)}
+          value={Math.max(...habitsById.map((habit) => habit.totalCompletions))}
+          unit={'done'}
+          color={theme.colors.primary}
+        />
+
+        <OverviewCard title={'Least Completed'}
+          habitNames={habitsById
+            .filter((habit) => habit.totalCompletions === Math.min(...habitsById.map((h) => h.totalCompletions)))
+            .map((habit) => habit.name)}
+          value={Math.min(...habitsById.map((habit) => habit.totalCompletions))}
+          unit={'done'}
+          color={globalStyles.red.color}
+        />
+        </Surface>
       )}
-    </Card>
-  </Surface>
-  </ScrollView>
-)};
+
+      {/* Collapsible Statistics Section */}
+      <Card style={[globalStyles.card, { backgroundColor: theme.colors.background, marginTop: 8 }]}>
+        <TouchableOpacity onPress={toggleStatistics} style={{ flexDirection: 'row', alignItems: 'center', margin: 6}}>
+          <View style={{ flex: 1 }}>
+            <Text variant="titleMedium" >
+              Statistics
+            </Text>
+            <Text>
+              See completions and streaks for habits in the current period
+            </Text>
+          </View>
+          <MaterialCommunityIcons color={theme.colors.primary} style={{marginLeft: 6}} size={28}
+            name={isStatisticsExpanded ? 'chevron-up' : 'chevron-down'}
+          />
+        </TouchableOpacity>
+        {isStatisticsExpanded && (
+          <View style={{ padding: 16 }}>
+            {habitsById.length > 0 ? (
+              habitsById.map((habit) => (
+                <View key={habit.habitId} style={{ marginVertical: 8 }}>
+                  <Text style={{ fontWeight: 'bold' }}>{habit.name}</Text>
+                  <Text>Longest Streak: {habit.streak}</Text>
+                  <Text>Total Completions: {habit.totalCompletions}</Text>
+                  <Text>Times to complete: {habit.maxCompletions}</Text>
+                  <Text>Completion percentage: {habit.completionPercentage}%</Text>
+                </View>
+              ))
+            ) : (
+              <Text>No habits found for the selected period.</Text>
+            )}
+          </View>
+        )}
+      </Card>
+    </Surface>
+    </ScrollView>
+  )
+};
 
 

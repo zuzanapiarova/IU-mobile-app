@@ -12,7 +12,7 @@ interface UserContextType {
   logout: () => Promise<void>;
   updateUser: (updates: Partial<User>) => Promise<void>;
   errorMessage: string | null; // Add errorMessage to the context type
-  clearErrorMessage: () => void; // Add this method to clear the error message
+  clearErrorMessage: () => void; // clear the error message when typing
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -112,7 +112,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   // update user on change in parameters, makes a call to backend to store new user 
   const updateUser = async (updates: Partial<User>) => {
-    if (!user) return;
+    if (!user) return alert('You must be logged in!');
   
     try {
       const updatedUser = await updateUserBackend(user.id, updates);

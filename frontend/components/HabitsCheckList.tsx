@@ -1,39 +1,31 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, FlatList, TouchableOpacity } from 'react-native';
-import { List, Text, useTheme, Surface, Button, ActivityIndicator} from 'react-native-paper';
+import { List, Text, useTheme, Surface, Button } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootTabParamList } from '../constants/navigation'; // navigate to habits page
-
-import { Habit, HabitWithCompletion } from '../constants/interfaces'
+import { RootTabParamList } from '../constants/navigation';
+import { HabitWithCompletion } from '../constants/interfaces'
 import { globalStyles } from '../constants/globalStyles';
 import { completeHabit, uncompleteHabit, getHabitsForDay } from '../api/habitsApi';
 import { useUser } from "@/constants/UserContext";
 import { useRouter } from 'expo-router';
+import Loading from './Loading';
 
-
-// gets data from the habit_completions table
+// get data from the habit_completions table to render current list of habits - either checklist of for management
 export default function HabitsList({ date, onHabitsUpdated }: { date: string; onHabitsUpdated?: () => void })
 {
-  const [habits, setHabits] = useState<HabitWithCompletion[]>([]);
   const today = new Date().toISOString().split('T')[0];
   const theme = useTheme();
   const router = useRouter();
+  const { user } = useUser();
   const navigation = useNavigation<NativeStackNavigationProp<RootTabParamList>>();
-  const { user } = useUser(); // Get the logged-in user
+  const [habits, setHabits] = useState<HabitWithCompletion[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Redirect if not logged in
-  useEffect(() => {
-    if (!user) router.replace('/login');
-    loadHabits();
-  }, [user]);
-
   // fetch habits for the day
-  const loadHabits = async () => {
-    if (!user) return;
+  const loadHabits = useCallback(async () => {
+    if (!user) return alert('You must be logged in!')
     try {
       const data = await getHabitsForDay(user.id, false, date);
       const transformedData = data.map((habit: HabitWithCompletion) => ({
@@ -46,36 +38,40 @@ export default function HabitsList({ date, onHabitsUpdated }: { date: string; on
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, date]);
 
-  // Load habits when component mounts or user/date changes
+  // Redirect if not logged in
+  useEffect(() => {
+    if (!user) router.replace('/login');
+    loadHabits();
+  }, [user, loadHabits, router]);
+
+  // Load habits when component mounts or user/selected date changes
   useEffect(() => {
     loadHabits();
-  }, [user, date]);
+  }, [user, date, loadHabits]);
 
   // Reload data whenever the screen is focused
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
       loadHabits();
-    }, [])
+    }, [loadHabits])
   );
 
+  // toggle habit completion or uncompletion for habit identified by id
   const toggleCheck = async (id: number) => {
     try {
       const habitToUpdate = habits.find((habit) => habit.habit_id === id);
       if (habitToUpdate) {
         const newStatus = habitToUpdate.status === 1 ? 0 : 1;
         if (newStatus === 1) {
-          await completeHabit(id, date); // Wait for the database update to complete
+          await completeHabit(id, date);
         } else {
-          await uncompleteHabit(id, date); // Wait for the database update to complete
+          await uncompleteHabit(id, date);
         }
       }
       await loadHabits();
-      // Trigger the callback after the database update is complete
-      if (onHabitsUpdated) {
-        onHabitsUpdated();
-      }
+      if (onHabitsUpdated) onHabitsUpdated();
     } catch (error) {
       console.error('Error toggling habit:', error);
     }
@@ -92,21 +88,10 @@ export default function HabitsList({ date, onHabitsUpdated }: { date: string; on
     ...habits.filter((h) => h.status === 1),
   ];
 
-  if (loading) {
-    return (
-      <View style={globalStyles.center}>
-        <ActivityIndicator animating size="large" color={theme.colors.primary} />
-      </View>
-    );
-  }
+  if (loading)
+    return <Loading/>;
 
-  if (!user) {
-    return (
-      <Surface style={[globalStyles.center, { height: 250 }]}>
-        <Text variant="bodyMedium">Please log in to view your habits.</Text>
-      </Surface>
-    );
-  }
+  if (!user) return null;
 
   const renderItem = ({item}: {item: HabitWithCompletion}) => {
     const isChecked = item.status === 1;
@@ -140,7 +125,7 @@ export default function HabitsList({ date, onHabitsUpdated }: { date: string; on
     return (
       <Surface style={[globalStyles.container, {flex: 1, backgroundColor: theme.colors.background }]} elevation={0}>
         <Surface elevation={0} style={[globalStyles.inRow, {paddingBottom: 6}]}>
-          <Text variant="titleMedium">Today's Tasks</Text>
+          <Text variant="titleMedium">Today&apos;s Tasks</Text>
           {habits.length > 0 && (
             <Text
               variant="titleLarge"

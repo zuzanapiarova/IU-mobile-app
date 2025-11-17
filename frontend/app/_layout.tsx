@@ -31,7 +31,7 @@ function ThemedApp() {
       surfaceDisabled: Colors[scheme].disabled, 
       onSurfaceDisabled: Colors[scheme].disabledText
     },
-  }), [scheme]);
+  }), [scheme, baseTheme]);
 
   useEffect(() => {
     createNotificationChannel();

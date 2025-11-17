@@ -1,50 +1,48 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableWithoutFeedback, KeyboardAvoidingView, Keyboard, Platform } from 'react-native';
-import { Text, Button, TextInput, SegmentedButtons, useTheme } from 'react-native-paper';
+import { View, StyleSheet, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { Text, Button, TextInput, SegmentedButtons } from 'react-native-paper';
 import { useUser } from '../constants/UserContext';
 import { globalStyles } from '@/constants/globalStyles';
-import { useRouter, useRootNavigationState } from 'expo-router';
-import MovingBackground from '@/components/BackgroundAnimation';
+import { useRouter } from 'expo-router';
+import Background from '@/components/Background';
+import Loading from '@/components/Loading';
 
 const Login: React.FC = () => {
-  const theme = useTheme();
-  const { login, user, errorMessage, clearErrorMessage } = useUser(); // Access the login function from context
-  const router = useRouter(); // Use router for navigation
+  const { login, user, errorMessage, clearErrorMessage } = useUser();
+  const router = useRouter();
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
-  const [name, setName] = useState(''); // Only used for signup
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const navigationState = useRootNavigationState(); // Check if navigation is ready
 
   const handleAuth = async () => {
     setLoading(true);
     try {
-      await login(email, password, authMode, name); // Pass the name parameter
-      if (user) router.replace('/(tabs)'); // Navigate to the main app after login/signup
+      await login(email, password, authMode, name);
+      if (user) router.replace('/(tabs)');
     } catch (error) {
-      alert('Failed to authenticate. Please try again.');
+      alert(`Failed to authenticate: ${error}`);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
+  // navigate to the app after login/signup
   useEffect(() => {
-    if (!navigationState?.key) return; // Wait until the navigation system is ready
-    if (user) {
-      router.replace('/(tabs)'); // Navigate to the main app after login/signup
-    }
-  }, [user, navigationState]);
+    if (user) router.replace('/(tabs)');
+  }, [user, router]);
 
   const isSignupDisabled = authMode === 'signup' && (!name.trim() || !email.trim() || !password.trim());
   const isLoginDisabled = authMode === 'login' && (!email.trim() || !password.trim());
 
+  if (loading) return <Loading/>;
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
     <View style={{ flex: 1 }}>
-      {/* Background Animation */}
       <View style={[StyleSheet.absoluteFill, { backgroundColor: 'transparent' }]}>
-        <MovingBackground />
+        <Background />
       </View>
     <View style={[globalStyles.container, {flex: 1, justifyContent: 'center' }]}>
       <Text variant="titleLarge" style={[globalStyles.title, {textAlign: 'center', marginBottom: 16}]}>
@@ -68,7 +66,7 @@ const Login: React.FC = () => {
           value={name}
           onChangeText={(text) => {
             setName(text);
-            clearErrorMessage(); // Clear error message when typing
+            clearErrorMessage();
           }}
           mode="outlined"
           style={[globalStyles.input]}
@@ -77,13 +75,13 @@ const Login: React.FC = () => {
       <TextInput
         label="Email"
         value={email}
-        keyboardType="email-address"    // 👈 Shows '@' and '.' on keyboard
-        autoCapitalize="none"           // 👈 Prevents capital letters
-        autoCorrect={false}             // 👈 Stops unwanted corrections
-        textContentType="emailAddress"  // 👈 Helps with autofill / iOS hints
+        keyboardType="email-address"
+        autoCapitalize="none"
+        autoCorrect={false}
+        textContentType="emailAddress"
         onChangeText={(text) => {
           setEmail(text);
-          clearErrorMessage(); // Clear error message when typing
+          clearErrorMessage();
         }}
         mode="outlined"
         style={[globalStyles.input]} 
@@ -94,11 +92,12 @@ const Login: React.FC = () => {
         secureTextEntry
         onChangeText={(text) => {
           setPassword(text);
-          clearErrorMessage(); // Clear error message when typing
+          clearErrorMessage();
         }}
         mode="outlined"
         style={[globalStyles.input]}
       />
+
       {/* Display error message */}
       {errorMessage && (
         <Text style={[globalStyles.red, {marginTop: 8,textAlign: 'center'}]}>{errorMessage}</Text>
