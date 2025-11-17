@@ -3,7 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 import { User } from "@/constants/interfaces";
 
 export const api = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_API_URL || 'http://192.168.0.41:3000',
+  baseURL: process.env.EXPO_PUBLIC_API_URL,
   timeout: 8000,
 });
 
@@ -27,7 +27,6 @@ export async function loginUser(email: string, password: string): Promise<User |
 }
 
 export async function updateUserBackend(userId: number, updates: Partial<User>): Promise<User> {
-  console.log('Updates:', updates); // Log the updates object to verify its content
   const { data } = await api.put(`/users/${userId}`, updates);
   return data;
 }
