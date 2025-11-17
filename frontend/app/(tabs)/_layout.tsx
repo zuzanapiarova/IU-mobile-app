@@ -1,17 +1,16 @@
 import { Tabs, Redirect } from 'expo-router';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useTheme } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useUser } from '../../constants/UserContext';
 
+// render tabs and bottom navigation - expo router creates tabs based on folder structure
 export default function TabLayout()
 {
   const theme = useTheme();
-  const { user } = useUser(); // Access the user from context
+  const { user } = useUser();
 
-  if (!user) {
-    return <Redirect href="/login" />;
-  }
+  if (!user) return <Redirect href="/login" />;
 
   return (
     <Tabs
@@ -20,10 +19,10 @@ export default function TabLayout()
         tabBarActiveTintColor: theme.colors.primary,
         tabBarStyle: {
           backgroundColor: theme.colors.background,
-          borderTopColor: theme.colors.background, // 🔹 change the top line color
-          borderTopWidth: 1,                    // width of the line
-          elevation: 0,                          // remove shadow on Android
-          shadowOpacity: 0,                      // remove shadow on iOS
+          borderTopColor: theme.colors.background,
+          borderTopWidth: 1,
+          elevation: 0,
+          shadowOpacity: 0,
         },
       }}>
       <Tabs.Screen
