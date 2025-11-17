@@ -5,11 +5,13 @@ import { Colors } from '@/constants/theme';
 import { UserProvider, useUser } from '../constants/UserContext';
 import { createNotificationChannel } from '../components/Notifications';
  
+// app entrypoint
 function ThemedApp() {
   const { user } = useUser();
   const scheme = user?.themePreference === 'dark' ? 'dark' : 'light';
   const baseTheme = scheme === 'dark' ? MD3DarkTheme : MD3LightTheme;
 
+  // customize the theme used for react native paper components
   const customTheme = useMemo(() => ({
     ...baseTheme,
     colors: {
@@ -17,8 +19,8 @@ function ThemedApp() {
       primary: Colors[scheme].tint,
       onPrimary: Colors[scheme].background,
       secondary: Colors[scheme].accent,
-      background: Colors[scheme].background, // Add transparency (80% opacity),
-      surface: Colors[scheme].surface, // Add transparency (80% opacity),
+      background: Colors[scheme].background,
+      surface: Colors[scheme].surface,
       onSurface: Colors[scheme].text,
       onBackground: Colors[scheme].text,
       outline: Colors[scheme].border,
@@ -42,7 +44,7 @@ function ThemedApp() {
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: 'transparent' }, // Transparent background for screens
+          contentStyle: { backgroundColor: 'transparent' }
         }}
       />
     </PaperProvider>

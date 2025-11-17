@@ -3,8 +3,7 @@ import { FlatList,  KeyboardAvoidingView, Platform } from 'react-native';
 import { Text, Card, TextInput, Button, List, useTheme, Surface, Modal, Portal } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useUser } from '@/constants/UserContext';
-
-import { getAllHabits, addHabit, updateHabit, deleteHabit } from '../../api/habitsApi';  /*, updateHabitName, updateHabitFrequency*/
+import { getAllHabits, addHabit, updateHabit, deleteHabit } from '../../api/habitsApi';
 import { Habit } from '../../constants/interfaces'
 import { globalStyles } from '../../constants/globalStyles';
 
@@ -76,7 +75,7 @@ export default function HabitsScreen()
     }
   }
 
-  // render habit to screen 
+  // render habit in one row
   const renderHabit = ({ item }: { item: Habit }) => (
     <Card style={[globalStyles.listItem, {backgroundColor: theme.colors.background }]} mode="elevated">
       <Card.Content style={ globalStyles.inRow }>
@@ -146,7 +145,7 @@ export default function HabitsScreen()
               keyExtractor={(item) => item.id.toString()}
               renderItem={renderHabit}
               ListEmptyComponent={<Text style={globalStyles.empty}>No habits yet</Text>}
-              contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
+              contentContainerStyle={{ flexGrow: 1}}
             />
           </List.Section>
         </Surface>

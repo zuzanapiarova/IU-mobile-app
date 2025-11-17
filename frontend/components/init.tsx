@@ -1,21 +1,23 @@
-import { initializeHabitCompletionsForDay, getMostRecentDate } from '../api/habitsApi';
+import { initializeHabitCompletionsForDay, getMostRecentDate } from "../api/habitsApi";
 
-const today = new Date().toISOString().split('T')[0];
-
-// add records to habit_completions 
-export async function initializeHabitCompletions() {
+// add records to habit_completions - add each habit with status false(=not completed) for each day since the last record
+export async function initializeHabitCompletions()
+{
+  const today = new Date().toISOString().split("T")[0];
   try {
-    const mostRecentDate = await getMostRecentDate() ?? null;
+    const mostRecentDate = (await getMostRecentDate()) ?? null;
 
-    let currentDate = mostRecentDate ? new Date(mostRecentDate) : new Date(today);
+    let currentDate = mostRecentDate
+      ? new Date(mostRecentDate)
+      : new Date(today);
 
     while (currentDate <= new Date(today)) {
-      const dateString = currentDate.toISOString().split('T')[0];
+      const dateString = currentDate.toISOString().split("T")[0];
       await initializeHabitCompletionsForDay(dateString);
-      currentDate.setDate(currentDate.getDate() + 1); // Increment date for next loop run
+      currentDate.setDate(currentDate.getDate() + 1);
     }
   } catch (error) {
-    console.error('❌ Error initializing missing habit completions:', error);
+    console.error("Error initializing missing habit completions:", error);
     throw error;
   }
 }
