@@ -19,6 +19,7 @@ export default function OverviewCard({ habitNames, title, unit, value, color}: O
   // if the successful statistics would be 0,donot render them
   if (title === "Longest Streak" && value === 0) return;
   if (title === "Most Completed" && value === 0) return;
+  
 
   return (
     <Card style={[globalStyles.card, { backgroundColor: theme.colors.background }]}>

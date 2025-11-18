@@ -1,1 +1,2 @@
-FROM java-app
+FROM nodejs
+# TBD

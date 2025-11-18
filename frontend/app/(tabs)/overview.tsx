@@ -4,12 +4,13 @@ import { Text, Card, useTheme, Surface, SegmentedButtons } from 'react-native-pa
 import { globalStyles } from '../../constants/globalStyles';
 import { useFocusEffect } from '@react-navigation/native';
 import { useUser } from '../../constants/UserContext'
-import { getHabitsForDay, getHabitStreak } from '../../api/habitsApi'
+import { completeHabit, getHabitsForDay, getHabitStreak } from '../../api/habitsApi'
 import { Habit } from '@/constants/interfaces';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import OverviewCard from '@/components/OverviewCard';
 import PeriodGraph from '../../components/PeriodGraph'
 import Loading from '@/components/Loading';
+import { matchAccessibilityState } from '@testing-library/react-native/build/helpers/matchers/match-accessibility-state';
 
 // interfaces used during calculations
 interface HabitById {
@@ -103,7 +104,6 @@ const getHabitsById = async (userId: number, startsAfterDate: string, habits: an
   habits.forEach((habit) => {
     if (!groupedHabits[habit.habit_id])
       groupedHabits[habit.habit_id] = [];
-
     groupedHabits[habit.habit_id].push(habit);
   });
 
@@ -116,11 +116,11 @@ const getHabitsById = async (userId: number, startsAfterDate: string, habits: an
     let completionPercentage = 0;
 
     for (const habit of habitGroup) {
-      if (habit.current === 1) // if habit is current, predict it will be current for the entire period 
+      if (habit.current == 1) // if habit is current, predict it will be current for the entire period 
         maxCompletions = periodLength;
       else  // if habit is not current(=deleted), calculate how many days it was recorded in this period, fulfilled or not
         maxCompletions++;
-      if (habit.status === 1)
+      if (habit.status == 1)
         totalCompletions++;
     }
 
@@ -153,22 +153,22 @@ const getHabitsByDate = (dates: string[], unprocessedHabits: Habit[]): HabitByDa
   });
 
   unprocessedHabits.forEach((habit) => {
-    const date = habit.date;
+    const date = new Date(habit.date).toISOString().split('T')[0]; // normalize to YYYY-MM-DD
     if (groupedHabits[date]) {
       groupedHabits[date].push(habit);
     }
   });
-
+  
   // calculate completion percentage for each date
   const habitsByDate = Object.entries(groupedHabits).map(([date, habits]) => {
     let totalCompletions = 0;
     let maxCompletions = habits.length;
-
+    
     habits.forEach((habit) => {
-      if (habit.status === 1)
+      if (habit.status == 1)
         totalCompletions++;
     });
-
+    
     const completionPercentage = maxCompletions > 0 ? Math.round((totalCompletions / maxCompletions) * 100) : 0;
 
     return {

@@ -4,7 +4,7 @@ import { Habit } from "@/constants/interfaces";
 import { useUser } from "@/constants/UserContext"; // Import the UserContext
 
 export const api = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_API_URL || 'http://192.168.0.41:3000',
+  baseURL: process.env.EXPO_PUBLIC_API_URL || 'http://127.0.0.1:3000',
   timeout: 8000,
 });
 

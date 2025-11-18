@@ -8,8 +8,8 @@ export default function Loading()
   const theme = useTheme();
 
   return (
-    <View style={globalStyles.center}>
-      <ActivityIndicator animating size="large" color={theme.colors.primary} />
+    <View style={[globalStyles.center, {backgroundColor: theme.colors.background}]}>
+      <ActivityIndicator animating size="large" color={theme.colors.primary}/>
     </View>
   );
 }

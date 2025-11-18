@@ -44,7 +44,7 @@ jest.mock('@prisma/client', () => {
 // Now import your app after mocking Prisma
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { app } = require('../server');
+const { app } = require('../src/server');
 
 describe('API Endpoints', () => {
   afterEach(() => {
@@ -119,7 +119,7 @@ describe('API Endpoints', () => {
         .post('/login')
         .send({ email: 'bob@test.com', password: 'wrong' });
 
-      expect(res.status).toBe(400);
+      expect(res.status).toBe(401);
       expect(res.body).toEqual({ error: 'Invalid credentials' });
     });
   });

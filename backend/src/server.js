@@ -1,7 +1,9 @@
+// server.js
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const { PrismaClient } = require('@prisma/client');
+const logger = require('./logger');
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -10,59 +12,123 @@ const prisma = new PrismaClient();
 app.use(cors());
 app.use(express.json());
 
+// helper to mask sensitive fields in an object (shallow) to avoid logging raw passwords/tokens
+function maskSensitive(obj = {}) {
+  if (!obj || typeof obj !== 'object') return obj;
+  const masked = { ...obj };
+  ['password', 'token', 'accessToken', 'refreshToken'].forEach((k) => {
+    if (masked[k] !== undefined) masked[k] = '[REDACTED]';
+  });
+  return masked;
+}
+
+/**
+ * Request logging middleware
+ * Logs method, path, status and duration.
+ * If LOG_LEVEL=debug this also logs masked request body and query params.
+ */
+app.use((req, res, next) => {
+  const start = Date.now();
+
+  // When response finishes, log summary
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    const meta = {
+      method: req.method,
+      url: req.originalUrl || req.url,
+      status: res.statusCode,
+      durationMs: duration,
+      userId: req.query?.userId || req.body?.userId || null,
+    };
+
+    logger.info(`HTTP ${req.method} ${req.originalUrl || req.url} ${res.statusCode} - ${duration}ms`, meta);
+
+    // debug-level: more details
+    if (process.env.LOG_LEVEL === 'debug') {
+      logger.debug('Request details', {
+        body: maskSensitive(req.body),
+        query: req.query,
+        params: req.params,
+        headers: {
+          // Avoid logging all headers; include a few useful ones (if present)
+          'user-agent': req.headers['user-agent'],
+          referer: req.headers.referer || null,
+        },
+      });
+    }
+  });
+
+  next();
+});
+
 // USERS endpoints -------------------------------------------------------------------
 
 // Fetch all users
 app.get('/users', async (req, res) => {
+  logger.info('GET /users - fetching all users');
   try {
     const users = await prisma.user.findMany({
       orderBy: { createdAt: 'desc' },
     });
+    logger.info('GET /users - success', { count: users.length });
     res.json(users);
   } catch (error) {
-    console.error('Error fetching habits:', error);
+    logger.error('Error fetching users due to internal server error.', { error: error?.message, stack: error?.stack });
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
 // SIGNUP
 app.post('/users', async (req, res) => {
-  const { name, email, password } = req.body;
-  console.log('Received signup body:', req.body);
+  const { name, email /* password intentionally not logged */ } = req.body;
+  logger.info('POST /users - signup attempt', { email, name });
 
   try {
     const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) return res.status(400).json({ error: 'Email already exists' });
+    if (existingUser) {
+      logger.warn('Signup error - user already exists', { email });
+      return res.status(400).json({ error: 'Email already exists' });
+    }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
     const newUser = await prisma.user.create({
       data: { name, email, password: hashedPassword },
     });
 
+    logger.info('User created successfully', { userId: newUser.id, email });
+
     const { password: _, ...safeUser } = newUser;
     res.status(201).json(safeUser);
   } catch (error) {
-    console.error(error);
+    logger.error('Signup failed due to internal server error.', { error: error?.message, stack: error?.stack, email });
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
 // LOGIN
 app.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-  console.log('Received login body:', req.body);
+  const { email } = req.body;
+  logger.info('POST /login - login attempt', { email });
 
   try {
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) return res.status(400).json({ error: 'Invalid credentials' });
+    if (!user) {
+      logger.warn('Login failed - user not found', { email });
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
 
-    const valid = await bcrypt.compare(password, user.password);
-    if (!valid) return res.status(400).json({ error: 'Invalid credentials' });
+    const valid = await bcrypt.compare(req.body.password, user.password);
+    if (!valid) {
+      logger.warn('Login failed - wrong password', { email });
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    logger.info('Login successful', { userId: user.id, email });
 
     const { password: _, ...safeUser } = user;
     res.json(safeUser);
   } catch (error) {
-    console.error(error);
+    logger.error('Login failed due to internal server error.', { error: error?.message, stack: error?.stack, email });
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -71,8 +137,7 @@ app.post('/login', async (req, res) => {
 app.put('/users/:id', async (req, res) => {
   const userId = Number(req.params.id);
   const updates = req.body;
-  console.log('updates');
-  console.log(updates);
+  logger.info('PUT /users/:id - update attempt', { userId, updates: process.env.LOG_LEVEL === 'debug' ? maskSensitive(updates) : undefined });
 
   try {
     const allowedFields = [
@@ -83,9 +148,9 @@ app.put('/users/:id', async (req, res) => {
       'language',
       'dataProcessingAgreed',
       'notificationsEnabled',
-      'successLimit', // Add successLimit
-      'failureLimit', // Add failureLimit
-      'notificationTime'
+      'successLimit',
+      'failureLimit',
+      'notificationTime',
     ];
 
     const safeUpdates = {};
@@ -94,10 +159,11 @@ app.put('/users/:id', async (req, res) => {
       if (updates[key] !== undefined) {
         if (key === 'password') {
           safeUpdates.password = await bcrypt.hash(updates.password, 10);
+          logger.debug('Password provided, hashed for update', { userId });
         } else if (key === 'successLimit' || key === 'failureLimit') {
-          // Validate successLimit and failureLimit
           const value = Number(updates[key]);
           if (isNaN(value) || value < 0 || value > 100) {
+            logger.debug('Update failed - limits out of scope 0-100', { userId, field: key, value: updates[key] });
             return res.status(400).json({ error: `${key} must be a number between 0 and 100` });
           }
           safeUpdates[key] = value;
@@ -112,22 +178,25 @@ app.put('/users/:id', async (req, res) => {
       data: safeUpdates,
     });
 
+    logger.info('User updated successfully', { userId, updatedKeys: Object.keys(safeUpdates) });
+
     const { password: _, ...safeUser } = updatedUser;
     res.json(safeUser);
-  } catch (err) {
-    console.error(`Error updating user with ID ${userId}:`, err);
+  } catch (error) {
+    logger.error(`Internal error updating user with ID ${userId}:`, { error: error?.message, stack: error?.stack, userId });
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-
 
 // HABITS endpoints -------------------------------------------------------------------------
 
 // GET /habits - Fetch all habits for a specific user
 app.get('/habits', async (req, res) => {
   const { userId } = req.query;
+  logger.info('GET /habits - fetch habits request', { userId });
 
   if (!userId) {
+    logger.warn('Error fetching habits - no user provided.');
     return res.status(400).json({ error: 'User is required to be logged in' });
   }
 
@@ -136,9 +205,10 @@ app.get('/habits', async (req, res) => {
       where: { userId: parseInt(userId), current: true },
       orderBy: { createdAt: 'desc' },
     });
+    logger.info('GET /habits - success', { userId, count: habits.length });
     res.json(habits);
   } catch (error) {
-    console.error('Error fetching habits:', error);
+    logger.error('Internal error fetching habits.', { error: error?.message, stack: error?.stack, userId });
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -147,20 +217,25 @@ app.get('/habits', async (req, res) => {
 app.post('/habits', async (req, res) => {
   const today = new Date().toISOString().split('T')[0];
   const { name, frequency, userId } = req.body;
-  if (!name || !frequency || !userId)
+  logger.info('POST /habits - create habit attempt', { name, frequency, userId });
+
+  if (!name || !frequency || !userId) {
+    logger.warn('Error adding habit - missing required fields', { namePresent: !!name, frequencyPresent: !!frequency, userIdPresent: !!userId });
     return res.status(400).json({ error: 'Name, frequency, and userId are required' });
-  
+  }
+
   try {
-    // Add the new habit to the habits table
     const newHabit = await prisma.habit.create({
       data: {
         name,
         frequency,
-        userId
+        userId,
       },
     });
-    // Add a corresponding entry to the habitCompletions table for today's date
-    // upsert method will insert a new record if it doesn’t exist or update the existing record if it does
+
+    logger.info('Habit created', { habitId: newHabit.id, userId });
+
+    // add a corresponding entry to the habitCompletions table for today's date
     await prisma.habitCompletion.upsert({
       where: {
         habitId_date: {
@@ -175,31 +250,37 @@ app.post('/habits', async (req, res) => {
         status: false,
       },
     });
+
+    logger.debug('Habit completion initialized for today (if missing)', { habitId: newHabit.id, date: today });
     res.status(201).json(newHabit);
   } catch (error) {
-    if (error.code === 'P2002') {
-      console.error('Duplicate entry error:', error);
+    if (error?.code === 'P2002') {
+      logger.warn('Duplicate entry error while creating habit', { error: error?.message, code: error?.code });
       res.status(400).json({ error: 'Duplicate habit entry' });
     } else {
-      console.error('Error creating habit:', error);
+      logger.error('Error creating habit:', { error: error?.message, stack: error?.stack, name, userId });
       res.status(500).json({ error: 'Internal Server Error' });
     }
   }
 });
 
-// GET /habits/:id - Get a habit by ID - TESTED
+// GET /habits/:id - Get a habit by ID
 app.get('/habits/:id', async (req, res) => {
   const { id } = req.params;
+  logger.info('GET /habits/:id - fetch habit', { habitId: id });
+
   try {
     const habit = await prisma.habit.findUnique({
       where: { id: parseInt(id) },
     });
     if (!habit) {
+      logger.warn('Habit not found', { habitId: id });
       return res.status(404).json({ error: 'Habit not found' });
     }
+    logger.info('Habit fetched', { habitId: id });
     res.json(habit);
   } catch (error) {
-    console.error(`Error fetching habit with ID ${id}:`, error);
+    logger.error(`Error fetching habit with ID ${id}:`, { error: error?.message, stack: error?.stack, habitId: id });
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -208,70 +289,50 @@ app.get('/habits/:id', async (req, res) => {
 app.put('/habits/:id', async (req, res) => {
   const { id } = req.params;
   const { name, frequency } = req.body;
+  logger.info('PUT /habits/:id - update attempt', { habitId: id, name, frequency });
+
   try {
     const updatedHabit = await prisma.habit.update({
       where: { id: parseInt(id) },
       data: { name, frequency },
     });
+    logger.info('Habit updated', { habitId: id });
     res.json(updatedHabit);
   } catch (error) {
-    console.error(`Error updating habit with ID ${id}:`, error);
+    logger.error(`Error updating habit with ID ${id}:`, { error: error?.message, stack: error?.stack, habitId: id });
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-
-// to update habit name 
-// app.put('/habits/:id/name', async (req, res) => {
-//   const { id } = req.params;
-//   const { name } = req.body;
-//   try {
-//     const updatedHabit = await prisma.habit.update({
-//       where: { id: parseInt(id) },
-//       data: { name },
-//     });
-//     res.json(updatedHabit);
-//   } catch (error) {
-//     console.error('Error updating habit name:', error);
-//     res.status(500).json({ error: 'Internal Server Error' });
-//   }
-// });
-
-// to update habit frequency
-// app.put('/habits/:id/frequency', async (req, res) => {
-//   const { id } = req.params;
-//   const { frequency } = req.body;
-//   try {
-//     const updatedHabit = await prisma.habit.update({
-//       where: { id: parseInt(id) },
-//       data: { frequency },
-//     });
-//     res.json(updatedHabit);
-//   } catch (error) {
-//     console.error('Error updating habit frequency:', error);
-//     res.status(500).json({ error: 'Internal Server Error' });
-//   }
-// });
 
 // DELETE /habits/:id - Delete a habit
 app.delete('/habits/:id', async (req, res) => {
   const today = new Date().toISOString().split('T')[0];
   const { id } = req.params;
   const habitId = parseInt(id);
-  if (isNaN(habitId))
+  logger.info('DELETE /habits/:id - delete attempt', { habitId });
+
+  if (isNaN(habitId)) {
+    logger.warn('Invalid habit ID provided to delete', { habitIdRaw: id });
     return res.status(400).json({ error: 'Invalid habit ID' });
+  }
+
   try {
     const habit = await prisma.habit.findUnique({ where: { id: habitId } });
-    if (!habit)
+    if (!habit) {
+      logger.warn('Delete failed - habit not found', { habitId });
       return res.status(404).json({ error: 'Habit not found' });
-    // delete related habit completions for todays date
+    }
+
+    // delete related habit completions for today's date
     await prisma.habitCompletion.deleteMany({
       where: {
         habitId: habitId,
-        date: today
+        date: today,
       },
     });
-    // "Delete" the habit - set it as not current, since its id was used and is referenced in past habit completions 
-    // but if no record in habitCompletions references this habit, delete it completely - we will not need it 
+    logger.debug('Deleted habit completions for today (if any)', { habitId, date: today });
+
+    // Check if habit has any completions at all
     const habitCompletionsCount = await prisma.habitCompletion.count({
       where: { habitId: habitId },
     });
@@ -282,30 +343,30 @@ app.delete('/habits/:id', async (req, res) => {
         where: { id: habitId },
         data: { current: false },
       });
-      res.json(updatedHabit); // return updated habit 
-    }
-    else
-    {
+      logger.info('Habit marked as not current (has completions)', { habitId });
+      res.json(updatedHabit); // return updated habit
+    } else {
       await prisma.habit.delete({
         where: {
-          id: habitId
+          id: habitId,
         },
       });
+      logger.info('Habit deleted permanently (no completions found)', { habitId });
       res.status(200).json({ message: `Deleted habit from habits as it was not used by any habitCompletion.` });
     }
   } catch (error) {
-    console.error(`Error deleting habit with ID ${id}:`, error);
+    logger.error(`Error deleting habit with ID ${id}:`, { error: error?.message, stack: error?.stack, habitId: id });
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
 // POST /habits/:id/complete - Mark a habit as completed
-// we receive habit id(not completion id) and date, and we have to cehck that habit id on that date in habitCompletions - add record with status = true or change status = true if tehre is record on that day with tht habit 
 app.post('/habits/:id/complete', async (req, res) => {
   const today = new Date().toISOString().split('T')[0];
   const { id } = req.params; // Habit ID
   const { date } = req.body; // Optional date from the request body
-  const day = date || today; // Use the provided date or default to today
+  const day = date || today;
+  logger.info('POST /habits/:id/complete - completing habit', { habitId: id, day });
 
   try {
     // Check if a record exists for the given habitId and date
@@ -334,6 +395,7 @@ app.post('/habits/:id/complete', async (req, res) => {
           timestamp: new Date().toISOString(), // Update the timestamp to the current time
         },
       });
+      logger.info('Habit completion updated to true', { habitId: id, date: day });
     } else {
       // If the record does not exist, create a new one with status = true
       completedHabit = await prisma.habitCompletion.create({
@@ -344,11 +406,12 @@ app.post('/habits/:id/complete', async (req, res) => {
           timestamp: new Date().toISOString(), // Set the timestamp to the current time
         },
       });
+      logger.info('Habit completion created with status true', { habitId: id, date: day, completionId: completedHabit.id });
     }
 
     res.json(completedHabit); // Return the updated or created habit completion
   } catch (error) {
-    console.error(`Error completing habit with ID ${id}:`, error);
+    logger.error(`Error completing habit with ID ${id}:`, { error: error?.message, stack: error?.stack, habitId: id, date: day });
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -359,6 +422,7 @@ app.post('/habits/:id/uncomplete', async (req, res) => {
   const { id } = req.params;
   const { date } = req.body;
   const day = date || today;
+  logger.info('POST /habits/:id/uncomplete - uncompleting habit', { habitId: id, day });
 
   try {
     // Update the habit completion for the specified day
@@ -372,9 +436,10 @@ app.post('/habits/:id/uncomplete', async (req, res) => {
       data: { status: false },
     });
 
+    logger.info('Habit completion updated to false', { habitId: id, date: day });
     res.json(uncompletedHabit); // Return the updated habit completion
   } catch (error) {
-    console.error(`Error uncompleting habit with ID ${id}:`, error);
+    logger.error(`Error uncompleting habit with ID ${id}:`, { error: error?.message, stack: error?.stack, habitId: id, date: day });
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -384,6 +449,8 @@ app.get('/habits/completed', async (req, res) => {
   const today = new Date().toISOString().split('T')[0];
   const { date } = req.query;
   const day = date || today;
+  logger.info('GET /habits/completed - fetching completed habits', { date: day });
+
   try {
     const completedHabits = await prisma.habitCompletion.findMany({
       where: {
@@ -392,9 +459,10 @@ app.get('/habits/completed', async (req, res) => {
       },
       select: { habitId: true },
     });
+    logger.info('Completed habits fetched', { date: day, count: completedHabits.length });
     res.json(completedHabits.map((habit) => habit.habitId));
   } catch (error) {
-    console.error(`Error fetching completed habits for date ${day}:`, error);
+    logger.error(`Error fetching completed habits for date ${day}:`, { error: error?.message, stack: error?.stack, date: day });
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -402,11 +470,14 @@ app.get('/habits/completed', async (req, res) => {
 // Get completion percentage for a specific day
 app.get('/completion-percentage', async (req, res) => {
   const { date } = req.query;
+  logger.info('GET /completion-percentage - request received', { date });
 
   try {
     const totalHabits = await prisma.habit.count();
-    if (totalHabits === 0)
+    if (totalHabits === 0) {
+      logger.info('No habits found when calculating completion percentage', { date });
       return res.json({ date, percentage: 0 }); // No habits for the day
+    }
 
     // Count completed habits for the given day
     const completedCount = await prisma.habitCompletion.count({
@@ -417,9 +488,10 @@ app.get('/completion-percentage', async (req, res) => {
     });
 
     const percentage = (completedCount / totalHabits) * 100;
+    logger.info('Completion percentage calculated', { date, totalHabits, completedCount, percentage });
     res.json({ date, percentage });
   } catch (error) {
-    console.error('Error fetching completion percentage:', error);
+    logger.error('Error fetching completion percentage:', { error: error?.message, stack: error?.stack, date });
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -429,10 +501,14 @@ app.get('/habits-for-day', async (req, res) => {
   const today = new Date().toISOString().split('T')[0];
   const { userId, allowDeleted, date } = req.query;
   const day = date || today;
-  const includeDeleted = allowDeleted === 'true';  // Convert allowDeleted to a boolean (default to false if undefined)
+  const includeDeleted = allowDeleted === 'true'; // Convert allowDeleted to a boolean (default to false if undefined)
 
-  if (!userId)
+  logger.info('GET /habits-for-day - request received', { userId, day, includeDeleted });
+
+  if (!userId) {
+    logger.warn('GET /habits-for-day - missing userId');
     return res.status(400).json({ error: 'User ID is required' });
+  }
 
   try {
     const habitsForDay = await prisma.habitCompletion.findMany({
@@ -464,9 +540,10 @@ app.get('/habits-for-day', async (req, res) => {
       current: row.habit?.current || false,
     }));
 
+    logger.info(`GET /habits-for-day - ${day} -  success`, { userId, day, count: results.length });
     res.json(results);
   } catch (error) {
-    console.error('Error in getHabitsForDay:', error, 'Date:', day);
+    logger.error('Error in getHabitsForDay:', { error: error?.message, stack: error?.stack, userId, date: day });
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -476,6 +553,8 @@ app.post('/initialize-habit-completions', async (req, res) => {
   const today = new Date().toISOString().split('T')[0];
   const { date } = req.body;
   const day = date || today;
+  logger.info('POST /initialize-habit-completions - request', { day });
+
   try {
     // Get all current habits
     const currentHabits = await prisma.habit.findMany({
@@ -484,6 +563,7 @@ app.post('/initialize-habit-completions', async (req, res) => {
     });
 
     if (currentHabits.length === 0) {
+      logger.info('No current habits to initialize', { day });
       return res.status(200).json({ message: 'No current habits to initialize.' });
     }
 
@@ -498,20 +578,25 @@ app.post('/initialize-habit-completions', async (req, res) => {
           status: false,
         })),
       });
+      logger.info('Initialize habit completions completed - success ', { day, createdForCount: habitIds.length });
     } catch (err) {
-      if (err.code === 'P2002') console.log('⚠️ Duplicate habit completions skipped');
-      else throw err;
+      if (err?.code === 'P2002') {
+        logger.warn('⚠️ Duplicate habit completions skipped', { day });
+      } else {
+        throw err;
+      }
     }
 
     res.status(200).json({ message: `Initialized habit completions for ${day}` });
   } catch (error) {
-    console.error('Error initializing habit completions:', error);
+    logger.error('Error initializing habit completions:', { error: error?.message, stack: error?.stack, day });
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
 // GET /habits-completions/most-recent-date - Get the most recent date from habit completions
 app.get('/habits-completions/most-recent-date', async (req, res) => {
+  logger.info('GET /habits-completions/most-recent-date - request');
   try {
     const mostRecent = await prisma.habitCompletion.findFirst({
       orderBy: { date: 'desc' },
@@ -519,9 +604,10 @@ app.get('/habits-completions/most-recent-date', async (req, res) => {
     });
 
     const maxDate = mostRecent?.date || null;
+    logger.info('Most recent habit completion date fetched', { maxDate });
     res.json({ maxDate });
   } catch (error) {
-    console.error('Error fetching most recent date:', error);
+    logger.error('Error fetching most recent date:', { error: error?.message, stack: error?.stack });
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -529,8 +615,10 @@ app.get('/habits-completions/most-recent-date', async (req, res) => {
 // GET /habits/streaks - Calculate the longest streak for a specific habit
 app.get('/habit-streaks', async (req, res) => {
   const { userId, habitId, startsAfterDate } = req.query;
+  logger.info('GET /habit-streaks - request', { userId, habitId, startsAfterDate });
 
   if (!userId || !habitId) {
+    logger.warn('GET /habit-streaks - missing userId or habitId', { userId, habitId });
     return res.status(400).json({ error: 'userId and habitId are required' });
   }
 
@@ -560,20 +648,24 @@ app.get('/habit-streaks', async (req, res) => {
       }
     }
 
+    logger.info('Habit streak calculated', { habitId, userId, longestStreak });
     res.json({ habitId: parseInt(habitId), streak: longestStreak });
   } catch (error) {
-    console.error('Error calculating longest streak:', error);
+    logger.error('Error calculating longest streak:', { error: error?.message, stack: error?.stack, habitId, userId });
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
 // Start the server ------------------------------------------------------------
-// for production
+
+// checks whether this file is being run directly as node server.js or in  test environment
 if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+  const host = process.env.HOST || '0.0.0.0'; // bind address
+  logger.info(`Server is starting on port ${PORT} (host: ${host})`);
+  app.listen(PORT, host, () => {
+    logger.info(`Server is running on port ${PORT} (host: ${host})`);
   });
 }
 
-// for testing
-module.exports = { app, prisma }; // export app for Jest + supertest
+// export the app for imports during testing
+module.exports = { app, prisma };
