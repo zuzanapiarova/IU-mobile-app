@@ -20,7 +20,7 @@ jest.doMock('axios', () => ({
 }));
 
 // Require userApi only after mocking axios - again because the interceptors will not load and be undefined
-const { addUser, loginUser, updateUserBackend } = require('../api/userApi');
+const { addUser, loginUser, updateUserBackend } = require('../../api/userApi');
 
 describe('userApi', () => {
   const mockUser: User = {

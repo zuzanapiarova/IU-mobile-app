@@ -12,7 +12,7 @@ import { useUser } from "@/constants/UserContext";
 import { useRouter } from "expo-router";
 import Loading from "./Loading";
 
-// get data from the habit_completions table to render current list of habits
+// get data from the habit_completions table to render list of habits for speciided date
 export default function HabitsList({ date, onHabitsUpdated }: {date: string, onHabitsUpdated?: () => void})
 {
   const today = new Date().toISOString().split("T")[0];
@@ -40,22 +40,23 @@ export default function HabitsList({ date, onHabitsUpdated }: {date: string, onH
     }
   }, [user, date]);
 
-  // Redirect if not logged in
+  // initial redirect + first load (single place)
   useEffect(() => {
-    if (!user) router.replace("/login");
+    if (!user) {
+      router.replace("/login");
+      return;
+    }
     loadHabits();
-  }, [user, loadHabits, router]);
+  }, [user, date, loadHabits, router]);
 
-  // Load habits when component mounts or user/selected date changes
-  useEffect(() => {
-    loadHabits();
-  }, [user, date, loadHabits]);
-
-  // Reload data whenever the screen is focused
+  // Reload data whenever the screen is focused (kept for real app)
   useFocusEffect(
     useCallback(() => {
+      // only run loadHabits when the screen is focused at runtime
       loadHabits();
-    }, [loadHabits]),
+      // no cleanup necessary here
+      return () => {};
+    }, [loadHabits])
   );
 
   // toggle habit completion or uncompletion for habit identified by id
@@ -106,8 +107,11 @@ export default function HabitsList({ date, onHabitsUpdated }: {date: string, onH
         )}
         left={() => (
           <TouchableOpacity onPress={() => toggleCheck(item.habit_id)}>
-            <MaterialCommunityIcons size={24} color={isChecked ? theme.colors.primary : theme.colors.outline}
+            <MaterialCommunityIcons 
+              size={24} 
+              color={isChecked ? theme.colors.primary : theme.colors.outline}
               name={isChecked ? "check-circle-outline" : "circle-outline"}
+              testID={`toggle-habit-${item.habit_id}`}
             />
           </TouchableOpacity>
         )}

@@ -21,7 +21,7 @@ jest.doMock('axios', () => ({
 }));
 
 // Require habitsApi AFTER mocking axios
-const habitsApi = require('../api/habitsApi');
+const habitsApi = require('../../api/habitsApi');
 const mockedSecureStore = SecureStore as jest.Mocked<typeof SecureStore>;
 
 describe('habitsApi', () => {

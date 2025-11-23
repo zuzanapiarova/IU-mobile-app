@@ -17,7 +17,7 @@ export default function OverviewCard({ habitNames, title, unit, value, color}: O
   const theme = useTheme();
 
   // if the successful statistics would be 0,donot render them
-  if (title === "Longest Streak" && value === 0) return;
+  if (title === "Longest Streak" && value <= 1) return;
   if (title === "Most Completed" && value === 0) return;
   
 

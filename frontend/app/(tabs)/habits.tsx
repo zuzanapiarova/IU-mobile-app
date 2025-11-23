@@ -94,6 +94,7 @@ export default function HabitsScreen()
               setUpdatedHabitFrequency(item.frequency);
               setEditModalVisible(true);
             }}
+            testID={`edit-habit-${item.id}`}
           />
           <MaterialCommunityIcons
             name="trash-can"
@@ -103,6 +104,7 @@ export default function HabitsScreen()
               setSelectedHabit(item);
               setDeleteModalVisible(true);
             }}
+            testID={`delete-habit-${item.id}`}
           />
         </Surface>
       </Card.Content>
@@ -124,6 +126,7 @@ export default function HabitsScreen()
                 mode="outlined"
                 onChangeText={setNewHabit}
                 style={[globalStyles.input,{backgroundColor: theme.colors.surface}]}
+                testID="new-habit-input"
               />
               <Button 
                 mode='contained-tonal'
@@ -178,6 +181,7 @@ export default function HabitsScreen()
                 mode="outlined"
                 onChangeText={setUpdatedHabitName}
                 style={globalStyles.input}
+                testID="edit-habit-input"
               />
               <Surface style={globalStyles.inRow} elevation={0}>
                 <Button onPress={() => setEditModalVisible(false)}>Cancel</Button>
