@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
-import { loginUser, addUser, updateUserBackend } from '../api/userApi';
+import { addUser, loginUser, updateUserBackend, getUserById } from '../api/userApi'
 import { User } from '../constants/interfaces';
 import { PaperProvider } from 'react-native-paper';
 import * as Notifications from 'expo-notifications';
 import { requestNotificationPermission, scheduleDailyNotification, cancelAllNotifications } from '../components/Notifications';
+import { OfflineManager } from '@/app/init';
 
 interface UserContextType {
   user: User | null;
@@ -90,6 +91,13 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (userData) {
         setUser(userData);
         await SecureStore.setItemAsync('user', JSON.stringify(userData));
+        
+        // Tell OfflineManager which user is active
+        OfflineManager.setCurrentUser(userData.id);
+      
+        // Initialize local DB for this user
+        await OfflineManager.initializeAndSync();
+
         setErrorMessage(null);
   
         // Notification logic
@@ -142,10 +150,12 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // on logout, delete local user data, remove stored credentials, and unset all schedukled notifications
   const logout = async () => {
     setUser(null);
     await SecureStore.deleteItemAsync('user');
-    await Notifications.cancelAllScheduledNotificationsAsync(); // Cancel notifications on logout
+    await Notifications.cancelAllScheduledNotificationsAsync();
+    await OfflineManager.logoutAndClearLocal(); // Clear local DB
   };
 
   const clearErrorMessage = () => {

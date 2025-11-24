@@ -2,8 +2,8 @@ jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
     ...actual,
-    useNavigation: () => ({ navigate: jest.fn() }), // safe mock
-    useFocusEffect: jest.fn(), // no-op in tests (do NOT call cb)
+    useNavigation: () => ({ navigate: jest.fn() }),
+    useFocusEffect: jest.fn(),
   };
 });
 
@@ -21,16 +21,6 @@ jest.mock('../../api/habitsApi', () => ({
   uncompleteHabit: jest.fn(),
   getHabitsForDay: jest.fn(),
 }));
-// jest.mock('@react-navigation/native', () => {
-//   const actual = jest.requireActual('@react-navigation/native');
-//   return {
-//     ...actual,
-//     useNavigation: () => ({
-//       navigate: jest.fn(),
-//     }),
-//   };
-// });
-
 
 describe('HabitsCheckList', () => {
   const mockUser = {
@@ -82,7 +72,7 @@ describe('HabitsCheckList', () => {
     expect(await findByText('Exercise')).toBeTruthy();
     expect(await findByText('Read')).toBeTruthy();
   
-    const toggleButton = await findByTestId('toggle-habit-1'); // await here
+    const toggleButton = await findByTestId('toggle-habit-1');
     await act(async () => {
       fireEvent.press(toggleButton);
     });

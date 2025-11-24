@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Text, Card, Surface, useTheme } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { useUser } from '../../constants/UserContext';
-import { initializeHabitCompletions } from '@/components/init';
 import { globalStyles } from '../../constants/globalStyles';
 import Loading from '@/components/Loading';
 import HabitsList from '@/components/HabitsCheckList';
@@ -16,6 +15,7 @@ export default function HomeScreen()
   const { user } = useUser();
   const [isLoading, setIsLoading] = useState(true);
 
+  // TODO: this can be removed ? but what about isLoading
   useEffect(() => {
     const initialize = async () => {
       try {
@@ -23,10 +23,8 @@ export default function HomeScreen()
           router.replace('/login');
           return;
         }
-        await initializeHabitCompletions();
-        console.log('✅ Habit completions initialized.');
       } catch (err) {
-        console.error('❌ Error initializing app:', err);
+        console.error('Error in index:', err);
       } finally {
         setIsLoading(false);
       }
@@ -36,7 +34,7 @@ export default function HomeScreen()
 
   // While initializing or redirecting
   if (isLoading) 
-    return <Loading/>;
+    return <Loading />;
 
   // Render the main screen only if the user is logged in
   if (!user) return alert('You must be logged in!');

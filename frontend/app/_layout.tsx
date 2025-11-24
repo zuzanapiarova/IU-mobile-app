@@ -3,9 +3,12 @@ import { Stack } from 'expo-router';
 import { PaperProvider, MD3LightTheme, MD3DarkTheme } from 'react-native-paper';
 import { Colors } from '@/constants/theme';
 import { UserProvider, useUser } from '../constants/UserContext';
-import { createNotificationChannel } from '../components/Notifications';
+import { OfflineManager } from './init';
  
 // app entrypoint
+// wraps the entire app
+// initializations are also done here - themes, user context, global configurations
+// calls the offline-online sync functions
 function ThemedApp() {
   const { user } = useUser();
   const scheme = user?.themePreference === 'dark' ? 'dark' : 'light';
@@ -35,8 +38,10 @@ function ThemedApp() {
     },
   }), [scheme, baseTheme]);
 
+  // initialize and sync the app on startup, set up network listener for reconnection
   useEffect(() => {
-    createNotificationChannel();
+    OfflineManager.initializeAndSync();
+    OfflineManager.setupNetworkListener();
   }, []);
 
   return (

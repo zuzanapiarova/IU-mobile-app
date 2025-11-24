@@ -22,15 +22,13 @@ function maskSensitive(obj = {}) {
   return masked;
 }
 
-/**
- * Request logging middleware
- * Logs method, path, status and duration.
- * If LOG_LEVEL=debug this also logs masked request body and query params.
- */
+// LOGGER = request logging middleware
+// logs method, path, status and duration
+// if LOG_LEVEL=debug this also logs masked request body and query params
 app.use((req, res, next) => {
   const start = Date.now();
 
-  // When response finishes, log summary
+  // when response finishes, log summary
   res.on('finish', () => {
     const duration = Date.now() - start;
     const meta = {
@@ -50,7 +48,6 @@ app.use((req, res, next) => {
         query: req.query,
         params: req.params,
         headers: {
-          // Avoid logging all headers; include a few useful ones (if present)
           'user-agent': req.headers['user-agent'],
           referer: req.headers.referer || null,
         },
@@ -59,6 +56,25 @@ app.use((req, res, next) => {
   });
 
   next();
+});
+
+// HEALTHCHECK
+// check DB connection and also if all 3 tables are readable
+app.get('/health', async (req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    await prisma.user.findFirst({ select: { id: true } });
+    await prisma.habit.findFirst({ select: { id: true } });
+    await prisma.habitCompletion.findFirst({ select: { id: true } });
+    res.status(200).json({ status: 'ok' });
+  } catch (error) {
+    logger.error('Healthcheck FAILED', { error: error?.message, stack: error?.stack });
+    res.status(500).json({
+      status: 'error',
+      message: 'Database or tables unavailable',
+      details: error?.message
+    });
+  }
 });
 
 // USERS endpoints -------------------------------------------------------------------

@@ -18,7 +18,6 @@ model User {
   notificationsEnabled Boolean  @default(true)
   notificationTime     String   @default("18:00") // Notification time
   createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
   successLimit         Int      @default(80) // Default success limit
   failureLimit         Int      @default(20) // Default failure limit
   habits               Habit[]

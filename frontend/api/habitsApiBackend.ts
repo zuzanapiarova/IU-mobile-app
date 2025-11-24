@@ -1,0 +1,100 @@
+import axios from 'axios';
+import * as SecureStore from 'expo-secure-store';
+import { Habit } from "@/constants/interfaces";
+import { useUser } from "@/constants/UserContext"; // Import the UserContext
+
+export const api = axios.create({
+  baseURL: process.env.EXPO_PUBLIC_API_URL || 'http://127.0.0.1:3000',
+  timeout: 8000,
+});
+
+// Attach token to every request automatically
+api.interceptors.request.use(async (config) => {
+  const token = await SecureStore.getItemAsync('token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+// Fetch all habits for the logged-in user
+export async function getAllHabits(userId: number): Promise<Habit[]> {
+  const { data } = await api.get('/habits', { params: { userId } });
+  return data;
+}
+
+// Add a new habit
+export async function addHabit(name: string, frequency: string = 'daily', userId: number) {
+  const { data } = await api.post('/habits', { name, frequency, userId });
+  return data;
+}
+
+// Get a habit by ID
+export async function getHabitById(id: number): Promise<Habit> {
+  const { data } = await api.get(`/habits/${id}`);
+  return data;
+}
+
+// Delete a habit
+export async function deleteHabit(id: number) {
+  const { data } = await api.delete(`/habits/${id}`);
+  return data;
+}
+
+// Update a habit
+export async function updateHabit(id: number, name: string, frequency: string) {
+  const { data } = await api.put(`/habits/${id}`, { name, frequency });
+  return data;
+}
+
+// Complete a habit
+export async function completeHabit(habitId: number, date?: string) {
+  const { data } = await api.post(`/habits/${habitId}/complete`, { date });
+  return data;
+}
+
+// Uncomplete a habit
+export async function uncompleteHabit(habitId: number, date?: string) {
+  const { data } = await api.post(`/habits/${habitId}/uncomplete`, { date });
+  return data;
+}
+
+// Get completed habits for a specific day
+export async function getCompletedHabitsForDay(date?: string) {
+  const { data } = await api.get(`/habits/completed`, {
+    params: { date: date || new Date().toISOString().split('T')[0] },
+  });
+  return data;
+}
+
+// Get completion percentage for a specific day
+export async function getCompletionPercentageForDay(date: string): Promise<{ date: string; percentage: number }> {
+  const { data } = await api.get('/completion-percentage', {
+    params: { date },
+  });
+  return data;
+}
+
+// Get habits for a specific day for the logged-in user
+export async function getHabitsForDay(userId: number, allowDeleted: boolean, date?: string) {
+  const { data } = await api.get('/habits-for-day', {
+    params: { userId, allowDeleted, date },
+  });
+  return data; // data: { habitId: parseInt(habitId), streak: longestStreak }
+}
+
+// Initialize habit completions for a specific day - REDO: add user id
+export async function initializeHabitCompletionsForDay(date?: string) {
+  const { data } = await api.post('/initialize-habit-completions', { date });
+  return data;
+}
+
+// Get the most recent date from habit completions - REDO: add user id
+export async function getMostRecentDate(): Promise<string | null> {
+  const { data } = await api.get('/habits-completions/most-recent-date');
+  return data.maxDate;
+}
+
+export async function getHabitStreak(userId: number, habitId: number, startsAfterDate: string)
+{
+  const { data } = await api.get('/habit-streaks', { params: { userId, habitId, startsAfterDate } });
+  return data; // Expected response: [{ habitId, streak }]
+}
