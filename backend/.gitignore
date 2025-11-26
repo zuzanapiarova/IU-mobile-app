@@ -1,4 +1,4 @@
-./node_modules
+node_modules
 .env
-./src/generated/prisma
-./server*.*
+*/generated/prisma
+server*.*
