@@ -11,6 +11,7 @@ import { completeHabit, uncompleteHabit, getHabitsForDay } from "../api/habitsAp
 import { useUser } from "@/constants/UserContext";
 import { useRouter } from "expo-router";
 import Loading from "./Loading";
+import { useConnection } from '@/constants/ConnectionContext';
 
 // get data from the habit_completions table to render list of habits for speciided date
 export default function HabitsList({ date, onHabitsUpdated }: {date: string, onHabitsUpdated?: () => void})
@@ -19,14 +20,15 @@ export default function HabitsList({ date, onHabitsUpdated }: {date: string, onH
   const theme = useTheme();
   const router = useRouter();
   const { user } = useUser();
+  const { setBannerMessage } = useConnection();
   const navigation = useNavigation<NativeStackNavigationProp<RootTabParamList>>();
   const [habits, setHabits] = useState<HabitWithCompletion[]>([]);
   const [loading, setLoading] = useState(true);
 
   // fetch habits for the day
   const loadHabits = useCallback(async () => {
-    if (!user) return alert("You must be logged in!");
     try {
+      if (!user) throw new Error('You must be logged in!');
       const data = await getHabitsForDay(user.id, false, date);
       const transformedData = (data || []).map((habit: HabitWithCompletion) => ({
         ...habit,
@@ -34,27 +36,17 @@ export default function HabitsList({ date, onHabitsUpdated }: {date: string, onH
       }));
       setHabits(transformedData);
     } catch (error) {
-      console.error("Error loading habits:", error);
+      if (error instanceof Error) setBannerMessage(error.message);
+      else setBannerMessage("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
-  }, [user, date]);
-
-  // initial redirect + first load (single place)
-  useEffect(() => {
-    if (!user) {
-      router.replace("/login");
-      return;
-    }
-    loadHabits();
-  }, [user, date, loadHabits, router]);
+  }, [user, date, setBannerMessage]);
 
   // Reload data whenever the screen is focused (kept for real app)
   useFocusEffect(
     useCallback(() => {
-      // only run loadHabits when the screen is focused at runtime
       loadHabits();
-      // no cleanup necessary here
       return () => {};
     }, [loadHabits])
   );
@@ -73,7 +65,8 @@ export default function HabitsList({ date, onHabitsUpdated }: {date: string, onH
       await loadHabits();
       if (onHabitsUpdated) onHabitsUpdated();
     } catch (error) {
-      console.error("Error toggling habit:", error);
+      if (error instanceof Error) setBannerMessage(error.message);
+      else setBannerMessage("An unexpected error occurred. Please try again.");
     }
   };
 

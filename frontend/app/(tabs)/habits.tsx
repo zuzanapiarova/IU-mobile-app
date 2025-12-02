@@ -6,12 +6,14 @@ import { useUser } from '@/constants/UserContext';
 import { getAllHabits, addHabit, updateHabit, deleteHabit } from '../../api/habitsApi';
 import { Habit } from '../../constants/interfaces'
 import { globalStyles } from '../../constants/globalStyles';
+import { useConnection } from '@/constants/ConnectionContext';
 
 // habit management component - render current habits, add habits
 export default function HabitsScreen()
 {
   const theme = useTheme();
   const { user } = useUser();
+  const { setBannerMessage } = useConnection();
   const [habits, setHabits] = useState<Habit[]>([]);
   const [newHabit, setNewHabit] = useState('');
   const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
@@ -22,41 +24,46 @@ export default function HabitsScreen()
 
   useEffect(() => {
     async function load() {
-      if (!user) return alert('You must be logged in!');
-      const data = await getAllHabits(user.id);
-      setHabits(data);
+      try {
+        if (!user) return alert('You must be logged in!');
+        const data = await getAllHabits(user.id);
+        setHabits(data);
+      } catch (error) {
+        if (error instanceof Error) setBannerMessage(error.message);
+        else setBannerMessage('An unexpected error occurred. Please try again.');
+      }
     }
     load();
-  }, [user]);
+  }, []);
 
   // add new habit to database
   const handleAddHabit = async () => {
     if (!newHabit.trim()) return;
-    if (!user) return alert('You must be logged in!');
-  
     try {
+      if (!user) throw new Error('You must be logged in!');
       await addHabit(newHabit.trim(), 'daily', user.id);
       setNewHabit('');
       const updated = await getAllHabits(user.id);
       setHabits(updated);
     } catch (error) {
-      console.error('Error adding habit:', error);
+      if (error instanceof Error) setBannerMessage(error.message);
+      else setBannerMessage('An unexpected error occurred. Please try again.');
     }
   };
 
   // delete habit from db 
   async function handleDeleteHabit() {
     if (selectedHabit) {
-      if (!user) return alert('You must be logged in!');
       try {
+        if (!user) throw new Error('You must be logged in!');
         await deleteHabit(selectedHabit.id);
         const updated = await getAllHabits(user.id);
         setHabits(updated);
         setDeleteModalVisible(false);
         setSelectedHabit(null);
       } catch (error) {
-        console.error('Error deleting habit:', error);
-        alert('Failed to delete the habit. Please try again.');
+        if (error instanceof Error) setBannerMessage(error.message);
+        else setBannerMessage('An unexpected error occurred. Please try again.');
       }
     }
   }
@@ -64,13 +71,18 @@ export default function HabitsScreen()
   // update habid identified by its id
   async function handleUpdateHabit() {
     if (selectedHabit) {
-      if (!user) return alert('You must be logged in!');
-      if (updatedHabitName.trim() || updatedHabitFrequency) {
-        await updateHabit(selectedHabit.id, updatedHabitName.trim(), updatedHabitFrequency);
-        const updated = await getAllHabits(user.id);
-        setHabits(updated);
-        setEditModalVisible(false);
-        setSelectedHabit(null);
+      try {
+        if (!user) throw new Error('You must be logged in!');
+        if (updatedHabitName.trim() || updatedHabitFrequency) {
+          await updateHabit(selectedHabit.id, updatedHabitName.trim(), updatedHabitFrequency);
+          const updated = await getAllHabits(user.id);
+          setHabits(updated);
+          setEditModalVisible(false);
+          setSelectedHabit(null);
+        }
+      } catch (error) {
+        if (error instanceof Error) setBannerMessage(error.message);
+        else setBannerMessage('An unexpected error occurred. Please try again.');
       }
     }
   }

@@ -20,7 +20,6 @@ export default function OverviewCard({ habitNames, title, unit, value, color}: O
   if (title === "Longest Streak" && value <= 1) return;
   if (title === "Most Completed" && value === 0) return;
   
-
   return (
     <Card style={[globalStyles.card, { backgroundColor: theme.colors.background }]}>
       <View style={{ flexDirection: "row", alignItems: "center" }}>

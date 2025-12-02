@@ -183,6 +183,16 @@ export const globalStyles = StyleSheet.create(
       justifyContent: 'center',
       alignItems: 'center',
       marginRight: 16, // Space between circle and text
+    },
+
+    banner: {
+      backgroundColor: 'red',
+      padding: 10,
+      paddingTop: 50,
+      position: 'absolute',
+      top: 0,
+      width: '100%',
+      zIndex: 1000,
     }
 
 });

@@ -17,17 +17,12 @@ const Login: React.FC = () =>
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // authoenticate user 
+  // check connection and authenticate user
   const handleAuth = async () => {
     setLoading(true);
-    try {
-      await login(email, password, authMode, name);
-      if (user) router.replace('/(tabs)');
-    } catch (error) {
-      alert(`Failed to authenticate: ${error}`);
-    } finally {
-      setLoading(false);
-    }
+    await login(email, password, authMode, name);
+    if (user) router.replace('/(tabs)');
+    setLoading(false);
   };
 
   // navigate to the app after login/signup

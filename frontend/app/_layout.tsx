@@ -1,13 +1,41 @@
-import React, { useMemo,useEffect } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { PaperProvider, MD3LightTheme, MD3DarkTheme } from 'react-native-paper';
 import { Colors } from '@/constants/theme';
 import { UserProvider, useUser } from '../constants/UserContext';
 import { createNotificationChannel } from '../components/Notifications';
+import { ConnectionProvider } from '../constants/ConnectionContext';
+import GlobalBanner from '@/components/GlobalBanner';
+import { getMostRecentDate, initializeHabitCompletionsForDay } from '@/api/habitsApi';
+import Loading from '@/components/Loading';
+import { useConnection } from '../constants/ConnectionContext';
  
+export async function initializeHabitCompletions()
+{
+  const today = new Date().toISOString().split("T")[0];
+  
+  try {
+    const mostRecentDate = (await getMostRecentDate()) ?? null;
+
+    let currentDate = mostRecentDate
+      ? new Date(mostRecentDate)
+      : new Date(today);
+
+    while (currentDate <= new Date(today)) {
+      const dateString = currentDate.toISOString().split("T")[0];
+      await initializeHabitCompletionsForDay(dateString);
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+  } catch (error) {
+    throw error;
+  }
+}
+
 // app entrypoint
 function ThemedApp() {
   const { user } = useUser();
+  const { setBannerMessage } = useConnection();
+  const [loading, setLoading] = useState(false);
   const scheme = user?.themePreference === 'dark' ? 'dark' : 'light';
   const baseTheme = scheme === 'dark' ? MD3DarkTheme : MD3LightTheme;
 
@@ -37,7 +65,19 @@ function ThemedApp() {
 
   useEffect(() => {
     createNotificationChannel();
+    const initialize = async () => {
+      try {
+        await initializeHabitCompletions();
+      } catch (error) {
+        if (error instanceof Error) setBannerMessage(error.message);
+        else setBannerMessage('An unexpected error occurred. Please try again.');
+      }
+    };
+
+    initialize();
   }, []);
+
+  if (loading) return <Loading/>;
 
   return (
     <PaperProvider theme={customTheme}>
@@ -53,8 +93,11 @@ function ThemedApp() {
 
 export default function RootLayout() {
   return (
-    <UserProvider>
-      <ThemedApp />
-    </UserProvider>
+    <ConnectionProvider>
+      <UserProvider>
+        <GlobalBanner />
+        <ThemedApp />
+      </UserProvider>
+    </ConnectionProvider>
   );
 }

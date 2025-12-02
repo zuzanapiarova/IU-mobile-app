@@ -6,6 +6,7 @@ import { useUser } from '../../constants/UserContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { useConnection } from '@/constants/ConnectionContext';
 
 export default function ProfileScreen()
 {
@@ -42,30 +43,31 @@ export default function ProfileScreen()
     try {
       await updateUser({ name });
       setSnackbarVisible(true);
-    } catch (error) {
-      console.error('Error updating name:', error);
-    }
+    } catch (err) {}
   };
 
   // function to process theme change to the database
   const handleToggleTheme = async () => {
     const newTheme = darkMode ? 'light' : 'dark';
-    setDarkMode(!darkMode);
+    const previousState = darkMode;
+    setDarkMode(!darkMode); // Optimistically update the state
+
     try {
       await updateUser({ themePreference: newTheme });
     } catch (error) {
-      console.error('Error updating theme preference:', error);
+      setDarkMode(previousState); // Revert the state if the backend update fails
     }
   };
 
   // function to process notification enable/disable to the database
   const handleToggleNotifications = async () => {
     const newStatus = !notificationsEnabled;
+    const previousState = notificationsEnabled;
     setNotificationsEnabled(newStatus);
     try {
       await updateUser({ notificationsEnabled: newStatus });
-    } catch (error) {
-      console.error('Error updating notifications:', error);
+    } catch (err) {
+      setNotificationsEnabled(previousState);
     }
   };
 
@@ -87,25 +89,19 @@ export default function ProfileScreen()
 
   // function to process changed time for notification to the database and other relevant functionalities
   const handleTimeChange = async () => {
-    if (!user) return alert('You must be logged in!');
     try {
       await updateUser({ notificationTime: selectedTime });
       setNotificationTime(selectedTime);
       setSnackbarVisible(true);
-    } catch (error) {
-      console.error('Error updating notification time:', error);
-    }
+    } catch (err) {}
   };
 
   // function to process limits change to the database
   const saveLimits = async () => {
-    if (!user) return alert('You must be logged in!')
     try {
       await updateUser({ successLimit, failureLimit });
       setSnackbarVisible(true);
-    } catch (error) {
-      console.error('Error updating limits:', error);
-    }
+    } catch (err) {}
   };
 
   return (
@@ -248,9 +244,8 @@ export default function ProfileScreen()
                   mode="contained"
                   onPress={async () => {
                     await saveLimits();
-                    setSnackbarVisible(true);
                   }}
-                  disabled={ // cases when it is not possible to save limits
+                  disabled={ // edge cases when it is not possible to save limits
                     successLimit === null ||
                     failureLimit === null || 
                     successLimit <= failureLimit ||

@@ -5,21 +5,25 @@ import { User } from '../constants/interfaces';
 import { PaperProvider } from 'react-native-paper';
 import * as Notifications from 'expo-notifications';
 import { requestNotificationPermission, scheduleDailyNotification, cancelAllNotifications } from '../components/Notifications';
+import { useConnection } from './ConnectionContext';
 
+// user context type with props
 interface UserContextType {
   user: User | null;
   login: (email: string, password: string, authMode: 'login' | 'signup', name?: string) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (updates: Partial<User>) => Promise<void>;
-  errorMessage: string | null; // Add errorMessage to the context type
-  clearErrorMessage: () => void; // clear the error message when typing
+  errorMessage: string | null;
+  clearErrorMessage: () => void;
 }
 
+// create user context which has global state
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null); // State for error messages
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { setBannerMessage } = useConnection();
 
   const validateEmail = (value: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -56,12 +60,16 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
           await cancelAllNotifications();
         }
       } catch (err) {
-        console.error('Error loading stored user:', err);
+        if (err instanceof Error && err.message !== undefined) {
+          setBannerMessage(err.message);
+        } else {
+          setBannerMessage('An unexpected error occurred. Please try again later.');
+        }
       }
     })();
   }, []);
 
-  // login user and neccessary functionality 
+  // login user and neccessary functionality, shown and called only on login page
   const login = async (
     email: string,
     password: string,
@@ -70,7 +78,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   ) => {
     try {
       if (!validateEmail(email)) return;
-  
       let userData: User | null = null;
   
       if (authMode === 'login') {
@@ -92,7 +99,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await SecureStore.setItemAsync('user', JSON.stringify(userData));
         setErrorMessage(null);
   
-        // Notification logic
         if (userData.notificationsEnabled) {
           const granted = await requestNotificationPermission();
           if (granted && userData.notificationTime) {
@@ -104,26 +110,30 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
     } catch (err) {
-      setErrorMessage(
-        'Invalid email or password, user with this email already exists, or a network error occured. Please try again later.'
-      );
+      if (err instanceof Error && err.message !== undefined) {
+        setBannerMessage(err.message);
+      } else {
+        setBannerMessage('An unexpected error occurred. Please try again later.');
+      }
     }
   };
   
-  // update user on change in parameters, makes a call to backend to store new user 
+  // update user on change in parameters, called only from Profile screen
   const updateUser = async (updates: Partial<User>) => {
-    if (!user) return alert('You must be logged in!');
+
+    if (!user) {
+      setBannerMessage('You must be logged in!');
+      throw new Error('You must be logged in!');
+    }
   
     try {
       const updatedUser = await updateUserBackend(user.id, updates);
       setUser(updatedUser);
   
-      // Notification logic
       if (updates.notificationsEnabled !== undefined) {
-        if (updates.notificationsEnabled === false)
+        if (updates.notificationsEnabled === false) {
           await cancelAllNotifications();
-        else
-        {
+        } else {
           const granted = await requestNotificationPermission();
           if (granted) {
             await cancelAllNotifications();
@@ -131,27 +141,32 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         }
       }
-      if (updates.notificationTime && user.notificationsEnabled === true)
-      {
-          await cancelAllNotifications();
-          await scheduleDailyNotification(updates.notificationTime);
+      if (updates.notificationTime && user.notificationsEnabled === true) {
+        await cancelAllNotifications();
+        await scheduleDailyNotification(updates.notificationTime);
       }
       await SecureStore.setItemAsync('user', JSON.stringify(updatedUser));
     } catch (err) {
-      console.error('Error updating user:', err);
+      if (err instanceof Error && err.message !== undefined) {
+        setBannerMessage(err.message);
+      } else {
+        setBannerMessage('An unexpected error occurred. Please try again later.');
+      }
+      throw err;
     }
   };
 
+  // handle logout 
   const logout = async () => {
     setUser(null);
     await SecureStore.deleteItemAsync('user');
-    await Notifications.cancelAllScheduledNotificationsAsync(); // Cancel notifications on logout
+    await Notifications.cancelAllScheduledNotificationsAsync();
   };
 
   const clearErrorMessage = () => {
-    setErrorMessage(null); // Clear the error message
+    setErrorMessage(null);
+    setBannerMessage(null);
   };
-
 
   return (
     <PaperProvider>

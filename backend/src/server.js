@@ -12,7 +12,7 @@ const prisma = new PrismaClient();
 app.use(cors());
 app.use(express.json());
 
-// helper to mask sensitive fields in an object (shallow) to avoid logging raw passwords/tokens
+// Helper to mask sensitive fields in an object (shallow) to avoid logging raw passwords/tokens
 function maskSensitive(obj = {}) {
   if (!obj || typeof obj !== 'object') return obj;
   const masked = { ...obj };
@@ -22,15 +22,11 @@ function maskSensitive(obj = {}) {
   return masked;
 }
 
-/**
- * Request logging middleware
- * Logs method, path, status and duration.
- * If LOG_LEVEL=debug this also logs masked request body and query params.
- */
+// Request logging middleware logs method, path, status and duration
+// When response finishes, log summary
 app.use((req, res, next) => {
   const start = Date.now();
 
-  // When response finishes, log summary
   res.on('finish', () => {
     const duration = Date.now() - start;
     const meta = {
@@ -43,14 +39,12 @@ app.use((req, res, next) => {
 
     logger.info(`HTTP ${req.method} ${req.originalUrl || req.url} ${res.statusCode} - ${duration}ms`, meta);
 
-    // debug-level: more details
     if (process.env.LOG_LEVEL === 'debug') {
       logger.debug('Request details', {
         body: maskSensitive(req.body),
         query: req.query,
         params: req.params,
         headers: {
-          // Avoid logging all headers; include a few useful ones (if present)
           'user-agent': req.headers['user-agent'],
           referer: req.headers.referer || null,
         },
@@ -243,7 +237,7 @@ app.post('/habits', async (req, res) => {
           date: today,
         },
       },
-      update: {}, // No update needed, just ensure the record exists
+      update: {},
       create: {
         habitId: newHabit.id,
         date: today,
@@ -332,19 +326,17 @@ app.delete('/habits/:id', async (req, res) => {
     });
     logger.debug('Deleted habit completions for today (if any)', { habitId, date: today });
 
-    // Check if habit has any completions at all
     const habitCompletionsCount = await prisma.habitCompletion.count({
       where: { habitId: habitId },
     });
 
     if (habitCompletionsCount > 0) {
-      // If there are habit completions, update the habit to set `current` to false
       const updatedHabit = await prisma.habit.update({
         where: { id: habitId },
         data: { current: false },
       });
       logger.info('Habit marked as not current (has completions)', { habitId });
-      res.json(updatedHabit); // return updated habit
+      res.json(updatedHabit);
     } else {
       await prisma.habit.delete({
         where: {
@@ -363,13 +355,12 @@ app.delete('/habits/:id', async (req, res) => {
 // POST /habits/:id/complete - Mark a habit as completed
 app.post('/habits/:id/complete', async (req, res) => {
   const today = new Date().toISOString().split('T')[0];
-  const { id } = req.params; // Habit ID
-  const { date } = req.body; // Optional date from the request body
+  const { id } = req.params;
+  const { date } = req.body;
   const day = date || today;
   logger.info('POST /habits/:id/complete - completing habit', { habitId: id, day });
 
   try {
-    // Check if a record exists for the given habitId and date
     const existingCompletion = await prisma.habitCompletion.findUnique({
       where: {
         habitId_date: {
@@ -382,7 +373,6 @@ app.post('/habits/:id/complete', async (req, res) => {
     let completedHabit;
 
     if (existingCompletion) {
-      // If the record exists, update its status to true
       completedHabit = await prisma.habitCompletion.update({
         where: {
           habitId_date: {
@@ -391,25 +381,24 @@ app.post('/habits/:id/complete', async (req, res) => {
           },
         },
         data: {
-          status: true, // Set status to true (completed)
-          timestamp: new Date().toISOString(), // Update the timestamp to the current time
+          status: true,
+          timestamp: new Date().toISOString(),
         },
       });
       logger.info('Habit completion updated to true', { habitId: id, date: day });
     } else {
-      // If the record does not exist, create a new one with status = true
       completedHabit = await prisma.habitCompletion.create({
         data: {
           habitId: parseInt(id),
           date: day,
-          status: true, // Set status to true (completed)
-          timestamp: new Date().toISOString(), // Set the timestamp to the current time
+          status: true,
+          timestamp: new Date().toISOString(),
         },
       });
       logger.info('Habit completion created with status true', { habitId: id, date: day, completionId: completedHabit.id });
     }
 
-    res.json(completedHabit); // Return the updated or created habit completion
+    res.json(completedHabit);
   } catch (error) {
     logger.error(`Error completing habit with ID ${id}:`, { error: error?.message, stack: error?.stack, habitId: id, date: day });
     res.status(500).json({ error: 'Internal Server Error' });
@@ -425,7 +414,6 @@ app.post('/habits/:id/uncomplete', async (req, res) => {
   logger.info('POST /habits/:id/uncomplete - uncompleting habit', { habitId: id, day });
 
   try {
-    // Update the habit completion for the specified day
     const uncompletedHabit = await prisma.habitCompletion.update({
       where: {
         habitId_date: {
@@ -437,7 +425,7 @@ app.post('/habits/:id/uncomplete', async (req, res) => {
     });
 
     logger.info('Habit completion updated to false', { habitId: id, date: day });
-    res.json(uncompletedHabit); // Return the updated habit completion
+    res.json(uncompletedHabit);
   } catch (error) {
     logger.error(`Error uncompleting habit with ID ${id}:`, { error: error?.message, stack: error?.stack, habitId: id, date: day });
     res.status(500).json({ error: 'Internal Server Error' });
@@ -476,14 +464,13 @@ app.get('/completion-percentage', async (req, res) => {
     const totalHabits = await prisma.habit.count();
     if (totalHabits === 0) {
       logger.info('No habits found when calculating completion percentage', { date });
-      return res.json({ date, percentage: 0 }); // No habits for the day
+      return res.json({ date, percentage: 0 });
     }
 
-    // Count completed habits for the given day
     const completedCount = await prisma.habitCompletion.count({
       where: {
         date: date,
-        status: true, // Assuming `status` is a boolean for completion
+        status: true,
       },
     });
 
@@ -501,8 +488,7 @@ app.get('/habits-for-day', async (req, res) => {
   const today = new Date().toISOString().split('T')[0];
   const { userId, allowDeleted, date } = req.query;
   const day = date || today;
-  const includeDeleted = allowDeleted === 'true'; // Convert allowDeleted to a boolean (default to false if undefined)
-
+  const includeDeleted = allowDeleted === 'true'; 
   logger.info('GET /habits-for-day - request received', { userId, day, includeDeleted });
 
   if (!userId) {
@@ -556,7 +542,6 @@ app.post('/initialize-habit-completions', async (req, res) => {
   logger.info('POST /initialize-habit-completions - request', { day });
 
   try {
-    // Get all current habits
     const currentHabits = await prisma.habit.findMany({
       where: { current: true },
       select: { id: true },
@@ -567,7 +552,6 @@ app.post('/initialize-habit-completions', async (req, res) => {
       return res.status(200).json({ message: 'No current habits to initialize.' });
     }
 
-    // Insert habits into habit_completions if they don't already exist for the day
     const habitIds = currentHabits.map((habit) => habit.id);
 
     try {
@@ -623,28 +607,26 @@ app.get('/habit-streaks', async (req, res) => {
   }
 
   const today = new Date().toISOString().split('T')[0];
-  const startDate = startsAfterDate || '1970-01-01'; // Default to the earliest possible date
+  const startDate = startsAfterDate || '1970-01-01';
   try {
-    // Fetch habit completions for the habit from today backward
     const completions = await prisma.habitCompletion.findMany({
       where: {
         habitId: parseInt(habitId),
         habit: { userId: parseInt(userId) },
         date: { gte: startDate, lte: today },
       },
-      orderBy: { date: 'desc' }, // Sort by date in descending order
+      orderBy: { date: 'desc' },
     });
 
     let longestStreak = 0;
     let currentStreak = 0;
 
-    // Calculate the streak
     for (const completion of completions) {
       if (completion.status === true) {
         currentStreak++;
         longestStreak = Math.max(longestStreak, currentStreak);
       } else {
-        currentStreak = 0; // Reset streak if a day is missed
+        currentStreak = 0;
       }
     }
 

@@ -33,7 +33,7 @@ export const requestNotificationPermission = async () => {
   return true;
 };
 
-// schedule notification to run faily at a set time
+// schedule notification to run at a set time
 export const scheduleDailyNotification = async (time: string) => {
   const [hour, minute] = time.split(":").map(Number);
 

@@ -6,8 +6,9 @@ import { getCompletionPercentageForDay } from "./OverViewCalculations";
 import { globalStyles } from "../constants/globalStyles";
 import { useUser } from "@/constants/UserContext";
 import HabitsList from "./HabitsCheckList";
+import { useConnection } from '@/constants/ConnectionContext';
 
-// renders current cakendar month with dots for past days representing progress
+// renders current calendar month with dots for past days representing progress
 // scrollable through months to see day completions
 // clicking on a date opens it up for retrospective habit completion
 export default function StatusCalendar()
@@ -22,6 +23,7 @@ export default function StatusCalendar()
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [isModalVisible, setModalVisible] = useState(false);
   const { user } = useUser();
+  const { setBannerMessage } = useConnection();
 
   const createdAtDate = user ? new Date(user.createdAt) : new Date();
   const createdAtYear = createdAtDate.getFullYear();
@@ -55,16 +57,20 @@ export default function StatusCalendar()
         )
           continue;
         const date = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-        const percentage = await getCompletionPercentageForDay(user.id, date);
+        try {
+          const percentage = await getCompletionPercentageForDay(user.id, date);
 
-        // determine dot color based on the updated success and failure limits
-        let dotColor = globalStyles.yellow.color;
-        if (percentage >= user.successLimit)
-          dotColor = globalStyles.green.color;
-        else if (percentage <= user.failureLimit) dotColor = "red";
-        newMarkedDates[date] = { marked: true, dotColor };
-      }
-
+          // determine dot color based on the updated success and failure limits
+          let dotColor = globalStyles.yellow.color;
+          if (percentage >= user.successLimit)
+            dotColor = globalStyles.green.color;
+          else if (percentage <= user.failureLimit) dotColor = "red";
+          newMarkedDates[date] = { marked: true, dotColor };
+        } catch (error) {
+          if (error instanceof Error) setBannerMessage(error.message);
+          else setBannerMessage("An unexpected error occurred. Please try again.");
+        }
+      };
       // Update the state with the new marked dates
       setMarkedDates(newMarkedDates);
     },
@@ -81,15 +87,15 @@ export default function StatusCalendar()
     }, [generateMarkedDates]),
   );
 
-  // generate marked dates on the initial render
-  useEffect(() => {
-    generateMarkedDates(currentYear, currentMonth); // Generate marked dates for the current month
-  }, [currentYear, currentMonth, generateMarkedDates]);
+  // // generate marked dates on the initial render
+  // useEffect(() => {
+  //   generateMarkedDates(currentYear, currentMonth); // Generate marked dates for the current month
+  // }, [currentYear, currentMonth, generateMarkedDates]);
 
-  // regenerate dots when successLimit or failureLimit changes
-  useEffect(() => {
-    generateMarkedDates(selectedYear, selectedMonth);
-  }, [generateMarkedDates, selectedMonth, selectedYear]);
+  // // regenerate dots when successLimit or failureLimit changes
+  // useEffect(() => {
+  //   generateMarkedDates(selectedYear, selectedMonth);
+  // }, [generateMarkedDates, selectedMonth, selectedYear]);
 
   // handle date selection to show list of habits for that day
   const handleDateSelect = async (date: string) => {
@@ -101,20 +107,25 @@ export default function StatusCalendar()
   // update the dot color for the selected date
   const updateSelectedDateDotColor = async (date: string) => {
     if (!user) return;
-    const percentage = await getCompletionPercentageForDay(user.id, date);
+    try {
+      const percentage = await getCompletionPercentageForDay(user.id, date);
 
-    let dotColor = globalStyles.yellow.color;
-    if (percentage >= user.successLimit) dotColor = "green";
-    else if (percentage <= user.failureLimit) dotColor = "red";
+      let dotColor = globalStyles.yellow.color;
+      if (percentage >= user.successLimit) dotColor = "green";
+      else if (percentage <= user.failureLimit) dotColor = "red";
 
-    // update the markedDates state for the selected date
-    setMarkedDates((prevMarkedDates) => {
-      const updatedMarkedDates = {
-        ...prevMarkedDates,
-        [date]: { ...prevMarkedDates[date], dotColor },
-      };
-      return updatedMarkedDates;
-    });
+      // update the markedDates state for the selected date
+      setMarkedDates((prevMarkedDates) => {
+        const updatedMarkedDates = {
+          ...prevMarkedDates,
+          [date]: { ...prevMarkedDates[date], dotColor },
+        };
+        return updatedMarkedDates;
+      });
+    } catch (error) {
+      if (error instanceof Error) setBannerMessage(error.message);
+      else setBannerMessage("An unexpected error occurred. Please try again.");
+    }
   };
 
   return (

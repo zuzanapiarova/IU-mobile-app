@@ -2,7 +2,8 @@ import { getHabitsForDay } from "@/api/habitsApi";
 import { Habit } from "@/constants/interfaces";
 
 // function to fetch habits for a specific day and calculate the completion percentage
-export async function getCompletionPercentageForDay(userId: number, date: string): Promise<number> {
+export async function getCompletionPercentageForDay(userId: number, date: string): Promise<number>
+{
   try {
     const habits: Habit[] = await getHabitsForDay(userId, false, date);
     if (habits.length === 0) return 0;
@@ -24,7 +25,6 @@ export async function getCompletionPercentageForDay(userId: number, date: string
         : 0;
     return completedPercentage;
   } catch (error) {
-    console.error(`Error calculating completion percentage for ${date}:`, error);
-    return 0;
+    throw error;
   }
 }

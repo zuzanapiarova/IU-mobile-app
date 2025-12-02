@@ -10,7 +10,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import OverviewCard from '@/components/OverviewCard';
 import PeriodGraph from '../../components/PeriodGraph'
 import Loading from '@/components/Loading';
-import { matchAccessibilityState } from '@testing-library/react-native/build/helpers/matchers/match-accessibility-state';
+import { useConnection } from '@/constants/ConnectionContext';
 
 // interfaces used during calculations
 interface HabitById {
@@ -90,7 +90,7 @@ const fetchHabitsForPeriod = async (userId: number, dates: string[]) => {
       const habitsForDay = await getHabitsForDay(userId, true, date);
       allHabits.push(...habitsForDay);
     } catch (error) {
-      console.error(`Error fetching habits for ${date}:`, error);
+      throw error;
     }
   }
 
@@ -128,15 +128,19 @@ const getHabitsById = async (userId: number, startsAfterDate: string, habits: an
       completionPercentage = Math.round((totalCompletions / maxCompletions) * 100);
 
     // fetch the longest current streak for each habit
-    const streakData = await getHabitStreak(userId, parseInt(habitId), startsAfterDate); 
-    return {
-      habitId: parseInt(habitId),
-      name: habitGroup[0].name,
-      streak: streakData.streak,
-      totalCompletions,
-      maxCompletions,
-      completionPercentage
-    };
+    try {
+      const streakData = await getHabitStreak(userId, parseInt(habitId), startsAfterDate); 
+      return {
+        habitId: parseInt(habitId),
+        name: habitGroup[0].name,
+        streak: streakData.streak,
+        totalCompletions,
+        maxCompletions,
+        completionPercentage
+      };
+    } catch (error) {
+      throw error;
+    }
     })
   );
   habitsArr.sort((a, b) => b.streak - a.streak);
@@ -216,6 +220,7 @@ export default function OverviewScreen()
 {
   const theme = useTheme();
   const { user } = useUser();
+  const { setBannerMessage } = useConnection();
   const [loading, setLoading] = useState(false);
   const [dateSpan, setDateSpan] = useState(calculateDateSpan(today, 'month'));
   const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'year'>('month');
@@ -227,9 +232,9 @@ export default function OverviewScreen()
 
   // load and process all data
   const prepareData = useCallback(async () => {
-    if (!user) return alert('You must be logged in!');
-    setLoading(true);
     try {
+      if (!user) throw new Error('You must be logged in!');
+      setLoading(true);
       const dates = generateDatesInRange(dateSpan.start, dateSpan.end);
       const fetchedHabits = await fetchHabitsForPeriod(user.id, dates);
       const processedHabitsById = await getHabitsById(user.id, dateSpan.start, fetchedHabits, dates.length );
@@ -240,7 +245,8 @@ export default function OverviewScreen()
       setGraphData(graphDataTemp);
       setRefreshKey((prev) => prev + 1);
     } catch (error) {
-      console.error('Error fetching habits:', error);
+      if (error instanceof Error) setBannerMessage(error.message);
+      else setBannerMessage('An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -262,7 +268,7 @@ export default function OverviewScreen()
     setIsStatisticsExpanded((prev) => !prev);
   };
 
-  if (!user) return alert('You must be logged in!');
+  if (!user) return setBannerMessage('You must be logged in!');
 
   if (loading) return <Loading/>;
 
