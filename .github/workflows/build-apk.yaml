@@ -7,7 +7,6 @@ on:
   pull_request:
     branches:
       - main # Trigger the workflow on pull requests to the main branch
-  workflow-dispatch:
 
 jobs:
   build-apk:
