@@ -41,9 +41,8 @@ export default function HabitsList({ date, onHabitsUpdated }: {date: string, onH
     } finally {
       setLoading(false);
     }
-  }, [user, date, setBannerMessage]);
+  }, [user, date]);
 
-  // Reload data whenever the screen is focused (kept for real app)
   useFocusEffect(
     useCallback(() => {
       loadHabits();
