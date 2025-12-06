@@ -9,7 +9,6 @@ import { HabitWithCompletion } from "../constants/interfaces";
 import { globalStyles } from "../constants/globalStyles";
 import { completeHabit, uncompleteHabit, getHabitsForDay } from "../api/habitsApi";
 import { useUser } from "@/constants/UserContext";
-import { useRouter } from "expo-router";
 import Loading from "./Loading";
 import { useConnection } from '@/constants/ConnectionContext';
 
@@ -18,7 +17,6 @@ export default function HabitsList({ date, onHabitsUpdated }: {date: string, onH
 {
   const today = new Date().toISOString().split("T")[0];
   const theme = useTheme();
-  const router = useRouter();
   const { user } = useUser();
   const { setBannerMessage } = useConnection();
   const navigation = useNavigation<NativeStackNavigationProp<RootTabParamList>>();

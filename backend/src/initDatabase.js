@@ -1,8 +1,16 @@
 import fs from "fs";
+import path from "path";
 import { execSync } from "child_process";
 import "dotenv/config";
 
-const databasePath = process.env.DATABASE_URL?.replace("file:", "") || "./prisma/dev.db";
+// Dynamically set the DATABASE_URL if not already set
+if (!process.env.DATABASE_URL) {
+  const absolutePath = path.resolve("./prisma/dev.db"); // Resolve to an absolute path
+  process.env.DATABASE_URL = `file:${absolutePath}`;
+}
+const databasePath = process.env.DATABASE_URL.replace("file:", ""); // Extract file path from DATABASE_URL
+console.log("DATABASE_URL:", process.env.DATABASE_URL);
+
 
 export async function initializeDatabase() {
   if (!fs.existsSync(databasePath)) {

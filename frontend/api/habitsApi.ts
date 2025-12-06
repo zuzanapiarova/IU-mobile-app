@@ -196,6 +196,7 @@ export async function getHabitsForDay(userId: number, allowDeleted: boolean, dat
     const { data } = await api.get('/habits-for-day', {
       params: { userId, allowDeleted, date },
     });
+    console.log(data.length);
     return data; // data: { habitId: parseInt(habitId), streak: longestStreak }
   } catch (error) {
     if (axios.isAxiosError(error)) {
