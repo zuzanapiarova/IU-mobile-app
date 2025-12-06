@@ -3,9 +3,9 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const { PrismaClient } = require('@prisma/client');
+const { initializeDatabase } = require('./initDatabase');
 const logger = require('./logger');
 
-const PORT = process.env.PORT || 3000;
 const app = express();
 const prisma = new PrismaClient();
 
@@ -642,11 +642,25 @@ app.get('/habit-streaks', async (req, res) => {
 
 // checks whether this file is being run directly as node server.js or in  test environment
 if (require.main === module) {
-  const host = process.env.HOST || '0.0.0.0'; // bind address
-  logger.info(`Server is starting on port ${PORT} (host: ${host})`);
-  app.listen(PORT, host, () => {
-    logger.info(`Server is running on port ${PORT} (host: ${host})`);
-  });
+  const host = process.env.HOST || '0.0.0.0';
+  const port = process.env.PORT || '3000';
+
+    // Initialize the database before starting the server
+    initializeDatabase()
+    .then(() => {
+      logger.info(`Server is starting on port ${port} (host: ${host})`);
+      app.listen(port, host, () => {
+        logger.info(`Server is running on port ${port} (host: ${host})`);
+      });
+    })
+    .catch((error) => {
+      logger.error('Failed to initialize the database:', { error: error.message, stack: error.stack });
+      process.exit(1); // Exit the process if database initialization fails
+    });
+  // logger.info(`Server is starting on port ${port} (host: ${host})`);
+  // app.listen(port, host, () => {
+  //   logger.info(`Server is running on port ${port} (host: ${host})`);
+  // });
 }
 
 // export the app for imports during testing
