@@ -51,7 +51,7 @@ jobs:
 
     # Step 7: Upload the APK as an artifact
     - name: Upload APK
-      uses: actions/upload-artifact@v3
+      uses: awalsh128/cache-apt-pkgs-action@v1.4.3
       with:
         name: app-release-apk
         path: frontend/android/app/build/outputs/apk/release/app-release.apk
