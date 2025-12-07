@@ -16,7 +16,7 @@ Backend is a containerized application with all of its dependencies. It can be s
    `docker compose up --build`
 
 3. Control database file with DATABASE_URL environment variable in the docker-compose.ysml file
-   If no value is provided, default database dev.db with test data is used
+   If no value is provided, default database dev.db with test data is used.
 
 ##### Running via npm
 1. Navigate to the backend/ directory
@@ -29,11 +29,16 @@ Backend is a containerized application with all of its dependencies. It can be s
 
 ### Frontend
 
-Frontend can be started either by building and running the executable file for the desired environment (android/ios), or via Expo Go app, used especially during development and testing.
-
-<!-- The built executable is available  -->
+Frontend can be started either by building and running the executable file for the desired environment (android/ios), or simply start it via Expo Go app, used especially during development and testing.
 
 ##### Manually build and run the executable
+
+Using Expo's interface for builds. Prerequisites are Expo account, which is free for android builds.
+`npm install`
+`npx eas build:configure`
+`npx eas build`
+
+If you want to get entangled in the dependency hell, please, use the following commands to generate the executable. However, for your own peace of mind, I suggest using the Expo GO approach when running locally. 
 
 1. Navigate to the frontend/ directory
    `cd frontend`
@@ -49,12 +54,14 @@ Frontend can be started either by building and running the executable file for t
    `EXPO_PUBLIC_API_URL=http://192.168.0.1:3000`
    Also ensure the mobile device is connected to teh same LAN as the device running the backend
 
-4. If not present, generate the android and ios folders with the following command and change to desired directory
-   `npx expo prebuild`
+4. If not present, generate the android folder with the following command and change to created directory
+   `npx expo prebuild --platform android`
    `cd android`
 
-5. Build the executable, it will then be available in frontend/android/app/build/outputs/apk/release/app-release.apk. Java Runtime is needed for this operation. 
+5. Building the android executable requires Java Runtime. Additionally, Android build system only supports Java 17 today (on mac install temurin@17 via brew). Then run the build:
    `./gradlew assembleRelease`
+
+Executable will then be available in `frontend/android/app/build/outputs/apk/release/app-release.apk.`
 
 6. Copy the APK to an Android device or emulator and launch it
 
