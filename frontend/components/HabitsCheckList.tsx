@@ -46,11 +46,6 @@ export default function HabitsList({ date, onHabitsUpdated }: {date: string, onH
     }, [loadHabits])
   );
 
-  // fallback
-  useEffect(() => {
-    loadHabits();
-  }, []);
-
   // toggle habit completion or uncompletion for habit identified by id
   const toggleCheck = async (id: number) => {
     try {
