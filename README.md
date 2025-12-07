@@ -31,6 +31,11 @@ Backend is a containerized application with all of its dependencies. It can be s
 
 Frontend can be started either by building and running the executable file for the desired environment (android/ios), or simply start it via Expo Go app, used especially during development and testing.
 
+#### Prerequisites
+
+- Java 17 (Android build system only supports Java 17 now): `brew install temurin@17` 
+
+
 ##### Manually build and run the executable
 
 Using Expo's interface for builds. Prerequisites are Expo account, which is free for android builds.
@@ -58,7 +63,7 @@ If you want to get entangled in the dependency hell, please, use the following c
    `npx expo prebuild --platform android`
    `cd android`
 
-5. Building the android executable requires Java Runtime. Additionally, Android build system only supports Java 17 today (on mac install temurin@17 via brew). Then run the build:
+5. Then run the build:
    `./gradlew assembleRelease`
 
 Executable will then be available in `frontend/android/app/build/outputs/apk/release/app-release.apk.`

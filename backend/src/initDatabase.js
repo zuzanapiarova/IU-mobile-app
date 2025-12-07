@@ -1,7 +1,7 @@
-import fs from "fs";
-import path from "path";
-import { execSync } from "child_process";
-import "dotenv/config";
+const fs = require("fs");
+const path = require("path");
+const { execSync } = require("child_process");
+require("dotenv/config");
 
 // Dynamically set the DATABASE_URL if not already set
 if (!process.env.DATABASE_URL) {
@@ -11,8 +11,7 @@ if (!process.env.DATABASE_URL) {
 const databasePath = process.env.DATABASE_URL.replace("file:", ""); // Extract file path from DATABASE_URL
 console.log("DATABASE_URL:", process.env.DATABASE_URL);
 
-
-export async function initializeDatabase() {
+async function initializeDatabase() {
   if (!fs.existsSync(databasePath)) {
     console.log(`Database not found at ${databasePath}. Creating a new database...`);
 
@@ -28,3 +27,5 @@ export async function initializeDatabase() {
     console.log(`Database already exists at ${databasePath}.`);
   }
 }
+
+module.exports = { initializeDatabase };

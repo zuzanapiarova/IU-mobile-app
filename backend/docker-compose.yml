@@ -9,7 +9,7 @@ services:
     networks:
     - one-place-network
     environment:
-      DATABASE_URL: file:/app/prisma/aa.db # prepopulated db is provided in prisma/dev.db, change filename for new instance
+      DATABASE_URL: file:/app/prisma/dev.db # prepopulated db is provided in prisma/dev.db, change filename for new instance
 
 networks:
   one-place-network:

@@ -21,11 +21,10 @@ export default function HabitsList({ date, onHabitsUpdated }: {date: string, onH
   const { setBannerMessage } = useConnection();
   const navigation = useNavigation<NativeStackNavigationProp<RootTabParamList>>();
   const [habits, setHabits] = useState<HabitWithCompletion[]>([]);
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(true);
 
   // fetch habits for the day
   const loadHabits = useCallback(async () => {
-    setLoading(true);
     try {
       if (!user) throw new Error('You must be logged in!');
       const data = await getHabitsForDay(user.id, false, date);
@@ -37,8 +36,6 @@ export default function HabitsList({ date, onHabitsUpdated }: {date: string, onH
     } catch (error) {
       if (error instanceof Error) setBannerMessage(error.message);
       else setBannerMessage("An unexpected error occurred. Please try again.");
-    } finally {
-      setLoading(false);
     }
   }, [user, date]);
 
@@ -48,6 +45,11 @@ export default function HabitsList({ date, onHabitsUpdated }: {date: string, onH
       return () => {};
     }, [loadHabits])
   );
+
+  // fallback
+  useEffect(() => {
+    loadHabits();
+  }, []);
 
   // toggle habit completion or uncompletion for habit identified by id
   const toggleCheck = async (id: number) => {
@@ -77,8 +79,6 @@ export default function HabitsList({ date, onHabitsUpdated }: {date: string, onH
     ...habits.filter((h) => h.status === 0),
     ...habits.filter((h) => h.status === 1),
   ];
-
-  if (loading) return <Loading />;
 
   if (!user) return null;
 

@@ -3,8 +3,9 @@ import * as SecureStore from 'expo-secure-store';
 import { Habit } from '@/constants/interfaces';
 
 // http client to make GET/POST/PUT/DELETE requests in node apps
+const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://127.0.0.1:3000';
 export const api = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_API_URL || 'http://127.0.0.1:3000',
+  baseURL: apiUrl,
   timeout: 5000,
 });
 
