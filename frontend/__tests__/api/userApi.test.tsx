@@ -111,7 +111,7 @@ describe('userApi', () => {
         });
         
         // Require userApi AFTER all mocks
-        require('../api/userApi');
+        require('../../api/userApi');
         
         // Ensure interceptor was captured
         expect(interceptorFn).not.toBeNull();
@@ -150,7 +150,7 @@ describe('userApi', () => {
         });
       
         // Import userApi AFTER mocks
-        require('../api/userApi');
+        require('../../api/userApi');
       
         // Ensure the interceptor function was captured
         expect(interceptorFn).not.toBeNull();

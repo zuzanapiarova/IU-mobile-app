@@ -48,7 +48,7 @@ If you want to get entangled in the dependency hell, please, use the following c
 
 3. Edit the EXPO_PUBLIC_API_URL in .env file to point to the LAN IP where the backend is running. 
    Find LAN IP of the device running backend:"
-   - Mac:     ipconfig getifaddr en0"
+   - Mac:     ipconfig getifaddr en0
    - Linux:   hostname -I"
    - Windows: ipconfig"
    `EXPO_PUBLIC_API_URL=http://192.168.0.1:3000`

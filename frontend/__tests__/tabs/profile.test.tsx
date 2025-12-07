@@ -4,10 +4,21 @@ import ProfileScreen from '../../app/(tabs)/profile';
 import { useUser } from '../../constants/UserContext';
 import { useRouter } from 'expo-router';
 import { Provider as PaperProvider } from 'react-native-paper';
+import { useConnection } from '../../constants/ConnectionContext';
 
-jest.mock('../constants/UserContext', () => ({ useUser: jest.fn() }));
+jest.mock('../../constants/UserContext', () => ({ useUser: jest.fn() }));
 jest.mock('expo-router', () => ({ useRouter: jest.fn() }));
 jest.mock('react-native-modal-datetime-picker', () => () => null);
+jest.mock('../../constants/ConnectionContext', () => ({
+  useConnection: jest.fn(() => ({
+    isConnected: true,
+    isBackendReachable: true,
+    setIsConnected: jest.fn(),
+    setIsBackendReachable: jest.fn(),
+    bannerMessage: null,
+    setBannerMessage: jest.fn(),
+  })),
+}));
 
 const mockUpdateUser = jest.fn();
 const mockLogout = jest.fn();
@@ -28,6 +39,14 @@ describe('ProfileScreen', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (useConnection as jest.Mock).mockReturnValue({
+      isConnected: true,
+      isBackendReachable: true,
+      setIsConnected: jest.fn(),
+      setIsBackendReachable: jest.fn(),
+      bannerMessage: null,
+      setBannerMessage: jest.fn(),
+    });
     (useUser as jest.Mock).mockReturnValue({
       user: mockUser,
       updateUser: mockUpdateUser,
@@ -123,7 +142,7 @@ describe('ProfileScreen', () => {
     const successInput = getByDisplayValue('80');
     const failureInput = getByDisplayValue('20');
   
-    fireEvent.changeText(successInput, '10'); // less than failure
+    fireEvent.changeText(successInput, '10');
     const saveButton = getByText('Save Limits');
     expect(saveButton).toBeDisabled();
   });

@@ -4,6 +4,7 @@ import HabitsScreen from '../../app/(tabs)/habits';
 import { useUser } from '../../constants/UserContext';
 import { getAllHabits, addHabit, updateHabit, deleteHabit } from '../../api/habitsApi';
 import { Provider as PaperProvider } from 'react-native-paper';
+import { useConnection } from '../../constants/ConnectionContext';
 
 jest.mock('../../constants/UserContext', () => ({ useUser: jest.fn() }));
 jest.mock('../../api/habitsApi', () => ({
@@ -12,6 +13,17 @@ jest.mock('../../api/habitsApi', () => ({
   updateHabit: jest.fn(),
   deleteHabit: jest.fn(),
 }));
+jest.mock('../../constants/ConnectionContext', () => ({
+  useConnection: jest.fn(() => ({
+    isConnected: true,
+    isBackendReachable: true,
+    setIsConnected: jest.fn(),
+    setIsBackendReachable: jest.fn(),
+    bannerMessage: null,
+    setBannerMessage: jest.fn(),
+  })),
+}));
+
 
 describe('HabitsScreen', () => {
   const mockUser = {
@@ -24,6 +36,14 @@ describe('HabitsScreen', () => {
     jest.clearAllMocks();
     (useUser as jest.Mock).mockReturnValue({ user: mockUser });
     (getAllHabits as jest.Mock).mockResolvedValue([]);
+    (useConnection as jest.Mock).mockReturnValue({
+      isConnected: true,
+      isBackendReachable: true,
+      setIsConnected: jest.fn(),
+      setIsBackendReachable: jest.fn(),
+      bannerMessage: null,
+      setBannerMessage: jest.fn(),
+    });
   });
 
   it('renders the initial state with no habits', async () => {

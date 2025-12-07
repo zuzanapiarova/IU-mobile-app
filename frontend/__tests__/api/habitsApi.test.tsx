@@ -226,7 +226,7 @@ describe('habitsApi', () => {
       interceptorFn = fn;
     });
 
-    require('../api/habitsApi');
+    require('../../api/habitsApi');
 
     expect(interceptorFn).not.toBeNull();
 
@@ -257,7 +257,7 @@ describe('habitsApi', () => {
       interceptorFn = fn;
     });
 
-    require('../api/habitsApi');
+    require('../../api/habitsApi');
 
     expect(interceptorFn).not.toBeNull();
 

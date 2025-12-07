@@ -21,10 +21,11 @@ export default function HabitsList({ date, onHabitsUpdated }: {date: string, onH
   const { setBannerMessage } = useConnection();
   const navigation = useNavigation<NativeStackNavigationProp<RootTabParamList>>();
   const [habits, setHabits] = useState<HabitWithCompletion[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   // fetch habits for the day
   const loadHabits = useCallback(async () => {
+    setLoading(true);
     try {
       if (!user) throw new Error('You must be logged in!');
       const data = await getHabitsForDay(user.id, false, date);

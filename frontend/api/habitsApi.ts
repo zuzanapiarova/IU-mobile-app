@@ -1,6 +1,6 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
-import { Habit } from "@/constants/interfaces";
+import { Habit } from '@/constants/interfaces';
 
 // http client to make GET/POST/PUT/DELETE requests in node apps
 export const api = axios.create({
