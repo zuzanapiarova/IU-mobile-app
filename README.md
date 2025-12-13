@@ -33,7 +33,14 @@ Frontend can be started either by building and running the executable file for t
 
 #### Prerequisites
 
-- Java 17 (Android build system only supports Java 17 now): `brew install temurin@17` 
+- Java 17 (Android build system only supports Java 17 now): `brew install --cask temurin@17` 
+- Android Command Line Tools: `brew install --cask android-commandlinetools`
+- Set path of androif sdk tools: 
+`export ANDROID_SDK_ROOT=$HOME/Library/Android/sdk`
+`export ANDROID_HOME=$ANDROID_SDK_ROOT`
+- Manually install the SDK (since casks do not):
+`mkdir -p "$ANDROID_SDK_ROOT"`
+`sdkmanager --install "platform-tools" "platforms;android-36" "build-tools;36.0.0"`
 
 
 ##### Manually build and run the executable
@@ -56,8 +63,8 @@ If you want to get entangled in the dependency hell, please, use the following c
    - Mac:     ipconfig getifaddr en0
    - Linux:   hostname -I"
    - Windows: ipconfig"
-   `EXPO_PUBLIC_API_URL=http://192.168.0.1:3000`
-   Also ensure the mobile device is connected to teh same LAN as the device running the backend
+   `EXPO_PUBLIC_API_URL=http://192.168.x.y:3000`
+   Ensure the mobile device is connected to teh same LAN as the device running the backend
 
 4. If not present, generate the android folder with the following command and change to created directory
    `npx expo prebuild --platform android`
