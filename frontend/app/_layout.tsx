@@ -10,6 +10,7 @@ import { getMostRecentDate, initializeHabitCompletionsForDay } from '@/api/habit
 import Loading from '@/components/Loading';
 import { useConnection } from '../constants/ConnectionContext';
  
+// habit completions are populated for each habit with status=false for each day since the app was last opened 
 export async function initializeHabitCompletions()
 {
   const today = new Date().toISOString().split("T")[0];
@@ -65,6 +66,10 @@ function ThemedApp() {
 
   useEffect(() => {
     createNotificationChannel();
+  }, []);
+  
+  // Run only when the user is logged in
+  useEffect(() => {
     const initialize = async () => {
       try {
         await initializeHabitCompletions();
@@ -73,9 +78,11 @@ function ThemedApp() {
         else setBannerMessage('An unexpected error occurred. Please try again.');
       }
     };
-
-    initialize();
-  }, []);
+  
+    if (user) {
+      initialize();
+    }
+  }, [user]);
 
   if (loading) return <Loading/>;
 

@@ -48,7 +48,9 @@ jobs:
         run: yes | sdkmanager --licenses
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug
+        run: |
+            echo $EXPO_PUBLIC_API_URL && 
+            ./gradlew assembleDebug
         working-directory: frontend/android
 
       - name: Upload APK

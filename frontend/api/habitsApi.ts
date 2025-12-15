@@ -12,7 +12,8 @@ export const api = axios.create({
 // Attach token to every request automatically
 api.interceptors.request.use(async (config) => {
   const token = await SecureStore.getItemAsync('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  config.headers = config.headers ?? {};
+  if (token) (config.headers as any).Authorization = `Bearer ${token}`;
   return config;
 });
 
@@ -197,7 +198,6 @@ export async function getHabitsForDay(userId: number, allowDeleted: boolean, dat
     const { data } = await api.get('/habits-for-day', {
       params: { userId, allowDeleted, date },
     });
-    console.log(data.length);
     return data; // data: { habitId: parseInt(habitId), streak: longestStreak }
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -236,18 +236,13 @@ export async function initializeHabitCompletionsForDay(date?: string) {
 export async function getMostRecentDate(): Promise<string | null> {
   try {
     const { data } = await api.get('/habits-completions/most-recent-date');
-    return data.maxDate;
+    return data?.maxDate ?? null;
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      if (error.message === 'Network Error') {
-        throw new Error('Unable to connect to the backend. Please check your internet connection.');
-      } else if (error.code === 'ECONNABORTED') {
-        throw new Error('The request timed out. Please try again later.');
-      } else if (error.response) {
-        throw new Error(`Server responded with status ${error.response.status}: ${error.response.data?.error || 'Unknown error'}`);
-      }
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
+      // Not logged in yet; treat as no data
+      return null;
     }
-    throw new Error('An unexpected error occurred. Please try again.');
+    throw new Error('Failed to fetch most recent date.');
   }
 }
 
