@@ -5,11 +5,13 @@ services:
   backend:
     build: .
     ports:
-    - "3000:3000"
+    - "${PORT:-3000}:3000"
     networks:
     - one-place-network
     environment:
-      DATABASE_URL: file:/app/prisma/dev.db # prepopulated db is provided in prisma/dev.db, change filename for new instance
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-30d}
 
 networks:
   one-place-network:

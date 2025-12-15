@@ -1,10 +1,25 @@
-// ...existing code...
 const request = require('supertest');
 const bcrypt = require('bcrypt');
-require('dotenv').config(); // ensure TEST_JWT is available
+const path = require('path');
+const dotenv = require('dotenv');
+const jwt = require('jsonwebtoken');
+
+// Load [.env](http://_vscodecontentref_/3)
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const TEST_USER_ID = 1;
-const token = process.env.TEST_JWT;
+
+// Generate a valid JWT that matches the server's secret and expiry
+const token = jwt.sign(
+  { sub: TEST_USER_ID, email: 'test@example.com' },
+  process.env.JWT_SECRET || 'dev-secret-change-me',
+  { expiresIn: process.env.JWT_EXPIRES_IN || '30d' }
+);
+
+// Ensure env is present
+if (!process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET missing. Ensure [.env](http://_vscodecontentref_/4) is loaded.');
+}
 
 // Mock Prisma client
 const mockUser = {

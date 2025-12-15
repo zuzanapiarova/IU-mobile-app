@@ -100,3 +100,6 @@ Test are available for the frontend components, especially the ones making calls
 
 `cd backend`
 `npm run test`
+
+
+ # prepopulated db is provided in prisma/dev.db, change filename for new instance
