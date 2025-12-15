@@ -15,15 +15,16 @@ Backend is a containerized application with all of its dependencies. It can be s
 2. Build and run the backend container
    `docker compose up --build`
 
-3. Control database file with DATABASE_URL environment variable in the docker-compose.ysml file
-   If no value is provided, default database dev.db with test data is used.
+3. Input values into .env file. Minimum requirement is JWT_SECRET, which is a secret to sign JWT tokens. DATABASE_URL environment variable is optional to change database file, else the default prepopulated /prisma/dev.db is used
 
 ##### Running via npm
 1. Navigate to the backend/ directory
    `cd backend`
 
-2. Provide DATABASE_URL in .env file to create the database file (optional), if not provided, default database dev.db with test data is used
+2. Provide DATABASE_URL and JWT_SECRET in .env file.
+- DATABASE_URL: create the database file (optional), if not provided, default database dev.db with test data is used
    `DATABASE_URL="file:./test-file.db"`
+- JWT_SECRET: secret to sign JWT tokens for request and response auth
 
 3. npm start 
 
@@ -41,7 +42,6 @@ Frontend can be started either by building and running the executable file for t
 - Manually install the SDK (since casks do not):
 `mkdir -p "$ANDROID_SDK_ROOT"`
 `sdkmanager --install "platform-tools" "platforms;android-36" "build-tools;36.0.0"`
-
 
 ##### Manually build and run the executable
 
@@ -79,9 +79,9 @@ Executable will then be available in `frontend/android/app/build/outputs/apk/rel
 
 ##### Use the Expo App
 
-1. Download the Expo GO application into the device
+1. Download the Expo GO application on a mobile device (iOS/Android)
 
-2. Ensure the mobile device is connected to teh same LAN as the computer on which the backend runs 
+2. Ensure the mobile device is connected to the same LAN as the computer on which the backend runs 
 
 3. Run `npm start`
 
