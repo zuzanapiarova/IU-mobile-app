@@ -87,16 +87,6 @@ export default function StatusCalendar()
     }, [generateMarkedDates]),
   );
 
-  // // generate marked dates on the initial render
-  // useEffect(() => {
-  //   generateMarkedDates(currentYear, currentMonth); // Generate marked dates for the current month
-  // }, [currentYear, currentMonth, generateMarkedDates]);
-
-  // // regenerate dots when successLimit or failureLimit changes
-  // useEffect(() => {
-  //   generateMarkedDates(selectedYear, selectedMonth);
-  // }, [generateMarkedDates, selectedMonth, selectedYear]);
-
   // handle date selection to show list of habits for that day
   const handleDateSelect = async (date: string) => {
     if (date === today) return;

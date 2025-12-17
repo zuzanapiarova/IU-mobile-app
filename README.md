@@ -101,5 +101,10 @@ Test are available for the frontend components, especially the ones making calls
 `cd backend`
 `npm run test`
 
+# prepopulated db is provided in prisma/dev.db, change filename for new instance
 
- # prepopulated db is provided in prisma/dev.db, change filename for new instance
+Logger is not being mounted, to browse the files, add/uncomment the line with directory for mounts
+All you need is docker on the system where backend runs, an android device or emulator for the frontend, and both devices to be connected to the same LAN.
+A readme.MD file is provided in the github repository with steps to run the code. 
+Frontend needs to have an executable. Pipeline to create the executable is created, you just have to fork the repo, set the environment secret of the repository to be EXPO_PUBLIC_API_IRL and value to be the LAN IP where the backend is running. The executable can be then found in the Artifacts section of the executed Action. Of course, steps of the pipeline can be ran manually by following the sequence of the commands in each step, however, the environment and dependencies may be hard to manage.  
+Backend is provided as a docker image, with configured docker compose file. Run it simply by docker compose up --build command. 

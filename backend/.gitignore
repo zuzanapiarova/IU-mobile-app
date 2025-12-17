@@ -1,4 +1,5 @@
 node_modules/
+logs/
 .env
 src/generated/prisma
 server*

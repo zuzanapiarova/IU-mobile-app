@@ -1,8 +1,16 @@
 const { createLogger, format, transports } = require('winston');
 const { combine, timestamp, printf, json } = format;
+const fs = require('fs');
+const path = require('path');
 
+// "debug", "info", "warn", "error", "silent"
 const LOG_LEVEL = process.env.LOG_LEVEL || "info"; 
-// e.g. "debug", "info", "warn", "error", "silent"
+
+// Ensure log directory exists
+const logDir = path.resolve(__dirname, 'logs');
+if (!fs.existsSync(logDir)) {
+  fs.mkdirSync(logDir, { recursive: true });
+}
 
 const logFormat = printf(({ level, message, timestamp, stack }) => {
   return stack
@@ -18,12 +26,10 @@ const logger = createLogger({
     json()
   ),
   transports: [
-    // ALWAYS log to a file
     new transports.File({
-      filename: "server.log",
+      filename: path.join(logDir, 'server.log'), // logs stored in folder
       level: "debug", // capture ALL logs
-      maxsize: 5_000_000,  // optional 5MB rotation
-      maxFiles: 5
+      maxsize: 5_000_000  // optional 5MB rotation
     })
   ],
 });

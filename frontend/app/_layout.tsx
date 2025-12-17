@@ -79,9 +79,7 @@ function ThemedApp() {
       }
     };
   
-    if (user) {
-      initialize();
-    }
+    if (user) initialize();
   }, [user]);
 
   if (loading) return <Loading/>;
