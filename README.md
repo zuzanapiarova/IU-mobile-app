@@ -1,5 +1,27 @@
-# ONE PLACE
-## HABIT TRACKING MOBILE APP
+# ONE PLACE - Habit Tracking Application – IU Mobile Software Engineering Project
+
+This repository contains a habit tracking mobile application developed as part of the course Mobile Software Engineering II at IU International University of Applied Sciences.
+The project was created for academic purposes and demonstrates the practical application of mobile software engineering concepts, including application architecture, state management, backend integration, authentication, testing, and continuous integration.
+
+The goal of the application is to support users in building and maintaining positive habits. interact with the app by defining individual habits, checking off habits on a daily basis, and review ingtheir progress using graphical visualizations and statistics. They can configure their personal preferences in their profile. Focus was on simplicity and clarity of use and long-term progress visibility. It was created following the <a href="https://m3.material.io" target="_blank">Google Material Design Principles. </a>
+
+![Login Screen](docs/login.PNG)
+![Home Screen](docs/home.PNG)
+![Retrospective Checklist](docs/checklist.PNG)
+![Dark Mode](docs/dark_mode.PNG)
+![Habits Screen](docs/habits.PNG)
+![Overview Screen](docs/overview.PNG)
+![Profile Screen](docs/profile.PNG)
+
+## Application components
+
+The application is built using React Native with Expo and follows a client–server architecture:
+The frontend provides the user interface, navigation, and visualizations (e.g. habit checklists, calendars, and charts). Local and backend communication is handled through a centralized API layer using Axios. A Node.js / Express backend exposes a REST API for user authentication and habit data management. Habit data is stored in a relational database managed via Prisma ORM.
+Automated tests and a CI workflow ensure build reproducibility and software quality.
+
+![Architecture overview graph](docs/final_architecture.png)
+![Database Scheme](docs/database_scheme.png)
+![Login Interaction Overview Diagram](docs/login_interaction.png)
 
 ## Execution
 
@@ -86,3 +108,5 @@ Test are available for the frontend components and files making calls to the bac
 
 `cd backend`
 `npm run test`
+
+![Logout](docs/logout.PNG)
