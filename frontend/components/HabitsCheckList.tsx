@@ -92,12 +92,11 @@ export default function HabitsList({ date, onHabitsUpdated }: {date: string, onH
           </Text>
         )}
         left={() => (
-          <TouchableOpacity onPress={() => toggleCheck(item.habit_id)}>
+          <TouchableOpacity onPress={() => toggleCheck(item.habit_id)} testID={`toggle-habit-${item.habit_id}`} accessibilityRole="button">
             <MaterialCommunityIcons 
               size={24} 
               color={isChecked ? theme.colors.primary : theme.colors.outline}
               name={isChecked ? "check-circle-outline" : "circle-outline"}
-              testID={`toggle-habit-${item.habit_id}`}
             />
           </TouchableOpacity>
         )}

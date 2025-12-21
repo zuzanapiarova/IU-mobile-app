@@ -1,130 +1,186 @@
+import React from 'react';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import HabitsList from '../../components/HabitsCheckList';
+import { completeHabit, uncompleteHabit, getHabitsForDay } from '../../api/habitsApi';
+import { useUser } from '@/constants/UserContext';
+import { useConnection } from '@/constants/ConnectionContext';
+import { useNavigation } from '@react-navigation/native';
+
+// ---------- Mocks ----------
+jest.mock('../../api/habitsApi');
+jest.mock('@/constants/UserContext');
+jest.mock('@/constants/ConnectionContext');
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ navigate: jest.fn() }),
-  useFocusEffect: jest.fn(),
+  useNavigation: jest.fn(),
+  useFocusEffect: (cb: any) => cb(),
 }));
 
-import React from 'react';
-import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
-import HabitsCheckList from '../../components/HabitsCheckList';
-import { useUser } from '../../constants/UserContext';
-import { completeHabit, getHabitsForDay } from '../../api/habitsApi';
-import { Provider as PaperProvider } from 'react-native-paper';
-import { NavigationContainer } from '@react-navigation/native';
-import { useConnection } from '../../constants/ConnectionContext';
-
-jest.mock('../../constants/UserContext', () => ({ useUser: jest.fn() }));
-jest.mock('../../api/habitsApi', () => ({
-  completeHabit: jest.fn(),
-  getHabitsForDay: jest.fn(),
-}));
-jest.mock('../../constants/ConnectionContext', () => ({
-  useConnection: jest.fn(),
+jest.mock('@expo/vector-icons', () => ({
+  MaterialCommunityIcons: ({ testID }: any) => <>{testID}</>,
 }));
 
-describe('HabitsCheckList', () => {
-  const mockUser = {
+const mockNavigate = jest.fn();
+(useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
+
+const mockSetBannerMessage = jest.fn();
+(useConnection as jest.Mock).mockReturnValue({
+  setBannerMessage: mockSetBannerMessage,
+});
+
+// mock data
+const mockUser = {
+  id: 1,
+  successLimit: 80,
+  failureLimit: 30,
+  createdAt: '2024-01-01',
+};
+
+const mockHabits = [
+  {
     id: 1,
-    name: 'Alice',
-    email: 'alice@example.com',
-    createdAt: '2023-01-01',
-    successLimit: 80,
-    failureLimit: 20,
-  };
+    habit_id: 101,
+    name: 'Drink Water',
+    status: 0,
+  },
+  {
+    id: 2,
+    habit_id: 102,
+    name: 'Read Book',
+    status: 1,
+  },
+];
 
+describe('HabitsList – rendering', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-
     (useUser as jest.Mock).mockReturnValue({ user: mockUser });
-    (useConnection as jest.Mock).mockReturnValue({
-      isConnected: true,
-      isBackendReachable: true,
-      setIsConnected: jest.fn(),
-      setIsBackendReachable: jest.fn(),
-      bannerMessage: null,
-      setBannerMessage: jest.fn(),
-    });
+    (getHabitsForDay as jest.Mock).mockResolvedValue(mockHabits);
   });
 
-  const renderWithProviders = (ui: React.ReactElement) =>
-    render(
-      <NavigationContainer>
-        <PaperProvider>{ui}</PaperProvider>
-      </NavigationContainer>
-    );
-
-  // Test: Renders with no habits
-  it('renders with no habits', async () => {
-    (getHabitsForDay as jest.Mock).mockResolvedValue([]);
-
-    const { findByText } = renderWithProviders(<HabitsCheckList date="2023-11-23" />);
-
-    expect(await findByText('No records for this day.')).toBeTruthy();
-  });
-
-  // Test: Renders with habits and toggles completion
-  it('renders with habits and toggles completion', async () => {
-    (getHabitsForDay as jest.Mock).mockResolvedValue([
-      {"current": false, "date": "2023-11-23", "frequency": "daily", "habit_id": 1, "id": 702, "name": "Exercise", "status": false, "timestamp": "2025-12-07T17:16:13.263Z"}, 
-      {"current": false, "date": "2023-11-23", "frequency": "daily", "habit_id": 2, "id": 703, "name": "Read", "status": true, "timestamp": "2025-12-07T17:16:13.992Z"},
-    ]);
-
-    const { getByText, findByTestId } = renderWithProviders(
-      <HabitsCheckList date="2023-11-23" />
-    );
-
-    await waitFor(() => {
-      expect(getByText('Exercise')).toBeTruthy();
-      expect(getByText('Read')).toBeTruthy();
-    });
-
-    const toggleButton = await findByTestId('toggle-habit-1');
-
-    await act(async () => {
-      fireEvent.press(toggleButton);
-    });
-
-    await waitFor(() => {
-      expect(completeHabit).toHaveBeenCalledWith(1, '2023-11-23');
-    });
-  });
-
-  // Test: Shows "Add Habit" button for today if there are no habits
-  it('shows Add Habit button today', async () => {
-    (getHabitsForDay as jest.Mock).mockResolvedValue([]);
-
+  it('renders today header and habits', async () => {
     const today = new Date().toISOString().split('T')[0];
 
-    const { getByText } = renderWithProviders(
-      <HabitsCheckList date={today} />
-    );
+    const { getByText } = render(<HabitsList date={today} />);
 
-    const addButton = await getByText('Add Habit');
-
-    await act(async () => {
-      fireEvent.press(addButton);
+    await waitFor(() => {
+      expect(getByText("Today's Tasks")).toBeTruthy();
+      expect(getByText('Drink Water')).toBeTruthy();
+      expect(getByText('Read Book')).toBeTruthy();
     });
-
-    // expect(mockNavigate).toHaveBeenCalledWith('habits');
   });
 
-  // Test: Shows "No records for this day" for a future date
-  it('shows no records for a future date', async () => {
+  it('completes an unfinished habit when toggled', async () => {
+    (useUser as jest.Mock).mockReturnValue({ user: mockUser });
+    (getHabitsForDay as jest.Mock).mockResolvedValue(mockHabits);
+    (completeHabit as jest.Mock).mockResolvedValue(undefined);
+  
+    const today = new Date().toISOString().split('T')[0];
+    const onUpdated = jest.fn();
+  
+    const { getByTestId } = render(
+      <HabitsList date={today} onHabitsUpdated={onUpdated} />
+    );
+  
+    const toggle = await waitFor(() =>
+      getByTestId('toggle-habit-101')
+    );
+    
+    fireEvent.press(toggle);
+  
+    await waitFor(() => {
+      expect(completeHabit).toHaveBeenCalledWith(101, today);
+      expect(onUpdated).toHaveBeenCalled();
+    });
+  });
+
+  it('completes an unfinished habit when toggled', async () => {
+    (useUser as jest.Mock).mockReturnValue({ user: mockUser });
+    (getHabitsForDay as jest.Mock).mockResolvedValue(mockHabits);
+    (completeHabit as jest.Mock).mockResolvedValue(undefined);
+  
+    const today = new Date().toISOString().split('T')[0];
+    const onUpdated = jest.fn();
+  
+    const { getByTestId } = render(
+      <HabitsList date={today} onHabitsUpdated={onUpdated} />
+    );
+  
+    await waitFor(() => {
+      fireEvent.press(getByTestId('toggle-habit-101'));
+    });
+  
+    await waitFor(() => {
+      expect(completeHabit).toHaveBeenCalledWith(101, today);
+      expect(onUpdated).toHaveBeenCalled();
+    });
+  });
+
+  it('uncompletes a completed habit when toggled', async () => {
+    (useUser as jest.Mock).mockReturnValue({ user: mockUser });
+    (getHabitsForDay as jest.Mock).mockResolvedValue(mockHabits);
+    (uncompleteHabit as jest.Mock).mockResolvedValue(undefined);
+  
+    const today = new Date().toISOString().split('T')[0];
+  
+    const { getByTestId } = render(<HabitsList date={today} />);
+  
+    await waitFor(() => {
+      fireEvent.press(getByTestId('toggle-habit-102'));
+    });
+  
+    expect(uncompleteHabit).toHaveBeenCalledWith(102, today);
+  });
+
+  it('shows Add Habit button when no habits exist for today', async () => {
+    (useUser as jest.Mock).mockReturnValue({ user: mockUser });
     (getHabitsForDay as jest.Mock).mockResolvedValue([]);
-
-    const { findByText } = renderWithProviders(<HabitsCheckList date="2030-12-01" />);
-
-    expect(await findByText('No records for this day.')).toBeTruthy();
+  
+    const today = new Date().toISOString().split('T')[0];
+    const { getByText } = render(<HabitsList date={today} />);
+  
+    await waitFor(() => {
+      expect(getByText('Add Habit')).toBeTruthy();
+    });
+  
+    fireEvent.press(getByText('Add Habit'));
+    expect(mockNavigate).toHaveBeenCalledWith('habits');
   });
 
-  // Test: Shows "not active yet" for dates before user creation
-  it('shows "not active yet" for dates before user creation', async () => {
+  it('shows no records message for past date', async () => {
+    (useUser as jest.Mock).mockReturnValue({ user: mockUser });
     (getHabitsForDay as jest.Mock).mockResolvedValue([]);
-
-    const { findByText } = renderWithProviders(<HabitsCheckList date="2022-12-31" />);
-
-    expect(
-      await findByText('Your account was not active on this day yet.')
-    ).toBeTruthy();
+  
+    const { getByText } = render(<HabitsList date="2024-02-01" />);
+  
+    await waitFor(() => {
+      expect(getByText('No records for this day.')).toBeTruthy();
+    });
   });
+
+  it('shows inactive account message for date before user creation', async () => {
+    (useUser as jest.Mock).mockReturnValue({ user: mockUser });
+    (getHabitsForDay as jest.Mock).mockResolvedValue([]);
+  
+    const { getByText } = render(<HabitsList date="2023-01-01" />);
+  
+    await waitFor(() => {
+      expect(
+        getByText('Your account was not active on this day yet.')
+      ).toBeTruthy();
+    });
+  });
+
+  it('shows banner message on API error', async () => {
+    (useUser as jest.Mock).mockReturnValue({ user: mockUser });
+    (getHabitsForDay as jest.Mock).mockRejectedValue(new Error('Network error'));
+  
+    const today = new Date().toISOString().split('T')[0];
+    render(<HabitsList date={today} />);
+  
+    await waitFor(() => {
+      expect(mockSetBannerMessage).toHaveBeenCalledWith('Network error');
+    });
+  });
+
 });
