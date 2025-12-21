@@ -67,7 +67,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const storedUser = await SecureStore.getItemAsync('user');
 
         if (!token) {
-          // No token => ensure we do not keep stale user
           setUser(null);
           if (storedUser) await SecureStore.deleteItemAsync('user');
           return;
