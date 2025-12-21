@@ -89,7 +89,7 @@ describe('HabitsCheckList', () => {
     });
   });
 
-  // Test: Shows "Add Habit" button for today
+  // Test: Shows "Add Habit" button for today if there are no habits
   it('shows Add Habit button today', async () => {
     (getHabitsForDay as jest.Mock).mockResolvedValue([]);
 

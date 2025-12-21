@@ -2,6 +2,11 @@ import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { User } from "@/constants/interfaces";
 
+export interface AuthResponse {
+  user: User;
+  token: string;
+}
+
 // http client to make GET/POST/PUT/DELETE requests in node apps
 const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://127.0.0.1:3000';
 export const api = axios.create({
@@ -12,15 +17,16 @@ export const api = axios.create({
 // Attach token to every request
 api.interceptors.request.use(async (config) => {
   const token = await SecureStore.getItemAsync('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  config.headers = config.headers ?? {};
+  if (token) (config.headers as any).Authorization = `Bearer ${token}`;
   return config;
 });
 
 // Call to backend to add a new user during signup
-export async function addUser(name: string, email: string, password: string): Promise<User> {
+export async function addUser(name: string, email: string, password: string): Promise<AuthResponse> {
   try {
     const { data } = await api.post('/users', { name, email, password });
-    return data;
+    return data as AuthResponse;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       if (error.code === 'ECONNABORTED') {
@@ -36,11 +42,11 @@ export async function addUser(name: string, email: string, password: string): Pr
 }
 
 // Call to backend to get user by email during login
-export async function loginUser(email: string, password: string): Promise<User | null> {
+export async function loginUser(email: string, password: string): Promise<AuthResponse> {
 	try {
-		const res = await api.post(`/login`, { email, password });
-		return res.data;
-	} catch (error) {
+    const { data } = await api.post(`/login`, { email, password });
+    return data as AuthResponse;
+  } catch (error) {
 		if (axios.isAxiosError(error)) {
 			if (error.code === 'ECONNABORTED') {
 				throw new Error('The request timed out. Please try again.');

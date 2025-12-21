@@ -5,12 +5,36 @@ const bcrypt = require('bcrypt');
 const { PrismaClient } = require('@prisma/client');
 const { initializeDatabase } = require('./initDatabase');
 const logger = require('./logger');
+const jwt = require('jsonwebtoken'); // NEW
 
 const app = express();
 const prisma = new PrismaClient();
 
 app.use(cors());
 app.use(express.json());
+
+// JWT helper
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '30d';
+
+function signToken(user) {
+  // Minimal payload; include id and email
+  return jwt.sign({ sub: user.id, email: user.email }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+}
+
+function auth(req, res, next) {
+  const header = req.headers.authorization || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+  if (!token) return res.status(401).json({ error: 'Missing token' });
+
+  try {
+    const payload = jwt.verify(token, JWT_SECRET);
+    req.user = { id: payload.sub, email: payload.email };
+    next();
+  } catch {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+}
 
 // Helper to mask sensitive fields in an object (shallow) to avoid logging raw passwords/tokens
 function maskSensitive(obj = {}) {
@@ -58,7 +82,7 @@ app.use((req, res, next) => {
 // USERS endpoints -------------------------------------------------------------------
 
 // Fetch all users
-app.get('/users', async (req, res) => {
+app.get('/users', auth, async (req, res) => {
   logger.info('GET /users - fetching all users');
   try {
     const users = await prisma.user.findMany({
@@ -92,7 +116,8 @@ app.post('/users', async (req, res) => {
     logger.info('User created successfully', { userId: newUser.id, email });
 
     const { password: _, ...safeUser } = newUser;
-    res.status(201).json(safeUser);
+    const token = signToken(safeUser); // NEW
+    res.status(201).json({ user: safeUser, token }); // CHANGED
   } catch (error) {
     logger.error('Signup failed due to internal server error.', { error: error?.message, stack: error?.stack, email });
     res.status(500).json({ error: 'Internal Server Error' });
@@ -120,16 +145,20 @@ app.post('/login', async (req, res) => {
     logger.info('Login successful', { userId: user.id, email });
 
     const { password: _, ...safeUser } = user;
-    res.json(safeUser);
+    const token = signToken(safeUser); // NEW
+    res.json({ user: safeUser, token }); // CHANGED
   } catch (error) {
     logger.error('Login failed due to internal server error.', { error: error?.message, stack: error?.stack, email });
     res.status(500).json({ error: 'Internal Server Error' });
   }
-});
+})
 
 // SAFE UPDATE USER
-app.put('/users/:id', async (req, res) => {
+app.put('/users/:id', auth, async (req, res) => {
   const userId = Number(req.params.id);
+  if (userId !== req.user.id) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
   const updates = req.body;
   logger.info('PUT /users/:id - update attempt', { userId, updates: process.env.LOG_LEVEL === 'debug' ? maskSensitive(updates) : undefined });
 
@@ -185,8 +214,11 @@ app.put('/users/:id', async (req, res) => {
 // HABITS endpoints -------------------------------------------------------------------------
 
 // GET /habits - Fetch all habits for a specific user
-app.get('/habits', async (req, res) => {
-  const { userId } = req.query;
+app.get('/habits', auth, async (req, res) => {
+  const userId = Number(req.query.userId);
+  if (!userId || userId !== req.user.id) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
   logger.info('GET /habits - fetch habits request', { userId });
 
   if (!userId) {
@@ -208,7 +240,10 @@ app.get('/habits', async (req, res) => {
 });
 
 // POST /habits - Add a new habit
-app.post('/habits', async (req, res) => {
+app.post('/habits', auth, async (req, res) => {
+  if (req.body.userId !== req.user.id) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
   const today = new Date().toISOString().split('T')[0];
   const { name, frequency, userId } = req.body;
   logger.info('POST /habits - create habit attempt', { name, frequency, userId });
@@ -259,7 +294,7 @@ app.post('/habits', async (req, res) => {
 });
 
 // GET /habits/:id - Get a habit by ID
-app.get('/habits/:id', async (req, res) => {
+app.get('/habits/:id', auth, async (req, res) => {
   const { id } = req.params;
   logger.info('GET /habits/:id - fetch habit', { habitId: id });
 
@@ -271,6 +306,9 @@ app.get('/habits/:id', async (req, res) => {
       logger.warn('Habit not found', { habitId: id });
       return res.status(404).json({ error: 'Habit not found' });
     }
+    if (habit.userId !== req.user.id) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
     logger.info('Habit fetched', { habitId: id });
     res.json(habit);
   } catch (error) {
@@ -280,12 +318,21 @@ app.get('/habits/:id', async (req, res) => {
 });
 
 // PUT /habits/:id - Update a habit
-app.put('/habits/:id', async (req, res) => {
+app.put('/habits/:id', auth, async (req, res) => {
   const { id } = req.params;
   const { name, frequency } = req.body;
   logger.info('PUT /habits/:id - update attempt', { habitId: id, name, frequency });
 
   try {
+    const habit = await prisma.habit.findUnique({ where: { id: parseInt(id) } });
+    if (!habit) {
+      logger.warn('Habit not found', { habitId: id });
+      return res.status(404).json({ error: 'Habit not found' });
+    }
+    if (habit.userId !== req.user.id) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
     const updatedHabit = await prisma.habit.update({
       where: { id: parseInt(id) },
       data: { name, frequency },
@@ -299,7 +346,7 @@ app.put('/habits/:id', async (req, res) => {
 });
 
 // DELETE /habits/:id - Delete a habit
-app.delete('/habits/:id', async (req, res) => {
+app.delete('/habits/:id', auth, async (req, res) => {
   const today = new Date().toISOString().split('T')[0];
   const { id } = req.params;
   const habitId = parseInt(id);
@@ -315,6 +362,9 @@ app.delete('/habits/:id', async (req, res) => {
     if (!habit) {
       logger.warn('Delete failed - habit not found', { habitId });
       return res.status(404).json({ error: 'Habit not found' });
+    }
+    if (habit.userId !== req.user.id) {
+      return res.status(403).json({ error: 'Forbidden' });
     }
 
     // delete related habit completions for today's date
@@ -353,7 +403,7 @@ app.delete('/habits/:id', async (req, res) => {
 });
 
 // POST /habits/:id/complete - Mark a habit as completed
-app.post('/habits/:id/complete', async (req, res) => {
+app.post('/habits/:id/complete', auth, async (req, res) => {
   const today = new Date().toISOString().split('T')[0];
   const { id } = req.params;
   const { date } = req.body;
@@ -361,6 +411,10 @@ app.post('/habits/:id/complete', async (req, res) => {
   logger.info('POST /habits/:id/complete - completing habit', { habitId: id, day });
 
   try {
+    const habit = await prisma.habit.findUnique({ where: { id: parseInt(id) } });
+    if (!habit) return res.status(404).json({ error: 'Habit not found' });
+    if (habit.userId !== req.user.id) return res.status(403).json({ error: 'Forbidden' });
+
     const existingCompletion = await prisma.habitCompletion.findUnique({
       where: {
         habitId_date: {
@@ -406,7 +460,7 @@ app.post('/habits/:id/complete', async (req, res) => {
 });
 
 // POST /habits/:id/uncomplete - Mark a habit as uncompleted
-app.post('/habits/:id/uncomplete', async (req, res) => {
+app.post('/habits/:id/uncomplete', auth, async (req, res) => {
   const today = new Date().toISOString().split('T')[0];
   const { id } = req.params;
   const { date } = req.body;
@@ -414,6 +468,10 @@ app.post('/habits/:id/uncomplete', async (req, res) => {
   logger.info('POST /habits/:id/uncomplete - uncompleting habit', { habitId: id, day });
 
   try {
+    const habit = await prisma.habit.findUnique({ where: { id: parseInt(id) } });
+    if (!habit) return res.status(404).json({ error: 'Habit not found' });
+    if (habit.userId !== req.user.id) return res.status(403).json({ error: 'Forbidden' });
+
     const uncompletedHabit = await prisma.habitCompletion.update({
       where: {
         habitId_date: {
@@ -433,10 +491,14 @@ app.post('/habits/:id/uncomplete', async (req, res) => {
 });
 
 // GET /habits/completed - Get completed habits for a specific day
-app.get('/habits/completed', async (req, res) => {
+app.get('/habits/completed', auth, async (req, res) => {
   const today = new Date().toISOString().split('T')[0];
-  const { date } = req.query;
+  const { date, userId } = req.query;
   const day = date || today;
+  const paramUserId = Number(userId || req.user.id);
+  if (paramUserId !== req.user.id) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
   logger.info('GET /habits/completed - fetching completed habits', { date: day });
 
   try {
@@ -444,6 +506,7 @@ app.get('/habits/completed', async (req, res) => {
       where: {
         date: day,
         status: true,
+        habit: { userId: paramUserId },
       },
       select: { habitId: true },
     });
@@ -456,12 +519,18 @@ app.get('/habits/completed', async (req, res) => {
 });
 
 // Get completion percentage for a specific day
-app.get('/completion-percentage', async (req, res) => {
-  const { date } = req.query;
+app.get('/completion-percentage', auth, async (req, res) => {
+  const { date, userId } = req.query;
+  const paramUserId = Number(userId || req.user.id);
+  if (paramUserId !== req.user.id) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
   logger.info('GET /completion-percentage - request received', { date });
 
   try {
-    const totalHabits = await prisma.habit.count();
+    const totalHabits = await prisma.habit.count({
+      where: { userId: paramUserId, current: true },
+    });
     if (totalHabits === 0) {
       logger.info('No habits found when calculating completion percentage', { date });
       return res.json({ date, percentage: 0 });
@@ -471,6 +540,7 @@ app.get('/completion-percentage', async (req, res) => {
       where: {
         date: date,
         status: true,
+        habit: { userId: paramUserId },
       },
     });
 
@@ -484,22 +554,22 @@ app.get('/completion-percentage', async (req, res) => {
 });
 
 // GET /habits-for-day - Retrieve habits completed for a specific day
-app.get('/habits-for-day', async (req, res) => {
+app.get('/habits-for-day', auth, async (req, res) => {
   const today = new Date().toISOString().split('T')[0];
   const { userId, allowDeleted, date } = req.query;
   const day = date || today;
   const includeDeleted = allowDeleted === 'true'; 
-  logger.info('GET /habits-for-day - request received', { userId, day, includeDeleted });
-
-  if (!userId) {
-    logger.warn('GET /habits-for-day - missing userId');
-    return res.status(400).json({ error: 'User ID is required' });
+  const paramUserId = Number(userId || req.user.id);
+  if (!paramUserId || paramUserId !== req.user.id) {
+    logger.warn('GET /habits-for-day - forbidden or missing userId', { userId: paramUserId });
+    return res.status(403).json({ error: 'Forbidden' });
   }
+  logger.info('GET /habits-for-day - request received', { userId: paramUserId, day, includeDeleted });
 
   try {
     const habitsForDay = await prisma.habitCompletion.findMany({
       where: { 
-        habit: { userId: parseInt(userId) },
+        habit: { userId: paramUserId },
         date: day,
       },
       include: {
@@ -526,24 +596,24 @@ app.get('/habits-for-day', async (req, res) => {
       current: row.habit?.current || false,
     }));
 
-    logger.info(`GET /habits-for-day - ${day} -  success`, { userId, day, count: results.length });
+    logger.info(`GET /habits-for-day - ${day} -  success`, { userId: paramUserId, day, count: results.length });
     res.json(results);
   } catch (error) {
-    logger.error('Error in getHabitsForDay:', { error: error?.message, stack: error?.stack, userId, date: day });
+    logger.error('Error in getHabitsForDay:', { error: error?.message, stack: error?.stack, userId: paramUserId, date: day });
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
 // POST /initialize-habit-completions - Initialize habit completions for a specific day
-app.post('/initialize-habit-completions', async (req, res) => {
+app.post('/initialize-habit-completions', auth, async (req, res) => {
   const today = new Date().toISOString().split('T')[0];
   const { date } = req.body;
   const day = date || today;
-  logger.info('POST /initialize-habit-completions - request', { day });
+  logger.info('POST /initialize-habit-completions - request', { day, userId: req.user.id });
 
   try {
     const currentHabits = await prisma.habit.findMany({
-      where: { current: true },
+      where: { current: true, userId: req.user.id },
       select: { id: true },
     });
 
@@ -560,7 +630,7 @@ app.post('/initialize-habit-completions', async (req, res) => {
           habitId: id,
           date: day,
           status: false,
-        })),
+        }))
       });
       logger.info('Initialize habit completions completed - success ', { day, createdForCount: habitIds.length });
     } catch (err) {
@@ -579,10 +649,11 @@ app.post('/initialize-habit-completions', async (req, res) => {
 });
 
 // GET /habits-completions/most-recent-date - Get the most recent date from habit completions
-app.get('/habits-completions/most-recent-date', async (req, res) => {
+app.get('/habits-completions/most-recent-date', auth, async (req, res) => {
   logger.info('GET /habits-completions/most-recent-date - request');
   try {
     const mostRecent = await prisma.habitCompletion.findFirst({
+      where: { habit: { userId: req.user.id } },
       orderBy: { date: 'desc' },
       select: { date: true },
     });
@@ -597,22 +668,27 @@ app.get('/habits-completions/most-recent-date', async (req, res) => {
 });
 
 // GET /habits/streaks - Calculate the longest streak for a specific habit
-app.get('/habit-streaks', async (req, res) => {
+app.get('/habit-streaks', auth, async (req, res) => {
   const { userId, habitId, startsAfterDate } = req.query;
   logger.info('GET /habit-streaks - request', { userId, habitId, startsAfterDate });
 
-  if (!userId || !habitId) {
-    logger.warn('GET /habit-streaks - missing userId or habitId', { userId, habitId });
-    return res.status(400).json({ error: 'userId and habitId are required' });
+  const paramUserId = Number(userId || req.user.id);
+  if (!paramUserId || !habitId || paramUserId !== req.user.id) {
+    logger.warn('GET /habit-streaks - missing or forbidden', { userId: paramUserId, habitId });
+    return res.status(403).json({ error: 'Forbidden' });
   }
 
   const today = new Date().toISOString().split('T')[0];
   const startDate = startsAfterDate || '1970-01-01';
   try {
+    const habit = await prisma.habit.findUnique({ where: { id: parseInt(habitId) } });
+    if (!habit) return res.status(404).json({ error: 'Habit not found' });
+    if (habit.userId !== req.user.id) return res.status(403).json({ error: 'Forbidden' });
+
     const completions = await prisma.habitCompletion.findMany({
       where: {
         habitId: parseInt(habitId),
-        habit: { userId: parseInt(userId) },
+        habit: { userId: paramUserId },
         date: { gte: startDate, lte: today },
       },
       orderBy: { date: 'desc' },
@@ -657,10 +733,6 @@ if (require.main === module) {
       logger.error('Failed to initialize the database:', { error: error.message, stack: error.stack });
       process.exit(1); // Exit the process if database initialization fails
     });
-  // logger.info(`Server is starting on port ${port} (host: ${host})`);
-  // app.listen(port, host, () => {
-  //   logger.info(`Server is running on port ${port} (host: ${host})`);
-  // });
 }
 
 // export the app for imports during testing

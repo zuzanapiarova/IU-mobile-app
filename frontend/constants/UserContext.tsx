@@ -20,6 +20,30 @@ interface UserContextType {
 // create user context which has global state
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
+// Decode JWT payload to check expiry (no external deps)
+function decodeJwtPayload(token: string): { exp?: number } | null {
+  try {
+    const [, payload] = token.split('.');
+    const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const json = decodeURIComponent(
+      atob(normalized)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
+
+function isJwtExpired(token: string): boolean {
+  const payload = decodeJwtPayload(token);
+  if (!payload || !payload.exp) return true;
+  const nowInSeconds = Math.floor(Date.now() / 1000);
+  return payload.exp <= nowInSeconds;
+}
+
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -35,26 +59,44 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return true;
   };
 
-  // Load stored user on app start
+  // Load stored user on app start, but only if token exists and is valid
   useEffect(() => {
     (async () => {
       try {
+        const token = await SecureStore.getItemAsync('token');
         const storedUser = await SecureStore.getItemAsync('user');
+
+        if (!token) {
+          setUser(null);
+          if (storedUser) await SecureStore.deleteItemAsync('user');
+          return;
+        }
+
+        if (isJwtExpired(token)) {
+          await SecureStore.deleteItemAsync('token');
+          if (storedUser) await SecureStore.deleteItemAsync('user');
+          setUser(null);
+          setBannerMessage('Your session has expired. Please log in again.');
+          return;
+        }
+
         if (!storedUser) return;
-  
+
         const parsedUser: User = JSON.parse(storedUser);
-        setUser({
+        const normalizedUser: User = {
           ...parsedUser,
           successLimit: parsedUser.successLimit ?? 80,
           failureLimit: parsedUser.failureLimit ?? 20,
           notificationTime: parsedUser.notificationTime ?? '18:00',
-        });
-  
-        if (parsedUser.notificationsEnabled) {
+        };
+        setUser(normalizedUser);
+
+        // Restore notifications per stored preferences
+        if (normalizedUser.notificationsEnabled) {
           const granted = await requestNotificationPermission();
-          if (granted && parsedUser.notificationTime) {
+          if (granted && normalizedUser.notificationTime) {
             await cancelAllNotifications();
-            await scheduleDailyNotification(parsedUser.notificationTime);
+            await scheduleDailyNotification(normalizedUser.notificationTime);
           }
         } else {
           await cancelAllNotifications();
@@ -78,11 +120,14 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   ) => {
     try {
       if (!validateEmail(email)) return;
-      let userData: User | null = null;
-  
+
+      let auth:
+        | { user: User; token: string }
+        | null = null;
+
       if (authMode === 'login') {
-        userData = await loginUser(email, password);
-        if (!userData) {
+        auth = await loginUser(email, password);
+        if (!auth || !auth.user || !auth.token) {
           setErrorMessage('Invalid email or password. Please try again.');
           return;
         }
@@ -91,19 +136,21 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setErrorMessage('Name is required for signup.');
           return;
         }
-        userData = await addUser(name, email, password);
+        auth = await addUser(name, email, password);
       }
-  
-      if (userData) {
-        setUser(userData);
-        await SecureStore.setItemAsync('user', JSON.stringify(userData));
+
+      if (auth) {
+        // Persist token and user
+        await SecureStore.setItemAsync('token', auth.token);
+        await SecureStore.setItemAsync('user', JSON.stringify(auth.user));
+        setUser(auth.user);
         setErrorMessage(null);
-  
-        if (userData.notificationsEnabled) {
+
+        if (auth.user.notificationsEnabled) {
           const granted = await requestNotificationPermission();
-          if (granted && userData.notificationTime) {
+          if (granted && auth.user.notificationTime) {
             await cancelAllNotifications();
-            await scheduleDailyNotification(userData.notificationTime);
+            await scheduleDailyNotification(auth.user.notificationTime);
           }
         } else {
           await cancelAllNotifications();
@@ -120,7 +167,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   // update user on change in parameters, called only from Profile screen
   const updateUser = async (updates: Partial<User>) => {
-
     if (!user) {
       setBannerMessage('You must be logged in!');
       throw new Error('You must be logged in!');
@@ -129,7 +175,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const updatedUser = await updateUserBackend(user.id, updates);
       setUser(updatedUser);
-  
+
       if (updates.notificationsEnabled !== undefined) {
         if (updates.notificationsEnabled === false) {
           await cancelAllNotifications();
@@ -160,6 +206,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     setUser(null);
     await SecureStore.deleteItemAsync('user');
+    await SecureStore.deleteItemAsync('token');
     await Notifications.cancelAllScheduledNotificationsAsync();
   };
 
