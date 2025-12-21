@@ -16,11 +16,6 @@ const token = jwt.sign(
   { expiresIn: process.env.JWT_EXPIRES_IN || '30d' }
 );
 
-// Ensure env is present
-if (!process.env.JWT_SECRET) {
-  throw new Error('JWT_SECRET missing. Ensure [.env](http://_vscodecontentref_/4) is loaded.');
-}
-
 // Mock Prisma client
 const mockUser = {
   findMany: jest.fn(),
