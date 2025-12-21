@@ -1,4 +1,5 @@
-# ONE PLACE - Habit Tracking Application – IU Mobile Software Engineering Project
+# ONE PLACE - A Habit Tracking Application
+## IU Mobile Software Engineering Project
 
 This repository contains a habit tracking mobile application developed as part of the course Mobile Software Engineering II at IU International University of Applied Sciences.
 The project was created for academic purposes and demonstrates the practical application of mobile software engineering concepts, including application architecture, state management, backend integration, authentication, testing, and continuous integration.
@@ -15,9 +16,9 @@ The goal of the application is to support users in building and maintaining posi
 
 ## Application components
 
-The application is built using React Native with Expo and follows a client–server architecture:
+The application is built using React Native with Expo and follows a client–server architecture.
 The frontend provides the user interface, navigation, and visualizations (e.g. habit checklists, calendars, and charts). Local and backend communication is handled through a centralized API layer using Axios. A Node.js / Express backend exposes a REST API for user authentication and habit data management. Habit data is stored in a relational database managed via Prisma ORM.
-Automated tests and a CI workflow ensure build reproducibility and software quality.
+Automated tests and a CI workflow ensure build reproducibility and software quality, focusing on Android environment as subject required an Android application. However, iOS executable can also be created manually.
 
 ![Architecture overview graph](docs/final_architecture.png)
 ![Database Scheme](docs/database_scheme.png)
@@ -31,20 +32,18 @@ Backend is a containerized application with all of its dependencies. It can be s
 
 ##### Sample database
 
-Sample database file is provided to be used by the backend. If no filename is provided in the environment variables, the sample file is used by default. 
-- `/prisma/dev.db`
+Sample database file is provided to be used by the backend. If no filename is provided in the environment variables, the sample file `/prisma/dev.db` is used by default. 
 Sample user data exists in the sample file to browse and edit existing habits and see overview over time. 
-```
-- email: zuzka@gmail.com
-- password: abcdef
-```
+
+- `email: zuzka@gmail.com`
+- `password: abcdef`
 
 ##### Running the containerized application
 
 1. Navigate to the backend/ directory
    `cd backend`
 
-2. Create a .env file with following values. If the environment variable is not created, default value defined in docker-compose.yml will be used. 
+2. Provide a .env file with following values. If the file or specific environment variable is not created, default value defined in docker-compose.yml will be used. 
 - `DATABASE_URL (optional)`: database file
 - `JWT_SECRET (optional)`: secret to sign JWT tokens
 - `JWT_EXPIRES_IN (optional)`: timeframe for keeping the JWT token valid, eg. 30d
@@ -56,7 +55,7 @@ Sample user data exists in the sample file to browse and edit existing habits an
 1. Navigate to the backend/ directory
    `cd backend`
 
-2. Create a .env file with following values. If the environment variable is not created, default value defined in docker-compose.yml will be used. 
+2. Provide a .env file with following values. If the file or specific environment variable is not created, default value defined in docker-compose.yml will be used. 
 - `DATABASE_URL (optional)`: database file
 - `JWT_SECRET (optional)`: secret to sign JWT tokens
 - `JWT_EXPIRES_IN (optional)`: timeframe for keeping the JWT token valid, eg. 30d
@@ -66,7 +65,7 @@ Sample user data exists in the sample file to browse and edit existing habits an
 
 ### Mobile Application
 
-The application must be built for the desired environment (android/ios). There is a GitHub Actions workflow provided for Android build which results in a working .apk executable. This was provided to avoid platform incompatibilities, installing and configuring required build tools and system packages, and to avoid dependency constraints (known also as dependency hell, which was the reason I resorted to this option). If you wish, you can try to execute the steps in the workflow manually on your device, but becasue of resons from previous sentence, I advise against it. The created executable (via the provided workflow or built manually) can be copied to the device and executed. The application can also be simply started via the Expo Go app, used especially during development and testing.
+The application must be built for the desired environment (android/ios). There is a GitHub Actions workflow provided for Android build which results in a working .apk executable. This was created to avoid platform incompatibilities, installing and configuring required build tools and system packages, and to avoid dependency constraints (known also as dependency hell, which was the reason I resorted to this option). If you wish, you can try to execute the steps in the workflow manually on your device (from personal experience, don't). The created executable (via the provided workflow or built manually) can be copied to the device and executed. The application can also be simply started via the Expo Go app, used especially during development and testing.
 
 ##### Build Android executable with provided workflow
 
@@ -74,8 +73,8 @@ The application must be built for the desired environment (android/ios). There i
    `git clone https://github.com/zuzanapiarova/IU-mobile-app.git`
 
 2. The mobile application is online-only, meaning the backend must run and its IP must be provided to the built executable. Otherwise user login will fail, making the application unusable.
-Set environment secrets in Repository Settings --> Security --> Secrets and variables --> Actions --> New Repository Secret
-- `EXPO_PUBLIC_API_URL:` the LAN IP on which the backend is running, eg. 192.168.01.02
+Provide the backend IP to the workflow as an environment secret in Repository Settings --> Security --> Secrets and variables --> Actions --> New Repository Secret
+- `EXPO_PUBLIC_API_URL`: the LAN IP on which the backend is running, eg. 192.168.01.02
 
 3. On push to the repository a build workflow is triggered. 
 
@@ -97,7 +96,7 @@ Set environment secrets in Repository Settings --> Security --> Secrets and vari
 
 ## Tests
 
-Test are available for the frontend components and files making calls to the backend, and the backend server endpoints. 
+Test are available for the frontend components and files making calls to the backend, and the backend server endpoints. They are included in the workflow file so it is ensured the resulting executable is tested. They can also be called manually by:
 
 #### Frontend tests
 
